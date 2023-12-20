@@ -7,4 +7,4 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Application.CalculateBonds;
-public sealed record CalculateBondsCommand(IEnumerable<Bond> Bonds) : IRequest<IOrderedEnumerable<CalculatedBond>>;
+public sealed record CalculateBondsCommand(IEnumerable<Bond> Bonds) : IRequest<CalculationResult>;

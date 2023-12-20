@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Application.CalculateBonds;
-public sealed class CalculateBondsCommandHandler : IRequestHandler<CalculateBondsCommand, IOrderedEnumerable<CalculatedBond>>
+public sealed class CalculateBondsCommandHandler : IRequestHandler<CalculateBondsCommand, CalculationResult>
 {
-    public async Task<IOrderedEnumerable<CalculatedBond>> Handle(CalculateBondsCommand request, CancellationToken cancellationToken)
+    public async Task<CalculationResult> Handle(CalculateBondsCommand request, CancellationToken cancellationToken)
     {
         var result = new List<CalculatedBond>();
 
@@ -27,10 +27,14 @@ public sealed class CalculateBondsCommandHandler : IRequestHandler<CalculateBond
             var priceIndex = priceList.FindIndex(x => x.Id == bond.Id);
             var payoutIndex = couponIncomeList.FindIndex(x => x.Id == bond.Id);
             var mainIncome = incomeList.FindIndex(x => x.Id == bond.Id);
+
             result.Add(new CalculatedBond(bond, CalculatePriority(priceIndex, payoutIndex, mainIncome)));
         }
 
-        return result.OrderBy(x => x.Priority);
+        return new CalculationResult(result.OrderBy(x => x.Priority),
+                                     priceList,
+                                     couponIncomeList,
+                                     incomeList);
     }
 
     private static int CalculatePriority(int priceIndex,

@@ -1,4 +1,7 @@
 
+using Application.Common;
+using Web.Extensions.Mapping;
+
 namespace Web;
 
 public class Program
@@ -15,6 +18,8 @@ public class Program
         {
             config.RegisterServicesFromAssemblies(typeof(AssemblyReference).Assembly);
         });
+
+        builder.Services.RegisterMapsterConfiguration();
 
         var app = builder.Build();
 

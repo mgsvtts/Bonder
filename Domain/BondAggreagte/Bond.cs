@@ -14,13 +14,16 @@ public class Bond
     public Coupon Coupon { get; private set; }
     public DateTime MaturityDate { get; private set; }
 
-    public Bond(string id, string name, Coupon coupon, Money money, DateTime maturityDate)
+    public static Bond Create(string id, string name, Coupon coupon, Money money, DateTime maturityDate)
     {
-        Id = id;
-        Name = name;
-        Coupon = coupon;
-        Money = money;
-        MaturityDate = maturityDate;
+        return new Bond
+        {
+            Id = id,
+            Name = name,
+            Coupon = coupon,
+            Money = money,
+            MaturityDate = maturityDate
+        };
     }
 
     public double GetFullIncome()
