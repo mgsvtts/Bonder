@@ -48,15 +48,17 @@ public class TinkoffGrpcClient : ITinkoffGrpcClient
         var bond = bonds.Instruments.FirstOrDefault(x => x.Ticker.ToUpper() == ticker.ToUpper())
                    ?? throw new BondNotFoundException(ticker);
 
-        var coupons = await _tinkoffApiClient.Instruments.GetBondCouponsAsync(new GetBondCouponsRequest
+        var couponsTask = _tinkoffApiClient.Instruments.GetBondCouponsAsync(new GetBondCouponsRequest
         {
             InstrumentId = bond.Uid,
             From = Timestamp.FromDateTime(DateTime.MinValue.ToUniversalTime()),
             To = Timestamp.FromDateTime(DateTime.MaxValue.ToUniversalTime())
         }, cancellationToken: token);
 
-        var price = await _tinkoffHttpClient.GetBondPriceAsync(bond.Uid, token);
+        var priceTask = _tinkoffHttpClient.GetBondPriceAsync(bond.Uid, token);
 
-        return _mapper.Map<Domain.BondAggreagte.Bond>((bond, coupons, price));
+        await Task.WhenAll(couponsTask.ResponseAsync, priceTask);
+
+        return _mapper.Map<Domain.BondAggreagte.Bond>((bond, couponsTask.ResponseAsync.Result, priceTask.Result));
     }
 }
