@@ -1,11 +1,6 @@
 ﻿using Domain.BondAggreagte;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Application.CalculateBonds;
+namespace Application.Calculation.Common.CalculationService;
 
 public sealed record CalculationResult(IEnumerable<CalculatedBond> CalculatedBonds,
                                        IEnumerable<Bond> PriceSortedBonds,

@@ -1,28 +1,23 @@
 ﻿using Domain.BondAggreagte;
-using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Application.CalculateBonds;
-public sealed class CalculateBondsCommandHandler : IRequestHandler<CalculateBondsCommand, CalculationResult>
+namespace Application.Calculation.Common.CalculationService;
+
+public static class CalculationService
 {
-    public async Task<CalculationResult> Handle(CalculateBondsCommand request, CancellationToken cancellationToken)
+    public static async Task<CalculationResult> CalculateAsync(IEnumerable<Bond> bonds)
     {
         var result = new List<CalculatedBond>();
 
-        var couponIncomeList = request.Bonds.OrderByDescending(x => x.GetCouponOnlyIncome())
-                                            .ToList();
+        var couponIncomeList = bonds.OrderByDescending(x => x.GetCouponOnlyIncome())
+                                    .ToList();
 
-        var priceList = request.Bonds.OrderBy(x => x.Money.Price)
-                                     .ToList();
+        var priceList = bonds.OrderBy(x => x.Money.Price)
+                             .ToList();
 
-        var incomeList = request.Bonds.OrderByDescending(x => x.GetFullIncome())
-                                      .ToList();
+        var incomeList = bonds.OrderByDescending(x => x.GetFullIncome())
+                              .ToList();
 
-        foreach (var bond in request.Bonds)
+        foreach (var bond in bonds)
         {
             var priceIndex = priceList.FindIndex(x => x.Id == bond.Id);
             var payoutIndex = couponIncomeList.FindIndex(x => x.Id == bond.Id);

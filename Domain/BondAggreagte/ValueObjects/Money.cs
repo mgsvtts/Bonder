@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Domain.BondAggreagte.ValueObjects;
 
-namespace Domain.BondAggreagte.ValueObjects;
 public class Money
 {
-    public double DenominationIncome { get; private set; }
+    public decimal NominalIncome { get; private set; }
 
-    public double Price { get; private set; }
+    public decimal Price { get; private set; }
 
-    public Money(double price, double denomination)
+    public Money(decimal price, decimal nominal)
     {
-        DenominationIncome = denomination - price;
+        NominalIncome = nominal - price;
         Price = price;
     }
 }

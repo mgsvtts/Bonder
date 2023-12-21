@@ -1,12 +1,10 @@
-﻿using Mapster;
-using MapsterMapper;
-using System;
-using System.Reflection;
-using static System.Net.Mime.MediaTypeNames;
-using System.Xml.Linq;
-using Application.CalculateBonds;
+﻿using Application.Calculation.Common.CalculationService;
 using Domain.BondAggreagte.ValueObjects;
+using Mapster;
+using MapsterMapper;
 using Presentation.Controllers.BondController.CalculateJson;
+using System.Reflection;
+using Tinkoff.InvestApi.V1;
 
 namespace Web.Extensions.Mapping;
 
@@ -16,15 +14,15 @@ public static class MapsterConfig
     {
         TypeAdapterConfig<Presentation.Controllers.BondController.CalculateJson.Coupon, Domain.BondAggreagte.ValueObjects.Coupon>
         .ForType()
-        .MapWith(x => new Domain.BondAggreagte.ValueObjects.Coupon(x.Date, x.Payout, x.PayRate));
+        .MapWith(x => new Domain.BondAggreagte.ValueObjects.Coupon(x.Date, x.Payout));
 
-        TypeAdapterConfig<Bond, Domain.BondAggreagte.Bond>
+        TypeAdapterConfig<Presentation.Controllers.BondController.CalculateJson.Bond, Domain.BondAggreagte.Bond>
         .ForType()
         .MapWith(x => Domain.BondAggreagte.Bond.Create(x.Ticker,
                                                        x.Name,
-                                                       x.Coupon.Adapt<Domain.BondAggreagte.ValueObjects.Coupon>(),
                                                        new Money(x.Price, x.Denomination),
-                                                       x.EndDate));
+                                                       x.EndDate,
+                                                       x.Coupon.Adapt<Domain.BondAggreagte.ValueObjects.Coupon>()));
 
         TypeAdapterConfig<Domain.BondAggreagte.Bond, PriceBondResponse>
         .ForType()
@@ -41,6 +39,14 @@ public static class MapsterConfig
         TypeAdapterConfig<CalculatedBond, CalculatedBondResponse>
         .ForType()
         .MapWith(x => new CalculatedBondResponse(x.Bond.Id, x.Bond.Name, x.Priority));
+
+        TypeAdapterConfig<(Tinkoff.InvestApi.V1.Bond Bond, GetBondCouponsResponse Coupon, decimal Price), Domain.BondAggreagte.Bond>
+        .ForType()
+        .MapWith(x => Domain.BondAggreagte.Bond.Create(x.Bond.Ticker, x.Bond.Name, new Money(x.Price, x.Bond.Nominal), x.Bond.MaturityDate.ToDateTime(), x.Coupon.Events.Adapt<IEnumerable<Domain.BondAggreagte.ValueObjects.Coupon>>()));
+
+        TypeAdapterConfig<Tinkoff.InvestApi.V1.Coupon, Domain.BondAggreagte.ValueObjects.Coupon>
+        .ForType()
+        .MapWith(x => new Domain.BondAggreagte.ValueObjects.Coupon(x.CouponDate.ToDateTime(), x.PayOneBond));
 
         TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 

@@ -1,13 +1,9 @@
-﻿using Application.CalculateBonds;
+﻿using Application.Calculation.CalculateBonds;
+using Application.Calculation.CalculateTickers;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Controllers.BondController.CalculateJson;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Presentation.Controllers.BondController;
 
@@ -24,9 +20,11 @@ public class BondController : ControllerBase
     }
 
     [HttpPost("tickers")]
-    public async Task CalculateTickers(IEnumerable<string> tickers, CancellationToken token)
+    public async Task<IActionResult> CalculateTickers(IEnumerable<string> tickers, CancellationToken token)
     {
-        await _sender.Send(tickers, token);
+        var result = await _sender.Send(new CalculateTickersCommand(tickers), token);
+
+        return Ok(_mapper.Map<CalculateJsonResponse>(result));
     }
 
     [HttpPost("bonds")]

@@ -1,5 +1,6 @@
-
+using Application.Calculation.CalculateTickers.Interfaces;
 using Application.Common;
+using Infrastructure.Calculation;
 using Web.Extensions.Mapping;
 
 namespace Web;
@@ -21,6 +22,16 @@ public class Program
 
         builder.Services.RegisterMapsterConfiguration();
 
+        builder.Services.AddInvestApiClient((_, settings) => settings.AccessToken = builder.Configuration.GetValue<string>("TinkoffToken"));
+
+        builder.Services.AddTransient<ITinkoffGrpcClient, TinkoffGrpcClient>();
+        builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((provider, client) =>
+        {
+            return new TinkoffHttpClient(provider,
+                                         builder.Configuration.GetValue<string>("TinkoffToken"),
+                                         builder.Configuration.GetValue<string>("TinkoffServerUrl"));
+        });
+
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())
@@ -32,7 +43,6 @@ public class Program
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
-
 
         app.MapControllers();
 
