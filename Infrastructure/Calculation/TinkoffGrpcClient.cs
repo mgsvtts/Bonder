@@ -27,7 +27,7 @@ public class TinkoffGrpcClient : ITinkoffGrpcClient
         return await GetBondAsync(bonds, ticker, token);
     }
 
-    public async Task<IEnumerable<Domain.BondAggreagte.Bond>> GetBondsByTickersAsync(IEnumerable<string> tickers, CancellationToken token = default)
+    public async Task<List<Domain.BondAggreagte.Bond>> GetBondsByTickersAsync(IEnumerable<string> tickers, CancellationToken token = default)
     {
         var bonds = await _tinkoffApiClient.Instruments.BondsAsync(token);
 
@@ -40,7 +40,7 @@ public class TinkoffGrpcClient : ITinkoffGrpcClient
 
         await Task.WhenAll(tasks);
 
-        return tasks.Select(x => x.Result);
+        return tasks.Select(x => x.Result).ToList();
     }
 
     private async Task<Domain.BondAggreagte.Bond> GetBondAsync(BondsResponse bonds, string ticker, CancellationToken token)

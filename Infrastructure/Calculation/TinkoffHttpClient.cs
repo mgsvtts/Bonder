@@ -23,7 +23,7 @@ public class TinkoffHttpClient : ITInkoffHttpClient
     {
         var content = new HttpRequestMessage
         {
-            Content = new StringContent(JsonSerializer.Serialize(new { InstrumentId = bondId }), Encoding.UTF8, "application/json"),
+            Content = new StringContent(JsonSerializer.Serialize(new { instrumentId = new List<string> { bondId } }), Encoding.UTF8, "application/json"),
             RequestUri = new Uri(_tinkoffUrl + "/GetLastPrices"),
             Method = HttpMethod.Post
         };
@@ -32,12 +32,23 @@ public class TinkoffHttpClient : ITInkoffHttpClient
 
         response.EnsureSuccessStatusCode();
 
-        var node = JsonNode.Parse(await response.Content.ReadAsStringAsync(token));
-        var bondLastPrices = JsonSerializer.Deserialize<IEnumerable<BondLastPrice>>(node["lastPrices"]);
+        var bondLastPrices = await ParseLastPricesAsync(response, token);
 
         var price = bondLastPrices.OrderByDescending(x => x.Time).First().Price;
 
-        var stringPrice = $"{price.Units}{price.Nano.ToString().First()}.{price.Nano.ToString().Remove(0, 1)}";
+        return ParsePrice(price);
+    }
+
+    private static async Task<List<BondLastPrice>?> ParseLastPricesAsync(HttpResponseMessage response, CancellationToken token)
+    {
+        var node = JsonNode.Parse(await response.Content.ReadAsStringAsync(token));
+
+        return JsonSerializer.Deserialize<List<BondLastPrice>>(node["lastPrices"]);
+    }
+
+    private static decimal ParsePrice(BondPrice price)
+    {
+        var stringPrice = $"{price.Units}{price.Nano.ToString()[0]}.{price.Nano.ToString().Remove(0, 1)}";
         return decimal.Parse(stringPrice);
     }
 }

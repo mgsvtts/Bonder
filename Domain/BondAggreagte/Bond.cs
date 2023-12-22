@@ -51,14 +51,7 @@ public class Bond
 
     public decimal GetCouponOnlyIncome()
     {
-        decimal income = 0;
-
-        foreach (var coupon in Coupons)
-        {
-            income += Coupons.Count * coupon.Payout * (MaturityDate.Year - DateTime.Now.Year);
-        }
-
-        return income;
+        return Coupons.Count * Coupons[0].Payout * (MaturityDate.Year - DateTime.Now.Year);
     }
 
     public override string ToString()
