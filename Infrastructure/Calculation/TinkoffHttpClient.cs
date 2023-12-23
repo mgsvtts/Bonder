@@ -1,4 +1,4 @@
-﻿using Application.Calculation.CalculateTickers.Interfaces;
+﻿using Application.Calculation.Common.Interfaces;
 using Infrastructure.Calculation.Dto.GetBondPrices;
 using System.Text;
 using System.Text.Json;

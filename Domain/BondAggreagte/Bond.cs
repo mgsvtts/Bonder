@@ -6,13 +6,13 @@ public class Bond
 {
     private List<Coupon> _coupons = new List<Coupon>();
 
-    public string Id { get; private set; }
+    public BondId Id { get; private set; }
     public string Name { get; private set; }
     public Money Money { get; private set; }
     public IReadOnlyList<Coupon> Coupons => _coupons.AsReadOnly();
     public DateTime MaturityDate { get; private set; }
 
-    public static Bond Create(string id,
+    public static Bond Create(BondId id,
                               string name,
                               Money money,
                               DateTime maturityDate,
@@ -28,7 +28,7 @@ public class Bond
         };
     }
 
-    public static Bond Create(string id,
+    public static Bond Create(BondId id,
                               string name,
                               Money money,
                               DateTime maturityDate,
@@ -37,7 +37,7 @@ public class Bond
         return new Bond
         {
             Id = id,
-            Name = name,
+            Name = name.Trim(),
             _coupons = new List<Coupon> { coupon },
             Money = money,
             MaturityDate = maturityDate

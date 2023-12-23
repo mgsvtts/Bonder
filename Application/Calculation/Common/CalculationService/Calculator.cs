@@ -1,10 +1,11 @@
-﻿using Domain.BondAggreagte;
+﻿using Application.Calculation.Common.Interfaces;
+using Domain.BondAggreagte;
 
 namespace Application.Calculation.Common.CalculationService;
 
-public static class CalculationService
+public class Calculator : ICalculator
 {
-    public static async Task<CalculationResult> CalculateAsync(IEnumerable<Bond> bonds)
+    public CalculationResult Calculate(IEnumerable<Bond> bonds)
     {
         var result = new List<CalculatedBond>();
 

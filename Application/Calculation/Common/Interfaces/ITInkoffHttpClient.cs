@@ -1,4 +1,4 @@
-﻿namespace Application.Calculation.CalculateTickers.Interfaces;
+﻿namespace Application.Calculation.Common.Interfaces;
 
 public interface ITInkoffHttpClient
 {

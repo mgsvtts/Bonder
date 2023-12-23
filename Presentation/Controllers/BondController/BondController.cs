@@ -1,13 +1,15 @@
-﻿using Application.Calculation.CalculateBonds;
+﻿using Application.Calculation.CalculateFigis;
 using Application.Calculation.CalculateTickers;
+using Application.Calculation.CalculateUids;
+using Domain.BondAggreagte.ValueObjects;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.Controllers.BondController.CalculateJson;
+using Presentation.Controllers.BondController.Calculate;
 
 namespace Presentation.Controllers.BondController;
 
-[Route("api/calculator")]
+[Route("api/calculate")]
 public class BondController : ControllerBase
 {
     private readonly ISender _sender;
@@ -19,18 +21,16 @@ public class BondController : ControllerBase
         _mapper = mapper;
     }
 
-    [HttpPost("tickers")]
-    public async Task<IActionResult> CalculateTickers(IEnumerable<string> tickers, CancellationToken token)
+    [HttpPost]
+    public async Task<IActionResult> CalculateTickers([FromBody] CalculateRequest request, CancellationToken token)
     {
-        var result = await _sender.Send(new CalculateTickersCommand(tickers), token);
-
-        return Ok(_mapper.Map<CalculateJsonResponse>(result));
-    }
-
-    [HttpPost("bonds")]
-    public async Task<IActionResult> CalculateJson([FromBody] CalculateJsonRequest request, CancellationToken token)
-    {
-        var result = await _sender.Send(_mapper.Map<CalculateBondsCommand>(request), token);
+        var result = request.IdType switch
+        {
+            IdType.Ticker => await _sender.Send(new CalculateTickersCommand(request.Ids.Select(x => new Ticker(x))), token),
+            IdType.UID => await _sender.Send(new CalculateUidsCommand(request.Ids.Select(x => Guid.Parse(x.Trim()))), token),
+            IdType.FIGI => await _sender.Send(new CalculateFigisCommand(request.Ids.Select(x => new Figi(x))), token),
+            _ => throw new NotImplementedException(),
+        };
 
         return Ok(_mapper.Map<CalculateJsonResponse>(result));
     }

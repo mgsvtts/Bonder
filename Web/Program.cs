@@ -1,4 +1,5 @@
-using Application.Calculation.CalculateTickers.Interfaces;
+using Application.Calculation.Common.CalculationService;
+using Application.Calculation.Common.Interfaces;
 using Application.Common;
 using Infrastructure.Calculation;
 using Web.Extensions.Mapping;
@@ -25,6 +26,8 @@ public class Program
         builder.Services.AddInvestApiClient((_, settings) => settings.AccessToken = builder.Configuration.GetValue<string>("TinkoffToken"));
 
         builder.Services.AddTransient<ITinkoffGrpcClient, TinkoffGrpcClient>();
+        builder.Services.AddSingleton<ICalculator, Calculator>();
+
         builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((provider, client) =>
         {
             return new TinkoffHttpClient(provider,
