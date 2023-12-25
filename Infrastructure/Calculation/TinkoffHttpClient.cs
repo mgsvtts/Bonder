@@ -1,30 +1,40 @@
 ﻿using Application.Calculation.Common.Interfaces;
-using Infrastructure.Calculation.Dto.GetBondPrices;
+using Domain.BondAggreagte;
+using Domain.BondAggreagte.ValueObjects;
+using Infrastructure.Calculation.Dto.GetBonds;
+using Infrastructure.Calculation.Dto.GetBonds.TInkoffApiData;
+using MapsterMapper;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace Infrastructure.Calculation;
 
 public class TinkoffHttpClient : ITInkoffHttpClient
 {
     private readonly HttpClient _client;
+    private readonly ITinkoffGrpcClient _grpcClient;
     private readonly string _tinkoffUrl;
+    private readonly IMapper _mapper;
 
-    public TinkoffHttpClient(HttpClient client, string token, string tinkoffUrl)
+    public TinkoffHttpClient(HttpClient client, ITinkoffGrpcClient grpcClient, IMapper mapper, string token, string tinkoffUrl)
     {
         _client = client;
         _tinkoffUrl = tinkoffUrl;
+        _mapper = mapper;
+        _grpcClient = grpcClient;
 
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
     }
 
-    public async Task<decimal> GetBondPriceAsync(string bondId, CancellationToken token = default)
+    public async Task<List<Bond>> GetBondsByTickersAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
     {
+        var request = SerializeToRequest(tickers);
+
         var content = new HttpRequestMessage
         {
-            Content = new StringContent(JsonSerializer.Serialize(new { instrumentId = new List<string> { bondId } }), Encoding.UTF8, "application/json"),
-            RequestUri = new Uri(_tinkoffUrl + "/GetLastPrices"),
+            Content = new StringContent(request, Encoding.UTF8, "application/json"),
+            RequestUri = new Uri(_tinkoffUrl + "/api/trading/bonds/list"),
             Method = HttpMethod.Post
         };
 
@@ -32,23 +42,41 @@ public class TinkoffHttpClient : ITInkoffHttpClient
 
         response.EnsureSuccessStatusCode();
 
-        var bondLastPrices = await ParseLastPricesAsync(response, token);
+        var serializedResponse = await response.Content.ReadFromJsonAsync<TinkoffResponse>(cancellationToken: token)
+                                 ?? throw new InvalidOperationException("Ошибка получения ответа от Tinkoff");
 
-        var price = bondLastPrices.OrderByDescending(x => x.Time).First().Price;
-
-        return ParsePrice(price);
+        return await GetBondsParallelAsync(serializedResponse, token);
     }
 
-    private static async Task<List<BondLastPrice>?> ParseLastPricesAsync(HttpResponseMessage response, CancellationToken token)
+    private async Task<List<Bond>> GetBondsParallelAsync(TinkoffResponse serializedResponse, CancellationToken token)
     {
-        var node = JsonNode.Parse(await response.Content.ReadAsStringAsync(token));
+        var tasks = new List<Task<Bond>>();
 
-        return JsonSerializer.Deserialize<List<BondLastPrice>>(node["lastPrices"]);
+        foreach (var bond in serializedResponse.Payload.Values)
+        {
+            tasks.Add(ConvertToDomainBondAsync(bond, token));
+        }
+
+        await Task.WhenAll(tasks);
+
+        return tasks.Select(x => x.Result)
+                    .ToList();
     }
 
-    private static decimal ParsePrice(BondPrice price)
+    private async Task<Bond> ConvertToDomainBondAsync(TinkoffValue value, CancellationToken token)
     {
-        var stringPrice = $"{price.Units}{price.Nano.ToString()[0]}.{price.Nano.ToString().Remove(0, 1)}";
-        return decimal.Parse(stringPrice);
+        var coupons = await _grpcClient.GetBondCouponsAsync(value.Symbol.SecurityUids.InstrumentUid, token);
+
+        return _mapper.Map<Bond>((value, coupons));
+    }
+
+    private static string SerializeToRequest(IEnumerable<Ticker> tickers)
+    {
+        var request = new GetBondsByTickersRequest
+        {
+            Tickers = tickers.Select(x => x.Value)
+        };
+
+        return JsonSerializer.Serialize(request);
     }
 }

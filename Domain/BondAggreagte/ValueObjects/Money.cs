@@ -1,10 +1,10 @@
 ﻿namespace Domain.BondAggreagte.ValueObjects;
 
-public class Money
+public readonly record struct Money
 {
-    public decimal NominalIncome { get; private set; }
+    public decimal NominalIncome { get; }
 
-    public decimal Price { get; private set; }
+    public decimal Price { get; }
 
     public Money(decimal price, decimal nominal)
     {

@@ -1,6 +1,9 @@
-﻿namespace Application.Calculation.Common.Interfaces;
+﻿using Domain.BondAggreagte;
+using Domain.BondAggreagte.ValueObjects;
+
+namespace Application.Calculation.Common.Interfaces;
 
 public interface ITInkoffHttpClient
 {
-    Task<decimal> GetBondPriceAsync(string bondId, CancellationToken token = default);
+    public Task<List<Bond>> GetBondsByTickersAsync(IEnumerable<Ticker> tickers, CancellationToken token = default);
 }

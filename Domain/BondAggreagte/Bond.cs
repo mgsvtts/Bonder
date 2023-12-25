@@ -1,4 +1,6 @@
-﻿using Domain.BondAggreagte.ValueObjects;
+﻿using Domain.BondAggreagte.Dto;
+using Domain.BondAggreagte.Exceptions;
+using Domain.BondAggreagte.ValueObjects;
 
 namespace Domain.BondAggreagte;
 
@@ -6,16 +8,17 @@ public class Bond
 {
     private List<Coupon> _coupons = new List<Coupon>();
 
-    public BondId Id { get; private set; }
+    public Ticker Id { get; private set; }
     public string Name { get; private set; }
     public Money Money { get; private set; }
     public IReadOnlyList<Coupon> Coupons => _coupons.AsReadOnly();
-    public DateTime MaturityDate { get; private set; }
 
-    public static Bond Create(BondId id,
+    public Dates Dates { get; private set; }
+
+    public static Bond Create(Ticker id,
                               string name,
                               Money money,
-                              DateTime maturityDate,
+                              Dates dates,
                               IEnumerable<Coupon> coupons)
     {
         return new Bond
@@ -24,14 +27,14 @@ public class Bond
             Name = name,
             _coupons = coupons.ToList(),
             Money = money,
-            MaturityDate = maturityDate
+            Dates = dates
         };
     }
 
-    public static Bond Create(BondId id,
+    public static Bond Create(Ticker id,
                               string name,
                               Money money,
-                              DateTime maturityDate,
+                              Dates dates,
                               Coupon coupon)
     {
         return new Bond
@@ -40,22 +43,40 @@ public class Bond
             Name = name.Trim(),
             _coupons = new List<Coupon> { coupon },
             Money = money,
-            MaturityDate = maturityDate
+            Dates = dates
         };
     }
 
-    public decimal GetFullIncome()
+    public decimal GetFullIncome(GetIncomeRequest request)
     {
-        return Money.NominalIncome + GetCouponOnlyIncome();
+        return Money.NominalIncome + GetCouponOnlyIncome(request);
     }
 
-    public decimal GetCouponOnlyIncome()
+    public decimal GetCouponOnlyIncome(GetIncomeRequest request)
     {
-        return Coupons.Count * Coupons[0].Payout * (MaturityDate.Year - DateTime.Now.Year);
+        var year = GetCalculationYear(request);
+
+        if (year < DateTime.Now.Year)
+        {
+            throw new InvalidDateException();
+        }
+
+        return Coupons.Count * Coupons[0].Payout * (year - DateTime.Now.Year);
     }
 
     public override string ToString()
     {
         return Name;
+    }
+
+    private int GetCalculationYear(GetIncomeRequest request)
+    {
+        return request.Type switch
+        {
+            DateIntervalType.TillMaturityDate => Dates.MaturityDate.Year,
+            DateIntervalType.TillOfferDate => (Dates.OfferDate != null ? Dates.OfferDate : Dates.MaturityDate).Value.Year,
+            DateIntervalType.TillDate => request.Date.Value.Year,
+            _ => throw new NotImplementedException(),
+        };
     }
 }

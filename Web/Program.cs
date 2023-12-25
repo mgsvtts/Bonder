@@ -2,6 +2,7 @@ using Application.Calculation.Common.CalculationService;
 using Application.Calculation.Common.Interfaces;
 using Application.Common;
 using Infrastructure.Calculation;
+using MapsterMapper;
 using Web.Extensions.Mapping;
 
 namespace Web;
@@ -25,12 +26,15 @@ public class Program
 
         builder.Services.AddInvestApiClient((_, settings) => settings.AccessToken = builder.Configuration.GetValue<string>("TinkoffToken"));
 
-        builder.Services.AddTransient<ITinkoffGrpcClient, TinkoffGrpcClient>();
         builder.Services.AddSingleton<ICalculator, Calculator>();
 
-        builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((provider, client) =>
+        builder.Services.AddTransient<ITinkoffGrpcClient, TinkoffGrpcClient>();
+
+        builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((client, services) =>
         {
-            return new TinkoffHttpClient(provider,
+            return new TinkoffHttpClient(client,
+                                         services.GetRequiredService<ITinkoffGrpcClient>(),
+                                         services.GetRequiredService<IMapper>(),
                                          builder.Configuration.GetValue<string>("TinkoffToken"),
                                          builder.Configuration.GetValue<string>("TinkoffServerUrl"));
         });

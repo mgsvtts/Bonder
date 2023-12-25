@@ -1,33 +1,25 @@
 ﻿using Application.Calculation.Common.CalculationService;
+using Application.Calculation.Common.CalculationService.Dto;
 using Application.Calculation.Common.Interfaces;
 using MediatR;
 
 namespace Application.Calculation.CalculateTickers;
 
-public sealed class CalculateTickersCommandHandler : IRequestHandler<CalculateTickersCommand, CalculationResult>
+public sealed class CalculateTickersCommandHandler : IRequestHandler<CalculateTickersCommand, CalculationResults>
 {
-    private readonly ITinkoffGrpcClient _grpcClient;
+    private readonly ITInkoffHttpClient _httpClient;
     private readonly ICalculator _calculator;
 
-    public CalculateTickersCommandHandler(ITinkoffGrpcClient grpcClient, ICalculator calculator)
+    public CalculateTickersCommandHandler(ICalculator calculator, ITInkoffHttpClient httpClient)
     {
-        _grpcClient = grpcClient;
         _calculator = calculator;
+        _httpClient = httpClient;
     }
 
-    public async Task<CalculationResult> Handle(CalculateTickersCommand request, CancellationToken cancellationToken)
+    public async Task<CalculationResults> Handle(CalculateTickersCommand request, CancellationToken cancellationToken)
     {
-        var bonds = new List<Domain.BondAggreagte.Bond>();
+        var bonds = await _httpClient.GetBondsByTickersAsync(request.Tickers.DistinctBy(x => x.Value), cancellationToken);
 
-        if (request.Tickers.Count() == 1)
-        {
-            bonds.Add(await _grpcClient.GetBondByTickerAsync(request.Tickers.First(), cancellationToken));
-        }
-        else
-        {
-            bonds.AddRange(await _grpcClient.GetBondsByTickersAsync(request.Tickers.Distinct(), cancellationToken));
-        }
-
-        return _calculator.Calculate(bonds);
+        return _calculator.Calculate(new CalculationRequest(request.Options, bonds));
     }
 }

@@ -1,9 +1,9 @@
 ﻿using Application.Calculation.Common.CalculationService;
-using Domain.BondAggreagte;
+using Application.Calculation.Common.CalculationService.Dto;
 
 namespace Application.Calculation.Common.Interfaces;
 
 public interface ICalculator
 {
-    public CalculationResult Calculate(IEnumerable<Bond> bonds);
+    public CalculationResults Calculate(CalculationRequest request);
 }
