@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Domain.BondAggreagte.Exceptions;
 public sealed class InvalidDateException : Exception
 {
-    public InvalidDateException() : base("Date cannot be in the past")
+    public InvalidDateException() : base("PaymentDate cannot be in the past")
     {
         
     }

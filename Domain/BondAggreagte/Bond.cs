@@ -54,14 +54,16 @@ public class Bond
 
     public decimal GetCouponOnlyIncome(GetIncomeRequest request)
     {
-        var year = GetCalculationYear(request);
+        var date = GetTillDate(request);
 
-        if (year < DateTime.Now.Year)
+        if (date < DateTime.Now)
         {
             throw new InvalidDateException();
         }
 
-        return Coupons.Count * Coupons[0].Payout * (year - DateTime.Now.Year);
+        var coupons = GetCalculationCoupons(date);
+
+        return coupons.Count * Coupons[0].Payout;
     }
 
     public override string ToString()
@@ -69,13 +71,18 @@ public class Bond
         return Name;
     }
 
-    private int GetCalculationYear(GetIncomeRequest request)
+    private List<Coupon> GetCalculationCoupons(DateTime tillDate)
+    {
+        return Coupons.Where(x => x.PaymentDate.Date <= tillDate.Date).ToList();
+    }
+
+    private DateTime GetTillDate(GetIncomeRequest request)
     {
         return request.Type switch
         {
-            DateIntervalType.TillMaturityDate => Dates.MaturityDate.Year,
-            DateIntervalType.TillOfferDate => (Dates.OfferDate != null ? Dates.OfferDate : Dates.MaturityDate).Value.Year,
-            DateIntervalType.TillDate => request.Date.Value.Year,
+            DateIntervalType.TillMaturityDate => Dates.MaturityDate,
+            DateIntervalType.TillOfferDate => (Dates.OfferDate != null ? Dates.OfferDate : Dates.MaturityDate).Value,
+            DateIntervalType.TillDate => request.Date.Value,
             _ => throw new NotImplementedException(),
         };
     }
