@@ -16,7 +16,7 @@ public sealed class DohodHttpClient : IDohodHttpClient
         _serverUrl = serverUrl;
     }
 
-    public async Task<int> GetBondRatingAsync(Isin isin, CancellationToken token = default)
+    public async Task<int?> GetBondRatingAsync(Isin isin, CancellationToken token = default)
     {
         var content = new HttpRequestMessage
         {
@@ -31,7 +31,9 @@ public sealed class DohodHttpClient : IDohodHttpClient
         var serializedResponse = await response.Content.ReadFromJsonAsync<IEnumerable<DohodItem>>(cancellationToken: token)
                                  ?? throw new InvalidOperationException("Ошибка получения ответа от Dohod.ru");
 
-        return int.Parse(serializedResponse.First(x => x.Isin == isin.Value).Rating);
+        var item = serializedResponse.FirstOrDefault(x => x.Isin.ToUpper() == isin.Value);
+
+        return item != null ? int.Parse(item.Rating) : null;
     }
 
     private string BuildQuery(Isin isin)

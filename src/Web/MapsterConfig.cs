@@ -18,7 +18,7 @@ public static class MapsterConfig
         .MapWith(x => new CalculateTickersCommand(new GetIncomeRequest(x.Options.Type, x.Options.TillDate, x.Options.ConsiderDividendCutOffDate),
                                                   x.Tickers.Select(x => new Ticker(x))));
 
-        TypeAdapterConfig<(TinkoffValue Bond, List<Coupon> Coupons, int Rating), Domain.BondAggreagte.Bond>
+        TypeAdapterConfig<(TinkoffValue Bond, List<Coupon> Coupons, int? Rating), Domain.BondAggreagte.Bond>
         .ForType()
         .MapWith(x => Domain.BondAggreagte.Bond.Create(new BondId(new Ticker(x.Bond.Symbol.Ticker),
                                                                   new Isin(x.Bond.Symbol.Isin)),

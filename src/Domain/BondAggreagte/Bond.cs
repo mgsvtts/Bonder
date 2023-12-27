@@ -12,14 +12,14 @@ public class Bond
     public string Name { get; private set; }
     public Money Money { get; private set; }
     public Dates Dates { get; private set; }
-    public int Rating { get; private set; }
+    public int? Rating { get; private set; }
     public IReadOnlyList<Coupon> Coupons => _coupons.AsReadOnly();
 
     public static Bond Create(BondId id,
                               string name,
                               Money money,
                               Dates dates,
-                              int rating,
+                              int? rating,
                               IEnumerable<Coupon> coupons)
     {
         return new Bond
@@ -27,24 +27,6 @@ public class Bond
             Id = id,
             Name = name,
             _coupons = coupons.ToList(),
-            Money = money,
-            Dates = dates,
-            Rating = rating
-        };
-    }
-
-    public static Bond Create(BondId id,
-                              string name,
-                              Money money,
-                              Dates dates,
-                              int rating,
-                              Coupon coupon)
-    {
-        return new Bond
-        {
-            Id = id,
-            Name = name.Trim(),
-            _coupons = new List<Coupon> { coupon },
             Money = money,
             Dates = dates,
             Rating = rating
