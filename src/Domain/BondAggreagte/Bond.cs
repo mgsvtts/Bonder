@@ -1,6 +1,7 @@
 ﻿using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.Exceptions;
 using Domain.BondAggreagte.ValueObjects;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Domain.BondAggreagte;
 
@@ -49,7 +50,12 @@ public class Bond
 
     public decimal GetFullIncome(GetIncomeRequest request)
     {
-        return Money.NominalIncome + GetCouponOnlyIncome(request);
+        if (IsFullIncomeDate(request))
+        {
+            return Money.NominalIncome + GetCouponOnlyIncome(request);
+        }
+
+        return GetCouponOnlyIncome(request);
     }
 
     public decimal GetCouponOnlyIncome(GetIncomeRequest request)
@@ -82,8 +88,19 @@ public class Bond
         {
             DateIntervalType.TillMaturityDate => Dates.MaturityDate,
             DateIntervalType.TillOfferDate => (Dates.OfferDate != null ? Dates.OfferDate : Dates.MaturityDate).Value,
-            DateIntervalType.TillDate => request.Date.Value,
+            DateIntervalType.TillDate => request.TillDate.Value,
             _ => throw new NotImplementedException(),
         };
+    }
+
+    public bool IsFullIncomeDate(GetIncomeRequest request)
+    {
+        return request.IsPaymentType() || DateIsPaymentDate(request);
+    }
+
+    private bool DateIsPaymentDate(GetIncomeRequest request)
+    {
+        return request.TillDate?.Date == Dates.MaturityDate.Date ||
+               request.TillDate?.Date == Dates.OfferDate?.Date;
     }
 }

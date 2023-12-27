@@ -5,7 +5,7 @@ namespace Domain.BondAggreagte.Dto;
 public sealed class GetIncomeRequest
 {
     public DateIntervalType Type { get; }
-    public DateTime? Date { get; }
+    public DateTime? TillDate { get; }
 
     public GetIncomeRequest(DateIntervalType type, DateTime? date = null)
     {
@@ -15,6 +15,11 @@ public sealed class GetIncomeRequest
         }
 
         Type = type;
-        Date = date;
+        TillDate = date;
+    }
+
+    public bool IsPaymentType()
+    {
+        return Type is DateIntervalType.TillMaturityDate or DateIntervalType.TillOfferDate;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Application.Calculation.CalculateTickers;
 using Application.Calculation.Common.CalculationService;
+using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Calculation.Dto.GetBonds.TInkoffApiData;
 using Mapster;
@@ -16,7 +17,7 @@ public static class MapsterConfig
     {
         TypeAdapterConfig<CalculateRequest, CalculateTickersCommand>
         .ForType()
-        .MapWith(x => new CalculateTickersCommand(x.Options, x.Tickers.Select(x => new Ticker(x))));
+        .MapWith(x => new CalculateTickersCommand(new GetIncomeRequest(x.Options.Type, x.Options.TillDate), x.Tickers.Select(x => new Ticker(x))));
 
         TypeAdapterConfig<(TinkoffValue Bond, List<Domain.BondAggreagte.ValueObjects.Coupon> Coupons), Domain.BondAggreagte.Bond>
         .ForType()
