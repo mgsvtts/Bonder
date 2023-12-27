@@ -16,13 +16,19 @@ public static class ProgramExtensions
 
         builder.Services.AddTransient<ITinkoffGrpcClient, TinkoffGrpcClient>();
 
-        builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((client, services) =>
+        builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((httpClient, services) =>
         {
-            return new TinkoffHttpClient(client,
+            return new TinkoffHttpClient(httpClient,
                                          services.GetRequiredService<ITinkoffGrpcClient>(),
                                          services.GetRequiredService<IMapper>(),
+                                         services.GetRequiredService<IDohodHttpClient>(),
                                          builder.Configuration.GetValue<string>("TinkoffToken"),
                                          builder.Configuration.GetValue<string>("TinkoffServerUrl"));
+        });
+
+        builder.Services.AddHttpClient<IDohodHttpClient, DohodHttpClient>(httpClient =>
+        {
+            return new DohodHttpClient(httpClient, builder.Configuration.GetValue<string>("DohodServerUrl"));
         });
 
         return builder;
@@ -44,7 +50,6 @@ public static class ProgramExtensions
 
     public static WebApplicationBuilder AddPresentation(this WebApplicationBuilder builder)
     {
-
         builder.Services.AddControllers(options =>
         {
             options.Filters.Add<CustomExceptionFilter>();

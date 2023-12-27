@@ -8,7 +8,7 @@ public sealed class GetIncomeRequest
     public DateTime? TillDate { get; }
     public bool ConsiderDividendCutOffDate { get; }
 
-    public GetIncomeRequest(DateIntervalType type, 
+    public GetIncomeRequest(DateIntervalType type,
                             DateTime? date = null,
                             bool considerDividendCutOffDate = true)
     {

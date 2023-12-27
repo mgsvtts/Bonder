@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
+﻿namespace Bonder.Tests.Domain.AggregateTests;
 
-namespace Bonder.Tests.Domain.AggregateTests;
 public class BondTests
 {
-
 }

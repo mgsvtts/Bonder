@@ -1,7 +1,5 @@
 ﻿using Domain.BondAggreagte;
-using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
-using MediatR;
 
 namespace Application.Calculation.Common.CalculationService.Dto;
 
@@ -15,6 +13,7 @@ public record struct CalculationResults
     public IEnumerable<CalculationMoneyResult> FullIncomeSortedBonds { get; }
     public IEnumerable<CalculationMoneyResult> CouponIncomeSortedBonds { get; }
     public IEnumerable<CalculationMoneyResult> NominalIncomeSortedBonds { get; }
+    public IEnumerable<CalculationRatingResult> RatingSortedBonds { get; }
 
     public readonly void Add(CalculationResult result)
     {
@@ -37,9 +36,12 @@ public record struct CalculationResults
 
         CouponIncomeSortedBonds = incomes.OrderByDescending(x => x.Value.CouponIncome)
                                          .Select(x => new CalculationMoneyResult(x.Key, x.Value.CouponIncome));
-        
+
         NominalIncomeSortedBonds = incomes.OrderByDescending(x => x.Value.NominalIncome)
                                           .Select(x => new CalculationMoneyResult(x.Key, x.Value.NominalIncome));
+
+        RatingSortedBonds = request.Bonds.OrderByDescending(x => x.Rating)
+                                         .Select(x => new CalculationRatingResult(x, x.Rating));
     }
 
     public CalculationResults OrderByPriority()

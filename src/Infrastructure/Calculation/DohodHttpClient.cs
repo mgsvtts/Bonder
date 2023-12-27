@@ -1,0 +1,48 @@
+﻿using Domain.BondAggreagte.ValueObjects;
+using Infrastructure.Calculation.Dto.GetRating;
+using Microsoft.AspNetCore.Http.Extensions;
+using System.Net.Http.Json;
+
+namespace Infrastructure.Calculation;
+
+public sealed class DohodHttpClient : IDohodHttpClient
+{
+    private readonly HttpClient _client;
+    private readonly string _serverUrl;
+
+    public DohodHttpClient(HttpClient client, string serverUrl)
+    {
+        _client = client;
+        _serverUrl = serverUrl;
+    }
+
+    public async Task<int> GetBondRatingAsync(Isin isin, CancellationToken token = default)
+    {
+        var content = new HttpRequestMessage
+        {
+            RequestUri = new Uri(BuildQuery(isin)),
+            Method = HttpMethod.Get
+        };
+
+        var response = await _client.SendAsync(content, token);
+
+        response.EnsureSuccessStatusCode();
+
+        var serializedResponse = await response.Content.ReadFromJsonAsync<IEnumerable<DohodItem>>(cancellationToken: token)
+                                 ?? throw new InvalidOperationException("Ошибка получения ответа от Dohod.ru");
+
+        return int.Parse(serializedResponse.First(x => x.Isin == isin.Value).Rating);
+    }
+
+    private string BuildQuery(Isin isin)
+    {
+        var query = new Dictionary<string, string>
+        {
+            ["action"] = "replacement",
+            ["isin"] = isin.Value,
+            ["mode"] = "regular"
+        };
+
+        return _serverUrl + "/assets/components/dohodbonds/connectorweb.php" + new QueryBuilder(query);
+    }
+}

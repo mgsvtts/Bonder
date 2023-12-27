@@ -1,8 +1,6 @@
 ﻿using Application.Calculation.Common.CalculationService.Dto;
 using Application.Calculation.Common.CalculationService.Extensions;
 using Application.Calculation.Common.Interfaces;
-using Domain.BondAggreagte;
-using Domain.BondAggreagte.ValueObjects;
 
 namespace Application.Calculation.Common.CalculationService;
 
@@ -16,17 +14,19 @@ public class Calculator : ICalculator
         {
             var priceIndex = results.PriceSortedBonds.FindBondIndex(bond.Id);
             var fullIncomeIndex = results.FullIncomeSortedBonds.FindBondIndex(bond.Id);
+            var ratingIndex = results.RatingSortedBonds.FindBondIndex(bond.Id);
 
             results.Add(new CalculationResult(bond,
-                                              CalculatePriority(priceIndex, fullIncomeIndex)));
+                                              CalculatePriority(priceIndex, fullIncomeIndex, ratingIndex)));
         }
 
         return results.OrderByPriority();
     }
 
     private static int CalculatePriority(int priceIndex,
-                                         int fullIncomeIndex)
+                                         int fullIncomeIndex,
+                                         int ratingIndex)
     {
-        return priceIndex + fullIncomeIndex;
+        return priceIndex + fullIncomeIndex + ratingIndex;
     }
 }

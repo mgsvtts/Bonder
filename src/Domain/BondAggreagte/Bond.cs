@@ -1,7 +1,6 @@
 ﻿using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.Exceptions;
 using Domain.BondAggreagte.ValueObjects;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Domain.BondAggreagte;
 
@@ -9,17 +8,18 @@ public class Bond
 {
     private List<Coupon> _coupons = new List<Coupon>();
 
-    public Ticker Id { get; private set; }
+    public BondId Id { get; private set; }
     public string Name { get; private set; }
     public Money Money { get; private set; }
+    public Dates Dates { get; private set; }
+    public int Rating { get; private set; }
     public IReadOnlyList<Coupon> Coupons => _coupons.AsReadOnly();
 
-    public Dates Dates { get; private set; }
-
-    public static Bond Create(Ticker id,
+    public static Bond Create(BondId id,
                               string name,
                               Money money,
                               Dates dates,
+                              int rating,
                               IEnumerable<Coupon> coupons)
     {
         return new Bond
@@ -28,14 +28,16 @@ public class Bond
             Name = name,
             _coupons = coupons.ToList(),
             Money = money,
-            Dates = dates
+            Dates = dates,
+            Rating = rating
         };
     }
 
-    public static Bond Create(Ticker id,
+    public static Bond Create(BondId id,
                               string name,
                               Money money,
                               Dates dates,
+                              int rating,
                               Coupon coupon)
     {
         return new Bond
@@ -44,7 +46,8 @@ public class Bond
             Name = name.Trim(),
             _coupons = new List<Coupon> { coupon },
             Money = money,
-            Dates = dates
+            Dates = dates,
+            Rating = rating
         };
     }
 

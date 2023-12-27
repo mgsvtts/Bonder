@@ -1,16 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using Domain.Common.Exceptions;
+﻿using Domain.Common.Exceptions;
 using Grpc.Core;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using System.Net;
 
 namespace Presentation.Middlewares;
+
 public sealed class CustomExceptionFilter : IExceptionFilter
 {
     public void OnException(ExceptionContext context)

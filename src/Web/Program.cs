@@ -1,11 +1,3 @@
-using Application.Calculation.Common.CalculationService;
-using Application.Calculation.Common.Interfaces;
-using Application.Common;
-using Infrastructure.Calculation;
-using MapsterMapper;
-using Presentation.Middlewares;
-using Web.Extensions.Mapping;
-
 namespace Web;
 
 public class Program

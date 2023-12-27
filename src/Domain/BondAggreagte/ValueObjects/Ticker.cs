@@ -5,6 +5,6 @@ public readonly record struct Ticker
 
     public Ticker(string value)
     {
-        Value = value.Trim();
+        Value = value.Trim().ToUpper();
     }
 }

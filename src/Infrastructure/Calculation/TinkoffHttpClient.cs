@@ -14,15 +14,22 @@ public class TinkoffHttpClient : ITInkoffHttpClient
 {
     private readonly HttpClient _client;
     private readonly ITinkoffGrpcClient _grpcClient;
+    private readonly IDohodHttpClient _dohodHttpClient;
     private readonly string _tinkoffUrl;
     private readonly IMapper _mapper;
 
-    public TinkoffHttpClient(HttpClient client, ITinkoffGrpcClient grpcClient, IMapper mapper, string token, string tinkoffUrl)
+    public TinkoffHttpClient(HttpClient client,
+                             ITinkoffGrpcClient grpcClient,
+                             IMapper mapper,
+                             IDohodHttpClient dohodHttpClient,
+                             string token,
+                             string tinkoffUrl)
     {
         _client = client;
         _tinkoffUrl = tinkoffUrl;
         _mapper = mapper;
         _grpcClient = grpcClient;
+        _dohodHttpClient = dohodHttpClient;
 
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
     }
@@ -67,7 +74,9 @@ public class TinkoffHttpClient : ITInkoffHttpClient
     {
         var coupons = await _grpcClient.GetBondCouponsAsync(value.Symbol.SecurityUids.InstrumentUid, token);
 
-        return _mapper.Map<Bond>((value, coupons));
+        var rating = await _dohodHttpClient.GetBondRatingAsync(new Isin(value.Symbol.Isin), token);
+
+        return _mapper.Map<Bond>((value, coupons, rating));
     }
 
     private static string SerializeToRequest(IEnumerable<Ticker> tickers)
