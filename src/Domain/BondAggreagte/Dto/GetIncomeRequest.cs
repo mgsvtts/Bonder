@@ -6,8 +6,11 @@ public sealed class GetIncomeRequest
 {
     public DateIntervalType Type { get; }
     public DateTime? TillDate { get; }
+    public bool ConsiderDividendCutOffDate { get; }
 
-    public GetIncomeRequest(DateIntervalType type, DateTime? date = null)
+    public GetIncomeRequest(DateIntervalType type, 
+                            DateTime? date = null,
+                            bool considerDividendCutOffDate = true)
     {
         if (type == DateIntervalType.TillDate && date == null)
         {
@@ -16,6 +19,7 @@ public sealed class GetIncomeRequest
 
         Type = type;
         TillDate = date;
+        ConsiderDividendCutOffDate = considerDividendCutOffDate;
     }
 
     public bool IsPaymentType()

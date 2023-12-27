@@ -17,31 +17,16 @@ public static class MapsterConfig
     {
         TypeAdapterConfig<CalculateRequest, CalculateTickersCommand>
         .ForType()
-        .MapWith(x => new CalculateTickersCommand(new GetIncomeRequest(x.Options.Type, x.Options.TillDate), x.Tickers.Select(x => new Ticker(x))));
+        .MapWith(x => new CalculateTickersCommand(new GetIncomeRequest(x.Options.Type, x.Options.TillDate, x.Options.ConsiderDividendCutOffDate),
+                                                  x.Tickers.Select(x => new Ticker(x))));
 
-        TypeAdapterConfig<(TinkoffValue Bond, List<Domain.BondAggreagte.ValueObjects.Coupon> Coupons), Domain.BondAggreagte.Bond>
+        TypeAdapterConfig<(TinkoffValue Bond, List<Coupon> Coupons), Domain.BondAggreagte.Bond>
         .ForType()
         .MapWith(x => Domain.BondAggreagte.Bond.Create(new Ticker(x.Bond.Symbol.Ticker), x.Bond.Symbol.Name, new Money(x.Bond.Price.Value, x.Bond.Nominal), new Dates(x.Bond.MaturityDate, x.Bond.OfferDate), x.Coupons));
 
-        TypeAdapterConfig<Tinkoff.InvestApi.V1.Coupon, Domain.BondAggreagte.ValueObjects.Coupon>
+        TypeAdapterConfig<Tinkoff.InvestApi.V1.Coupon, Coupon>
         .ForType()
-        .MapWith(x => new Domain.BondAggreagte.ValueObjects.Coupon(x.CouponDate.ToDateTime(), x.PayOneBond));
-
-        TypeAdapterConfig<CalculationResult, CalculatedBondResponse>
-        .ForType()
-        .MapWith(x => new CalculatedBondResponse(x.Bond.Id.Value, x.Bond.Name, x.Priority));
-
-        TypeAdapterConfig<CalculationResult, PriceBondResponse>
-        .ForType()
-        .MapWith(x => new PriceBondResponse(x.Bond.Id.Value, x.Bond.Name, x.Price));
-
-        TypeAdapterConfig<CalculationResult, CouponeIncomeBondResponse>
-        .ForType()
-        .MapWith(x => new CouponeIncomeBondResponse(x.Bond.Id.Value, x.Bond.Name, x.CouponIncome));
-
-        TypeAdapterConfig<CalculationResult, IncomeBondResponse>
-        .ForType()
-        .MapWith(x => new IncomeBondResponse(x.Bond.Id.Value, x.Bond.Name, x.Income));
+        .MapWith(x => new Coupon(x.CouponDate.ToDateTime(), x.PayOneBond, x.FixDate.ToDateTime()));
 
         TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 
