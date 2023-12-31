@@ -23,7 +23,7 @@ public static class MapsterConfig
         .MapWith(x => Domain.BondAggreagte.Bond.Create(new BondId(new Ticker(x.Bond.Symbol.Ticker),
                                                                   new Isin(x.Bond.Symbol.Isin)),
                                                        x.Bond.Symbol.Name,
-                                                       new Money(x.Bond.Price.Value, x.Bond.Nominal),
+                                                       new Money(x.Bond.Price != null ? x.Bond.Price.Value : 0, x.Bond.Nominal),
                                                        new Dates(x.Bond.MaturityDate, x.Bond.OfferDate),
                                                        x.Rating,
                                                        x.Coupons));

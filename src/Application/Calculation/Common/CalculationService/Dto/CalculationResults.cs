@@ -8,11 +8,9 @@ public record struct CalculationResults
     private List<CalculationResult> _results;
 
     public readonly IReadOnlyList<CalculationResult> Results => _results.AsReadOnly();
-    public IEnumerable<Bond> Bonds { get; }
+    public IDictionary<Bond, Income> Bonds { get; }
     public IEnumerable<CalculationMoneyResult> PriceSortedBonds { get; }
     public IEnumerable<CalculationMoneyResult> FullIncomeSortedBonds { get; }
-    public IEnumerable<CalculationMoneyResult> CouponIncomeSortedBonds { get; }
-    public IEnumerable<CalculationMoneyResult> NominalIncomeSortedBonds { get; }
     public IEnumerable<CalculationRatingResult> RatingSortedBonds { get; }
 
     public readonly void Add(CalculationResult result)
@@ -24,21 +22,13 @@ public record struct CalculationResults
     {
         _results = new List<CalculationResult>();
 
-        var incomes = CalculateIncomes(request);
+        Bonds = CalculateIncomes(request);
 
-        Bonds = request.Bonds;
+        PriceSortedBonds = Bonds.OrderBy(x => x.Key.Money.Price)
+                                .Select(x => new CalculationMoneyResult(x.Key, x.Key.Money.Price));
 
-        PriceSortedBonds = incomes.OrderBy(x => x.Key.Money.Price)
-                                  .Select(x => new CalculationMoneyResult(x.Key, x.Key.Money.Price));
-
-        FullIncomeSortedBonds = incomes.OrderByDescending(x => x.Value.FullIncome)
-                                       .Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncome));
-
-        CouponIncomeSortedBonds = incomes.OrderByDescending(x => x.Value.CouponIncome)
-                                         .Select(x => new CalculationMoneyResult(x.Key, x.Value.CouponIncome));
-
-        NominalIncomeSortedBonds = incomes.OrderByDescending(x => x.Value.NominalIncome)
-                                          .Select(x => new CalculationMoneyResult(x.Key, x.Value.NominalIncome));
+        FullIncomeSortedBonds = Bonds.OrderByDescending(x => x.Value.FullIncome)
+                                     .Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncome));
 
         RatingSortedBonds = request.Bonds.OrderByDescending(x => x.Rating)
                                          .Select(x => new CalculationRatingResult(x, x.Rating));

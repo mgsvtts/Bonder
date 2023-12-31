@@ -1,4 +1,5 @@
-﻿using Domain.BondAggreagte.ValueObjects;
+﻿using Domain.BondAggreagte;
+using Domain.BondAggreagte.ValueObjects;
 
 namespace Application.Calculation.Common.Interfaces;
 

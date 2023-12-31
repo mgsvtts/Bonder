@@ -1,6 +1,6 @@
 ﻿using Domain.BondAggreagte.ValueObjects;
 
-namespace Infrastructure.Calculation;
+namespace Application.Calculation.Common.Interfaces;
 
 public interface IDohodHttpClient
 {

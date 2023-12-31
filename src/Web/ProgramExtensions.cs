@@ -1,4 +1,5 @@
-﻿using Application.Calculation.Common.CalculationService;
+﻿using Application.Calculation.CalculateAll;
+using Application.Calculation.Common.CalculationService;
 using Application.Calculation.Common.Interfaces;
 using Application.Common;
 using Infrastructure.Calculation;
@@ -15,6 +16,8 @@ public static class ProgramExtensions
         builder.Services.AddInvestApiClient((_, settings) => settings.AccessToken = builder.Configuration.GetValue<string>("TinkoffToken"));
 
         builder.Services.AddTransient<ITinkoffGrpcClient, TinkoffGrpcClient>();
+
+        builder.Services.AddTransient<IAllBondsReceiver, AllBondsReceiver>();
 
         builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((httpClient, services) =>
         {
@@ -40,6 +43,8 @@ public static class ProgramExtensions
         {
             config.RegisterServicesFromAssemblies(typeof(AssemblyReference).Assembly);
         });
+
+        builder.Services.AddHostedService<BackgroundBondUpdater>();
 
         builder.Services.RegisterMapsterConfiguration();
 
@@ -74,6 +79,11 @@ public static class ProgramExtensions
         app.UseAuthorization();
 
         app.MapControllers();
+
+        app.UseWebSockets(new WebSocketOptions
+        {
+            KeepAliveInterval = TimeSpan.FromSeconds(15)
+        });
 
         return app;
     }

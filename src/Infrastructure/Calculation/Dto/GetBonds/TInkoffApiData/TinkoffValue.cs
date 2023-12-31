@@ -8,7 +8,7 @@ public sealed class TinkoffValue
     public TinkoffSymbol Symbol { get; set; }
 
     [JsonPropertyName("price")]
-    public TinkoffPrice Price { get; set; }
+    public TinkoffPrice? Price { get; set; }
 
     [JsonPropertyName("faceValue")]
     public decimal Nominal { get; set; }

@@ -34,7 +34,7 @@ public class TinkoffHttpClient : ITInkoffHttpClient
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
     }
 
-    public async Task<List<Bond>> GetBondsByTickersAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
+    public async Task<IEnumerable<Bond>> GetBondsByTickersAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
     {
         var request = SerializeToRequest(tickers);
 
@@ -55,7 +55,7 @@ public class TinkoffHttpClient : ITInkoffHttpClient
         return await GetBondsParallelAsync(serializedResponse, token);
     }
 
-    private async Task<List<Bond>> GetBondsParallelAsync(TinkoffResponse serializedResponse, CancellationToken token)
+    private async Task<IEnumerable<Bond>> GetBondsParallelAsync(TinkoffResponse serializedResponse, CancellationToken token = default)
     {
         var tasks = new List<Task<Bond>>();
 
@@ -66,17 +66,18 @@ public class TinkoffHttpClient : ITInkoffHttpClient
 
         await Task.WhenAll(tasks);
 
-        return tasks.Select(x => x.Result)
-                    .ToList();
+        return tasks.Select(x => x.Result);
     }
 
-    private async Task<Bond> ConvertToDomainBondAsync(TinkoffValue value, CancellationToken token)
+    private async Task<Bond> ConvertToDomainBondAsync(TinkoffValue value, CancellationToken token = default)
     {
-        var coupons = await _grpcClient.GetBondCouponsAsync(value.Symbol.SecurityUids.InstrumentUid, token);
+        var coupons = _grpcClient.GetBondCouponsAsync(value.Symbol.SecurityUids.InstrumentUid, token);
 
-        var rating = await _dohodHttpClient.GetBondRatingAsync(new Isin(value.Symbol.Isin), token);
+        var rating = _dohodHttpClient.GetBondRatingAsync(new Isin(value.Symbol.Isin), token);
 
-        return _mapper.Map<Bond>((value, coupons, rating));
+        await Task.WhenAll(coupons, rating);
+
+        return _mapper.Map<Bond>((value, coupons.Result, rating.Result));
     }
 
     private static string SerializeToRequest(IEnumerable<Ticker> tickers)

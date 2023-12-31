@@ -1,4 +1,5 @@
-﻿using Domain.BondAggreagte.ValueObjects;
+﻿using Application.Calculation.Common.Interfaces;
+using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Calculation.Dto.GetRating;
 using Microsoft.AspNetCore.Http.Extensions;
 using System.Net.Http.Json;
@@ -31,7 +32,7 @@ public sealed class DohodHttpClient : IDohodHttpClient
         var serializedResponse = await response.Content.ReadFromJsonAsync<IEnumerable<DohodItem>>(cancellationToken: token)
                                  ?? throw new InvalidOperationException("Ошибка получения ответа от Dohod.ru");
 
-        var item = serializedResponse.FirstOrDefault(x => x.Isin.ToUpper() == isin.Value);
+        var item = serializedResponse.FirstOrDefault(x => x?.Isin?.ToUpper() == isin.Value);
 
         return item != null ? int.Parse(item.Rating) : null;
     }
