@@ -48,7 +48,13 @@ public record struct CalculationResults
 
         foreach (var bond in request.Bonds)
         {
-            dict.Add(bond, bond.GetIncome(request.Options));
+            try
+            {
+                dict.Add(bond, bond.GetIncome(request.Options));
+            }
+            catch
+            {
+            }
         }
 
         return dict;

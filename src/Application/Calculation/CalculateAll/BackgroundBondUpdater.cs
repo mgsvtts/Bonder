@@ -19,11 +19,13 @@ public class BackgroundBondUpdater : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        const int step = 10;
+        var start = new Range(0, step);
         while (!stoppingToken.IsCancellationRequested)
         {
-            AllBonds.State = (await _bondReceiver.ReceiveAsync(stoppingToken)).ToList();
+            AllBonds.State.AddRange(await _bondReceiver.ReceiveAsync(start, stoppingToken));
 
-            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            start = new Range(start.End, start.End.Value + step);
         }
     }
 }

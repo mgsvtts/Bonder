@@ -1,5 +1,8 @@
 ﻿using Application.Calculation.CalculateAll;
 using Application.Calculation.CalculateTickers;
+using Application.Calculation.Common.CalculationService.Dto;
+using Application.Calculation.Common.Interfaces;
+using Domain.BondAggreagte.Dto;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -18,11 +21,12 @@ public class BondController : ControllerBase
 {
     private readonly ISender _sender;
     private readonly IMapper _mapper;
-
-    public BondController(ISender sender, IMapper mapper)
+    private readonly ICalculator _calculator;
+    public BondController(ISender sender, IMapper mapper, ICalculator calculator)
     {
         _sender = sender;
         _mapper = mapper;
+        _calculator = calculator;
     }
 
     [HttpPost]
@@ -42,12 +46,10 @@ public class BondController : ControllerBase
         }
 
         using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-
-        var buffer = new byte[AllBonds.State.Capacity];
-        var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
         while (webSocket.CloseStatus == null)
         {
-            var socketMessage = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(AllBonds.State));
+            var bonds = _calculator.Calculate(new CalculationRequest(new GetIncomeRequest(DateIntervalType.TillDate, DateTime.Now.AddMonths(6)), AllBonds.State));
+            var socketMessage = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(bonds.MapToResponse()));
             await webSocket.SendAsync(new ArraySegment<byte>(socketMessage, 0, socketMessage.Length), WebSocketMessageType.Text, true, token);
             await Task.Delay(TimeSpan.FromSeconds(5), token);
         }
