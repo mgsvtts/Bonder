@@ -6,7 +6,7 @@ public readonly record struct Income
 
     public readonly decimal FullIncome => NominalIncome + CouponIncome;
 
-    public Income(decimal nominalIncome, decimal couponIncome)
+    public Income(decimal couponIncome, decimal nominalIncome = 0)
     {
         NominalIncome = nominalIncome;
         CouponIncome = couponIncome;

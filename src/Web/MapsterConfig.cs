@@ -30,7 +30,7 @@ public static class MapsterConfig
 
         TypeAdapterConfig<Tinkoff.InvestApi.V1.Coupon, Coupon>
         .ForType()
-        .MapWith(x => new Coupon(x.CouponDate.ToDateTime(), x.PayOneBond, x.FixDate.ToDateTime()));
+        .MapWith(x => new Coupon(x.CouponDate.ToDateTime(), x.PayOneBond, x.FixDate.ToDateTime(), x.CouponType == Tinkoff.InvestApi.V1.CouponType.Floating));
 
         TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 

@@ -2,9 +2,12 @@
 using Application.Calculation.Common.CalculationService;
 using Application.Calculation.Common.Interfaces;
 using Application.Common;
+using Google.Api;
 using Infrastructure.Calculation;
 using MapsterMapper;
 using Presentation.Middlewares;
+using RateLimiter;
+using Web.Extensions;
 using Web.Extensions.Mapping;
 
 namespace Web;
@@ -19,6 +22,8 @@ public static class ProgramExtensions
 
         builder.Services.AddTransient<IAllBondsReceiver, AllBondsReceiver>();
 
+        var rateLimiter = TimeLimiter.GetFromMaxCountByInterval(1, TimeSpan.FromMilliseconds(201));
+
         builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((httpClient, services) =>
         {
             return new TinkoffHttpClient(httpClient,
@@ -27,12 +32,14 @@ public static class ProgramExtensions
                                          services.GetRequiredService<IDohodHttpClient>(),
                                          builder.Configuration.GetValue<string>("TinkoffToken"),
                                          builder.Configuration.GetValue<string>("TinkoffServerUrl"));
-        });
+        }).AddHttpMessageHandler(rateLimiter.AsDelegate);
 
         builder.Services.AddHttpClient<IDohodHttpClient, DohodHttpClient>(httpClient =>
         {
             return new DohodHttpClient(httpClient, builder.Configuration.GetValue<string>("DohodServerUrl"));
-        });
+        }).AddHttpMessageHandler(rateLimiter.AsDelegate);
+
+        builder.Services.AddSingleton(rateLimiter);
 
         return builder;
     }
@@ -48,7 +55,7 @@ public static class ProgramExtensions
 
         builder.Services.RegisterMapsterConfiguration();
 
-        builder.Services.AddSingleton<ICalculator, Calculator>();
+        builder.Services.AddSingleton<ICalculationService, CalculationService>();
 
         return builder;
     }

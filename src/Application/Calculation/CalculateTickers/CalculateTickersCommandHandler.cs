@@ -7,9 +7,9 @@ namespace Application.Calculation.CalculateTickers;
 public sealed class CalculateTickersCommandHandler : IRequestHandler<CalculateTickersCommand, CalculationResults>
 {
     private readonly ITInkoffHttpClient _httpClient;
-    private readonly ICalculator _calculator;
+    private readonly ICalculationService _calculator;
 
-    public CalculateTickersCommandHandler(ICalculator calculator, ITInkoffHttpClient httpClient)
+    public CalculateTickersCommandHandler(ICalculationService calculator, ITInkoffHttpClient httpClient)
     {
         _calculator = calculator;
         _httpClient = httpClient;

@@ -4,7 +4,7 @@ using Application.Calculation.Common.Interfaces;
 
 namespace Application.Calculation.Common.CalculationService;
 
-public class Calculator : ICalculator
+public class CalculationService : ICalculationService
 {
     public CalculationResults Calculate(CalculationRequest request)
     {

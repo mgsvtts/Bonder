@@ -4,7 +4,9 @@ using Google.Protobuf.Collections;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Tinkoff.InvestApi;
@@ -16,14 +18,15 @@ public class AllBondsReceiver : IAllBondsReceiver
     private readonly InvestApiClient _tinkoffApiClient;
 
     private IEnumerable<Tinkoff.InvestApi.V1.Bond>? _cache;
-    private int _maxRange;
+
+    public int MaxRange { get; private set; }
 
     public AllBondsReceiver(InvestApiClient tinkoffApiClient, ITInkoffHttpClient tinkoffHttpClient)
     {
         _tinkoffApiClient = tinkoffApiClient;
         _tinkoffHttpClient = tinkoffHttpClient;
 
-        _maxRange = 0;
+        MaxRange = 0;
     }
 
     public async Task<IEnumerable<Domain.BondAggreagte.Bond>> ReceiveAsync(Range takeRange, CancellationToken token)
@@ -37,7 +40,7 @@ public class AllBondsReceiver : IAllBondsReceiver
 
     private async Task<IEnumerable<Tinkoff.InvestApi.V1.Bond>> GetFromCacheAsync(Range range, CancellationToken token)
     {
-        if(range.Start.Value > _maxRange)
+        if(range.Start.Value > MaxRange)
         {
             _cache = null;
         }
@@ -54,7 +57,8 @@ public class AllBondsReceiver : IAllBondsReceiver
     {
         var instruments = (await _tinkoffApiClient.Instruments.BondsAsync(token)).Instruments;
 
-        _maxRange = instruments.Count;
+        MaxRange = instruments.Count;
+
         _cache = instruments.OrderByDescending(x => x.Nominal.Units)
                             .ThenBy(x => x.Ticker);
     }

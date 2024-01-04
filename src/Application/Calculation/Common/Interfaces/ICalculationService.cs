@@ -2,7 +2,7 @@
 
 namespace Application.Calculation.Common.Interfaces;
 
-public interface ICalculator
+public interface ICalculationService
 {
     public CalculationResults Calculate(CalculationRequest request);
 }

@@ -1,19 +1,22 @@
 ﻿using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.Exceptions;
 using Domain.BondAggreagte.ValueObjects;
+using Domain.Common.Models;
 
 namespace Domain.BondAggreagte;
 
-public class Bond
+public class Bond : AggregateRoot<BondId>
 {
     private List<Coupon> _coupons = new List<Coupon>();
 
-    public BondId Id { get; private set; }
     public string Name { get; private set; }
     public Money Money { get; private set; }
     public Dates Dates { get; private set; }
     public int? Rating { get; private set; }
     public IReadOnlyList<Coupon> Coupons => _coupons.AsReadOnly();
+
+    private Bond(BondId id) : base(id)
+    { }
 
     public static Bond Create(BondId id,
                               string name,
@@ -22,9 +25,8 @@ public class Bond
                               int? rating,
                               IEnumerable<Coupon> coupons)
     {
-        return new Bond
+        return new Bond(id)
         {
-            Id = id,
             Name = name,
             _coupons = coupons.ToList(),
             Money = money,
@@ -39,10 +41,10 @@ public class Bond
 
         if (IsFullIncomeDate(request))
         {
-            return new Income(Money.NominalIncome, couponIncome);
+            return new Income(couponIncome, Money.NominalIncome);
         }
 
-        return new Income(0, couponIncome);
+        return new Income(couponIncome);
     }
 
     private decimal GetCouponOnlyIncome(GetIncomeRequest request)
@@ -54,9 +56,19 @@ public class Bond
             throw new InvalidPaymentDateException(date);
         }
 
-        var coupons = Coupons.Where(x => x.CanGetCoupon(date, request.ConsiderDividendCutOffDate));
+        var futureCoupons = Coupons.Where(x => x.CanGetCoupon(date, request.ConsiderDividendCutOffDate));
 
-        return coupons.Count() * Coupons[0].Payout;
+        if (Coupons.Any(x => x.IsFloating))
+        {
+            var latestCoupon = futureCoupons.Where(x => x.Payout != 0)
+                                            .OrderByDescending(x => x.PaymentDate)
+                                            .First();
+            return latestCoupon.Payout * futureCoupons.Count();
+        }
+        else
+        {
+            return futureCoupons.Count() * Coupons[0].Payout;
+        }
     }
 
     public override string ToString()

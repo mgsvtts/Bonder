@@ -34,7 +34,7 @@ public sealed class DohodHttpClient : IDohodHttpClient
 
         var item = serializedResponse.FirstOrDefault(x => x?.Isin?.ToUpper() == isin.Value);
 
-        return item != null ? int.Parse(item.Rating) : null;
+        return item?.Rating != null ? int.Parse(item.Rating) : null;
     }
 
     private string BuildQuery(Isin isin)

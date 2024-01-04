@@ -1,4 +1,6 @@
 ﻿using Application.Calculation.Common.Interfaces;
+using Domain.BondAggreagte;
+using Grpc.Core;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
@@ -19,13 +21,61 @@ public class BackgroundBondUpdater : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        const int step = 10;
-        var start = new Range(0, step);
+        const int step = 50;
+        var startRange = new Range(0, step);
+        IEnumerable<Bond> bondsToAdd = new Bond[step];
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            AllBonds.State.AddRange(await _bondReceiver.ReceiveAsync(start, stoppingToken));
+            bondsToAdd = await TryReceiveAsync(startRange, bondsToAdd, stoppingToken);
 
-            start = new Range(start.End, start.End.Value + step);
+            RecreateRange(step, ref startRange);
+
+            AllBonds.AddOrUpdate(bondsToAdd);
         }
+    }
+
+    private void RecreateRange(int step, ref Range startRange)
+    {
+        if (startRange.Start.Value > _bondReceiver.MaxRange)
+        {
+            startRange = new Range(0, step);
+        }
+        else
+        {
+            startRange = new Range(startRange.End, startRange.End.Value + step);
+        }
+    }
+
+    private async Task<IEnumerable<Bond>> TryReceiveAsync(Range startRange, IEnumerable<Bond> bondsToAdd, CancellationToken stoppingToken)
+    {
+        try
+        {
+            bondsToAdd = await _bondReceiver.ReceiveAsync(startRange, stoppingToken);
+        }
+        catch (RpcException)
+        {
+            bondsToAdd = await TryRetryAsync(startRange, bondsToAdd, stoppingToken);
+        }
+
+        return bondsToAdd;
+    }
+
+    private async Task<IEnumerable<Bond>> TryRetryAsync(Range start, IEnumerable<Bond> bondsToUpdate, CancellationToken stoppingToken)
+    {
+        var retries = 5;
+        while (retries > 0)
+        {
+            try
+            {
+                return await _bondReceiver.ReceiveAsync(start, stoppingToken);
+            }
+            catch
+            { }
+
+            retries--;
+        }
+
+        return Array.Empty<Bond>();
     }
 }
