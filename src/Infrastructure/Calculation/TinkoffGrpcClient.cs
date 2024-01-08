@@ -1,7 +1,5 @@
 ﻿using Application.Calculation.Common.Interfaces;
-using Domain.BondAggreagte.ValueObjects;
 using Google.Protobuf.WellKnownTypes;
-using Infrastructure.Calculation.Dto.GetBonds.TInkoffApiData;
 using MapsterMapper;
 using Tinkoff.InvestApi;
 using Tinkoff.InvestApi.V1;

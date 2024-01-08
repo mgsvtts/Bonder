@@ -1,17 +1,9 @@
 ﻿using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte.ValueObjects;
-using Google.Protobuf.Collections;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Tinkoff.InvestApi;
 
 namespace Infrastructure.Calculation;
+
 public class AllBondsReceiver : IAllBondsReceiver
 {
     private readonly ITInkoffHttpClient _tinkoffHttpClient;
@@ -32,7 +24,7 @@ public class AllBondsReceiver : IAllBondsReceiver
     public async Task<IEnumerable<Domain.BondAggreagte.Bond>> ReceiveAsync(Range takeRange, CancellationToken token)
     {
         var response = await GetFromCacheAsync(takeRange, token);
-        
+
         var bonds = await _tinkoffHttpClient.GetBondsByTickersAsync(response.Select(x => new Ticker(x.Ticker)), token);
 
         return bonds;
@@ -40,12 +32,12 @@ public class AllBondsReceiver : IAllBondsReceiver
 
     private async Task<IEnumerable<Tinkoff.InvestApi.V1.Bond>> GetFromCacheAsync(Range range, CancellationToken token)
     {
-        if(range.Start.Value > MaxRange)
+        if (range.Start.Value > MaxRange)
         {
             _cache = null;
         }
 
-        if(_cache == null)
+        if (_cache == null)
         {
             await InitCacheAsync(token);
         }

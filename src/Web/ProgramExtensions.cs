@@ -2,7 +2,6 @@
 using Application.Calculation.Common.CalculationService;
 using Application.Calculation.Common.Interfaces;
 using Application.Common;
-using Google.Api;
 using Infrastructure.Calculation;
 using MapsterMapper;
 using Presentation.Middlewares;

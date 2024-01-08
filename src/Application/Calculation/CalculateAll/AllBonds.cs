@@ -1,11 +1,7 @@
 ﻿using Domain.BondAggreagte;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Calculation.CalculateAll;
+
 public static class AllBonds
 {
     private static readonly List<Bond> _state = new List<Bond>();

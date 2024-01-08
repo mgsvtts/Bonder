@@ -19,7 +19,6 @@ public static class DispatcherExtension
         }
     }
 
-
     public static DelegatingHandler AsDelegate(this IDispatcher dispatcher)
     {
         return new DispatcherDelegatingHandler(dispatcher);

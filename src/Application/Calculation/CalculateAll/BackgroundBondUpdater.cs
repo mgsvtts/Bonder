@@ -2,14 +2,9 @@
 using Domain.BondAggreagte;
 using Grpc.Core;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Calculation.CalculateAll;
+
 public class BackgroundBondUpdater : BackgroundService
 {
     private readonly IAllBondsReceiver _bondReceiver;
