@@ -2,7 +2,7 @@
 using Domain.BondAggreagte.ValueObjects;
 using Tinkoff.InvestApi;
 
-namespace Infrastructure.Calculation;
+namespace Infrastructure.Calculation.CalculateAll;
 
 public class AllBondsReceiver : IAllBondsReceiver
 {
@@ -26,6 +26,8 @@ public class AllBondsReceiver : IAllBondsReceiver
         var response = await GetFromCacheAsync(takeRange, token);
 
         var bonds = await _tinkoffHttpClient.GetBondsByTickersAsync(response.Select(x => new Ticker(x.Ticker)), token);
+
+
 
         return bonds;
     }

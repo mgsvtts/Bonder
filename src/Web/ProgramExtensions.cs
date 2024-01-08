@@ -2,8 +2,12 @@
 using Application.Calculation.Common.CalculationService;
 using Application.Calculation.Common.Interfaces;
 using Application.Common;
-using Infrastructure.Calculation;
+using Domain.BondAggreagte.Repositories;
+using Infrastructure.Calculation.CalculateAll;
+using Infrastructure.Calculation.Common;
+using Infrastructure.Common;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using Presentation.Middlewares;
 using RateLimiter;
 using Web.Extensions;
@@ -39,6 +43,11 @@ public static class ProgramExtensions
         }).AddHttpMessageHandler(rateLimiter.AsDelegate);
 
         builder.Services.AddSingleton(rateLimiter);
+
+        var databasePath = builder.Configuration.GetValue<string>("ConnectionString").Replace("???", builder.Configuration.GetValue<string>("DatabaseName"));
+        builder.Services.AddDbContext<DataContext>((options) => options.UseSqlite(databasePath));
+
+        builder.Services.AddTransient<IBondRepository, BondRepository>();
 
         return builder;
     }

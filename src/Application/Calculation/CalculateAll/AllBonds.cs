@@ -1,19 +1,20 @@
 ﻿using Domain.BondAggreagte;
+using Domain.BondAggreagte.ValueObjects;
+using System.Collections.Concurrent;
 
 namespace Application.Calculation.CalculateAll;
 
 public static class AllBonds
 {
-    private static readonly List<Bond> _state = new List<Bond>();
+    private static readonly ConcurrentDictionary<BondId, Bond> _state = new ConcurrentDictionary<BondId, Bond>();
 
-    public static IReadOnlyList<Bond> State => _state.AsReadOnly();
+    public static IReadOnlyDictionary<BondId, Bond> State => _state.AsReadOnly();
 
     public static void AddOrUpdate(IEnumerable<Bond> bonds)
     {
-        _state.RemoveAll(x => bonds.Select(x => x.Id).Contains(x.Id));
-
-        _state.AddRange(bonds);
-
-        _state.RemoveAll(x => x.Money.Price <= 0);
+        foreach (var bond in bonds)
+        {
+            _state.AddOrUpdate(bond.Id, bond, (bondId, oldBond) => bond);
+        }
     }
 }

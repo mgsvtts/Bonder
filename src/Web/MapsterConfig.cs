@@ -32,6 +32,32 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new Coupon(x.CouponDate.ToDateTime(), x.PayOneBond, x.FixDate.ToDateTime(), x.CouponType == Tinkoff.InvestApi.V1.CouponType.Floating));
 
+        TypeAdapterConfig<Domain.BondAggreagte.Bond, Infrastructure.Common.Models.Bond>
+        .ForType()
+        .MapWith(x => new Infrastructure.Common.Models.Bond
+        {
+            Name = x.Name,
+            Ticker = x.Id.Ticker.Value,
+            Isin = x.Id.Isin.Value,
+            Coupons = x.Coupons.Adapt<List<Infrastructure.Common.Models.Coupon>>(),
+            MaturityDate = x.Dates.MaturityDate,
+            OfferDate = x.Dates.OfferDate,
+            Price = x.Money.Price,
+            NominalIncome = x.Money.NominalIncome,
+            Rating = x.Rating
+        });
+
+        TypeAdapterConfig<Coupon, Infrastructure.Common.Models.Coupon>
+        .ForType()
+        .MapWith(x => new Infrastructure.Common.Models.Coupon
+        {
+            Id = Guid.NewGuid(),
+            DividendCutOffDate = x.DividendCutOffDate,
+            IsFloating = x.IsFloating,
+            PaymentDate = x.PaymentDate,
+            Payout = x.Payout
+        });
+
         TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 
         var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;

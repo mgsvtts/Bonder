@@ -19,7 +19,7 @@ public sealed class CalculateAllStreamRequestHandler : IStreamRequestHandler<Cal
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            yield return _calculator.Calculate(new CalculationRequest(new GetIncomeRequest(DateIntervalType.TillDate, DateTime.Now.AddYears(2)), AllBonds.State));
+            yield return _calculator.Calculate(new CalculationRequest(new GetIncomeRequest(DateIntervalType.TillDate, DateTime.Now.AddYears(2)), AllBonds.State.Values));
         }
     }
 }

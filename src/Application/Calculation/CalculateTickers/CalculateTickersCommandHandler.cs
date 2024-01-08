@@ -1,5 +1,6 @@
 ﻿using Application.Calculation.Common.CalculationService.Dto;
 using Application.Calculation.Common.Interfaces;
+using Domain.BondAggreagte.Repositories;
 using MediatR;
 
 namespace Application.Calculation.CalculateTickers;
