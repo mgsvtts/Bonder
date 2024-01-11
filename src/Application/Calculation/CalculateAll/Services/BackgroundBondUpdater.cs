@@ -3,7 +3,7 @@ using Domain.BondAggreagte;
 using Grpc.Core;
 using Microsoft.Extensions.Hosting;
 
-namespace Application.Calculation.CalculateAll;
+namespace Application.Calculation.CalculateAll.Services;
 
 public class BackgroundBondUpdater : BackgroundService
 {

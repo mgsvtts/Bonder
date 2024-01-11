@@ -10,7 +10,7 @@ public static class BondsExtensions
         var count = 0;
         foreach (var item in items)
         {
-            if (item.Bond.Id == id)
+            if (item.Bond.Identity == id)
             {
                 break;
             }

@@ -14,7 +14,7 @@ public static class AllBonds
     {
         foreach (var bond in bonds)
         {
-            _state.AddOrUpdate(bond.Id, bond, (bondId, oldBond) => bond);
+            _state.AddOrUpdate(bond.Identity, bond, (bondId, oldBond) => bond);
         }
     }
 }

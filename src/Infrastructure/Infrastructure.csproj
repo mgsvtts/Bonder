@@ -10,6 +10,7 @@
 	  <PackageReference Include="Mapster" Version="7.4.0" />
 	  <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.1" />
 	  <PackageReference Include="Tinkoff.InvestApi" Version="0.6.6" />
   </ItemGroup>
 

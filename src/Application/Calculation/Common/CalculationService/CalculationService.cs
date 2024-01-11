@@ -12,9 +12,9 @@ public class CalculationService : ICalculationService
 
         foreach (var bond in request.Bonds)
         {
-            var priceIndex = results.PriceSortedBonds.FindBondIndex(bond.Id);
-            var fullIncomeIndex = results.FullIncomeSortedBonds.FindBondIndex(bond.Id);
-            var ratingIndex = results.RatingSortedBonds.FindBondIndex(bond.Id);
+            var priceIndex = results.PriceSortedBonds.FindBondIndex(bond.Identity);
+            var fullIncomeIndex = results.FullIncomeSortedBonds.FindBondIndex(bond.Identity);
+            var ratingIndex = results.RatingSortedBonds.FindBondIndex(bond.Identity);
 
             results.Add(new CalculationResult(bond,
                                               CalculatePriority(priceIndex, fullIncomeIndex, ratingIndex)));

@@ -20,7 +20,8 @@ public static class MapsterConfig
 
         TypeAdapterConfig<(TinkoffValue Bond, List<Coupon> Coupons, int? Rating), Domain.BondAggreagte.Bond>
         .ForType()
-        .MapWith(x => Domain.BondAggreagte.Bond.Create(new BondId(new Ticker(x.Bond.Symbol.Ticker),
+        .MapWith(x => Domain.BondAggreagte.Bond.Create(new BondId(Guid.NewGuid(),
+                                                                  new Ticker(x.Bond.Symbol.Ticker),
                                                                   new Isin(x.Bond.Symbol.Isin)),
                                                        x.Bond.Symbol.Name,
                                                        new Money(x.Bond.Price != null ? x.Bond.Price.Value : 0, x.Bond.Nominal),
@@ -36,9 +37,10 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new Infrastructure.Common.Models.Bond
         {
+            Id = x.Identity.Id.ToString(),
             Name = x.Name,
-            Ticker = x.Id.Ticker.Value,
-            Isin = x.Id.Isin.Value,
+            Ticker = x.Identity.Ticker.Value,
+            Isin = x.Identity.Isin.Value,
             Coupons = x.Coupons.Adapt<List<Infrastructure.Common.Models.Coupon>>(),
             MaturityDate = x.Dates.MaturityDate,
             OfferDate = x.Dates.OfferDate,
@@ -51,7 +53,7 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new Infrastructure.Common.Models.Coupon
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.NewGuid().ToString(),
             DividendCutOffDate = x.DividendCutOffDate,
             IsFloating = x.IsFloating,
             PaymentDate = x.PaymentDate,

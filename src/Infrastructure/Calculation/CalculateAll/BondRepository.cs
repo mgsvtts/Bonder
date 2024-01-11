@@ -25,7 +25,15 @@ public sealed class BondRepository : IBondRepository
 
     public async Task AddOrUpateAsync(IEnumerable<Bond> bonds, CancellationToken token = default)
     {
-        _db.UpdateRange(_mapper.Map<IEnumerable<Infrastructure.Common.Models.Bond>>(bonds));
+        var dbBonds = _mapper.Map<IEnumerable<Infrastructure.Common.Models.Bond>>(bonds);
+
+        var toUpdate = await _db.Bonds.Where(x => dbBonds.Select(x => x.Ticker).Contains(x.Ticker))
+                                      .ToListAsync(cancellationToken: token);
+
+        var toAdd = dbBonds.ExceptBy(toUpdate.Select(x => x.Ticker), x => x.Ticker);
+
+        _db.UpdateRange(toUpdate);
+        await _db.AddRangeAsync(toAdd, token);
 
         await _db.SaveChangesAsync(token);
     }

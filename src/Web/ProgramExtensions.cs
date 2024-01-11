@@ -44,10 +44,14 @@ public static class ProgramExtensions
 
         builder.Services.AddSingleton(rateLimiter);
 
-        var databasePath = builder.Configuration.GetValue<string>("ConnectionString").Replace("???", builder.Configuration.GetValue<string>("DatabaseName"));
+        var appPath = Directory.GetCurrentDirectory().Replace("Web", "Infrastructure\\Common\\");
+        var databasePath = builder.Configuration.GetConnectionString("Database").Replace("???", appPath);
         builder.Services.AddDbContext<DataContext>((options) => options.UseSqlite(databasePath));
 
-        builder.Services.AddTransient<IBondRepository, BondRepository>();
+        builder.Services.AddStackExchangeRedisCache(redis =>
+        {
+            redis.Configuration = builder.Configuration.GetConnectionString("Redis");
+        });
 
         return builder;
     }
@@ -59,11 +63,12 @@ public static class ProgramExtensions
             config.RegisterServicesFromAssemblies(typeof(AssemblyReference).Assembly);
         });
 
-        builder.Services.AddHostedService<BackgroundBondUpdater>();
+       // builder.Services.AddHostedService<BackgroundBondUpdater>();
 
         builder.Services.RegisterMapsterConfiguration();
 
         builder.Services.AddSingleton<ICalculationService, CalculationService>();
+        builder.Services.AddTransient<ICacheService, CacheService>();
 
         return builder;
     }
@@ -77,6 +82,14 @@ public static class ProgramExtensions
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+
+        return builder;
+    }
+
+    public static WebApplicationBuilder AddDomain(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddTransient<IBondRepository, BondRepository>();
+        builder.Services.AddTransient<IBondCache, BondCache>();
 
         return builder;
     }
