@@ -23,7 +23,7 @@ public class BackgroundBondUpdater : BackgroundService
     {
         using var scope = InitServices();
 
-        const int step = 50;
+        const int step = 10;
         var startRange = new Range(0, step);
         IEnumerable<Bond> bondsToAdd = new Bond[step];
 

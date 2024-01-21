@@ -36,7 +36,7 @@ public sealed class BondRepository : IBondRepository
     public async Task<List<Bond>> GetPriceSortedBondsAsync(CancellationToken token = default)
     {
         var bonds = await _db.Bonds.Include(x => x.Coupons)
-                                   .OrderBy(x => x.Price)
+                                   .OrderBy(x => x.PricePercent)
                                    .ToListAsync(token);
 
         return _mapper.Map<List<Bond>>(bonds);

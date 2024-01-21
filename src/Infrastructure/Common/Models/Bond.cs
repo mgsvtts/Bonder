@@ -8,31 +8,37 @@ public sealed class Bond
 {
     [Key]
     [Column("id")]
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 
     [Column("ticker")]
-    public string Ticker { get; set; }
+    public required string Ticker { get; set; }
 
     [Column("isin")]
-    public string Isin { get; set; }
+    public required string Isin { get; set; }
 
     [Column("name")]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
-    [Column("nominal_income")]
-    public decimal NominalIncome { get; set; }
+    [Column("nominal_percent")]
+    public required decimal NominalPercent { get; set; }
 
-    [Column("price")]
-    public decimal Price { get; set; }
+    [Column("price_percent")]
+    public required decimal PricePercent { get; set; }
+
+    [Column("original_price")]
+    public required decimal OriginalPrice { get; set; }
+
+    [Column("original_nominal")]
+    public required decimal OriginalNominal { get; set; }
 
     [Column("maturity_date")]
-    public DateTime? MaturityDate { get; set; }
+    public required DateTime? MaturityDate { get; set; }
 
     [Column("offer_date")]
-    public DateTime? OfferDate { get; set; }
+    public required DateTime? OfferDate { get; set; }
 
     [Column("rating")]
-    public int? Rating { get; set; }
+    public required int? Rating { get; set; }
 
     public List<Coupon> Coupons { get; set; }
 }

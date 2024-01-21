@@ -27,7 +27,7 @@ public class AllBondsReceiver : IAllBondsReceiver
 
         var bonds = await _tinkoffHttpClient.GetBondsByTickersAsync(response.Select(x => new Ticker(x)), token);
 
-        return bonds.Where(x => x.Money.Price != 0);
+        return bonds.Where(x => x.Percents.PricePercent != 0);
     }
 
     private async Task<IEnumerable<string>> GetFromCacheAsync(Range range, CancellationToken token)

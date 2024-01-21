@@ -17,5 +17,5 @@ public sealed class TinkoffValue
     public DateTime? OfferDate { get; set; }
 
     [JsonPropertyName("matDate")]
-    public DateTime MaturityDate { get; set; }
+    public DateTime? MaturityDate { get; set; }
 }

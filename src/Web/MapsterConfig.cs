@@ -24,7 +24,8 @@ public static class MapsterConfig
                                                                   new Ticker(x.Bond.Symbol.Ticker),
                                                                   new Isin(x.Bond.Symbol.Isin)),
                                                        x.Bond.Symbol.Name,
-                                                       new Money(x.Bond.Price != null ? x.Bond.Price.Value : 0, x.Bond.Nominal, true),
+                                                       IncomePercents.FromAbsoluteValues(x.Bond.Price != null ? x.Bond.Price.Value : 0, x.Bond.Nominal),
+                                                       new OriginalMoney(x.Bond.Nominal, x.Bond.Price.Value),
                                                        new Dates(x.Bond.MaturityDate, x.Bond.OfferDate),
                                                        x.Rating,
                                                        x.Coupons));
@@ -44,16 +45,19 @@ public static class MapsterConfig
             Coupons = x.Coupons.Adapt<List<Infrastructure.Common.Models.Coupon>>(),
             MaturityDate = x.Dates.MaturityDate,
             OfferDate = x.Dates.OfferDate,
-            Price = x.Money.Price,
-            NominalIncome = x.Money.NominalIncome,
-            Rating = x.Rating
+            PricePercent = x.Percents.PricePercent,
+            NominalPercent = x.Percents.NominalPercent,
+            Rating = x.Rating,
+            OriginalNominal = x.Money.OriginalNominal,
+            OriginalPrice = x.Money.OriginalPrice
         });
 
         TypeAdapterConfig<Infrastructure.Common.Models.Bond, Domain.BondAggreagte.Bond>
         .ForType()
         .MapWith(x => Domain.BondAggreagte.Bond.Create(new BondId(x.Id, new Ticker(x.Ticker), new Isin(x.Isin)),
                                                        x.Name,
-                                                       new Money(x.Price, x.NominalIncome, false),
+                                                       IncomePercents.FromPercents(x.PricePercent, x.NominalPercent),
+                                                       new OriginalMoney(x.OriginalNominal, x.OriginalPrice),
                                                        new Dates(x.MaturityDate, x.OfferDate),
                                                        x.Rating,
                                                        x.Coupons.Adapt<List<Coupon>>()));

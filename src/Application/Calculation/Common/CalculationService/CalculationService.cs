@@ -29,11 +29,7 @@ public class CalculationService : ICalculationService
     public CalculationResults Calculate(SortedCalculationRequest request)
     {
         var incomes = CalculationResults.CalculateIncomes(new CalculationRequest(request.Options, request.PriceSortedBonds));
-        var results = new CalculationResults
-        (
-            incomes,
-            request.PriceSortedBonds
-        );
+        var results = new CalculationResults(incomes, request.PriceSortedBonds);
 
         foreach (var bond in request.PriceSortedBonds)
         {

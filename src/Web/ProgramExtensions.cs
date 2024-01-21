@@ -7,9 +7,11 @@ using Infrastructure.Calculation.CalculateAll;
 using Infrastructure.Calculation.Common;
 using Infrastructure.Common;
 using MapsterMapper;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Presentation.Middlewares;
 using RateLimiter;
+using System.Threading.RateLimiting;
 using Web.Extensions;
 using Web.Extensions.Mapping;
 
@@ -19,7 +21,14 @@ public static class ProgramExtensions
 {
     public static WebApplicationBuilder AddInfrastructure(this WebApplicationBuilder builder)
     {
-        builder.Services.AddInvestApiClient((_, settings) => settings.AccessToken = builder.Configuration.GetValue<string>("TinkoffToken"));
+        builder.Services.AddInvestApiClient((_, settings) => settings.AccessToken = builder.Configuration.GetValue<string>("TinkoffToken"))
+                        .AddRateLimiter(x => x.AddSlidingWindowLimiter("limiting", options =>
+                        {
+                            options.AutoReplenishment = true;
+                            options.PermitLimit = 200;
+                            options.Window = TimeSpan.FromMinutes(1);
+                            options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                        }));
 
         builder.Services.AddTransient<ITinkoffGrpcClient, TinkoffGrpcClient>();
 
@@ -27,17 +36,21 @@ public static class ProgramExtensions
 
         var rateLimiter = TimeLimiter.GetFromMaxCountByInterval(1, TimeSpan.FromMilliseconds(201));
 
-        builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((httpClient, services) => new TinkoffHttpClient(httpClient,
-                                                                                                                              services.GetRequiredService<ITinkoffGrpcClient>(),
-                                                                                                                              services.GetRequiredService<IMapper>(),
-                                                                                                                              services.GetRequiredService<IDohodHttpClient>(),
-                                                                                                                              builder.Configuration.GetValue<string>("TinkoffToken"),
-                                                                                                                              builder.Configuration.GetValue<string>("TinkoffServerUrl")))
-                       .AddHttpMessageHandler(rateLimiter.AsDelegate);
+        builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((httpClient, services) =>
+        {
+            return new TinkoffHttpClient(httpClient,
+                                         services.GetRequiredService<ITinkoffGrpcClient>(),
+                                         services.GetRequiredService<IMapper>(),
+                                         services.GetRequiredService<IDohodHttpClient>(),
+                                         builder.Configuration.GetValue<string>("TinkoffToken"),
+                                         builder.Configuration.GetValue<string>("TinkoffServerUrl"));
+        }).AddHttpMessageHandler(rateLimiter.AsDelegate);
 
-        builder.Services.AddHttpClient<IDohodHttpClient, DohodHttpClient>(httpClient => new DohodHttpClient(httpClient,
-                                                                                                            builder.Configuration.GetValue<string>("DohodServerUrl")))
-                        .AddHttpMessageHandler(rateLimiter.AsDelegate);
+        builder.Services.AddHttpClient<IDohodHttpClient, DohodHttpClient>(httpClient =>
+        {
+            return new DohodHttpClient(httpClient,
+                                       builder.Configuration.GetValue<string>("DohodServerUrl"));
+        }).AddHttpMessageHandler(rateLimiter.AsDelegate);
 
         builder.Services.AddSingleton(rateLimiter);
 
@@ -53,7 +66,7 @@ public static class ProgramExtensions
             config.RegisterServicesFromAssemblies(typeof(AssemblyReference).Assembly);
         });
 
-        builder.Services.AddHostedService<BackgroundBondUpdater>();
+       // builder.Services.AddHostedService<BackgroundBondUpdater>();
 
         builder.Services.RegisterMapsterConfiguration();
 

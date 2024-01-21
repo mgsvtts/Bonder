@@ -10,7 +10,8 @@ public class Bond : AggregateRoot<BondId>
     private List<Coupon> _coupons = new List<Coupon>();
 
     public string Name { get; private set; }
-    public Money Money { get; private set; }
+    public IncomePercents Percents { get; private set; }
+    public OriginalMoney Money { get; private set; }
     public Dates Dates { get; private set; }
     public int? Rating { get; private set; }
     public IReadOnlyList<Coupon> Coupons => _coupons.AsReadOnly();
@@ -20,7 +21,8 @@ public class Bond : AggregateRoot<BondId>
 
     public static Bond Create(BondId id,
                               string name,
-                              Money money,
+                              IncomePercents percents,
+                              OriginalMoney money,
                               Dates dates,
                               int? rating,
                               IEnumerable<Coupon> coupons)
@@ -29,25 +31,26 @@ public class Bond : AggregateRoot<BondId>
         {
             Name = name,
             _coupons = coupons.ToList(),
-            Money = money,
+            Percents = percents,
             Dates = dates,
-            Rating = rating
+            Rating = rating,
+            Money = money
         };
     }
 
     public Income GetIncome(GetIncomeRequest request)
     {
-        var couponIncome = GetCouponOnlyIncome(request);
+        var couponIncome = GetCouponOnlyIncomePercent(request);
 
         if (IsFullIncomeDate(request))
         {
-            return new Income(couponIncome, Money.NominalIncome);
+            return new Income(couponIncome, Percents.NominalPercent);
         }
 
         return new Income(couponIncome);
     }
 
-    private decimal GetCouponOnlyIncome(GetIncomeRequest request)
+    private decimal GetCouponOnlyIncomePercent(GetIncomeRequest request)
     {
         var date = GetTillDate(request);
 
@@ -56,10 +59,10 @@ public class Bond : AggregateRoot<BondId>
             throw new InvalidPaymentDateException(date);
         }
 
-        return CalculateCoupons(date, request.ConsiderDividendCutOffDate);
+        return CalculateCouponIncomePercent(date, request.ConsiderDividendCutOffDate);
     }
 
-    private decimal CalculateCoupons(DateTime date, bool considerDividendCutOffDate)
+    private decimal CalculateCouponIncomePercent(DateTime date, bool considerDividendCutOffDate)
     {
         var futureCoupons = Coupons.Where(x => x.CanGetCoupon(date, considerDividendCutOffDate));
 
@@ -72,11 +75,11 @@ public class Bond : AggregateRoot<BondId>
             latestCoupon ??= Coupons.OrderByDescending(x => x.PaymentDate)
                                     .First();
 
-            return latestCoupon.Payout * futureCoupons.Count();
+            return (latestCoupon.Payout * futureCoupons.Count()) / Money.OriginalNominal;
         }
         else if (Coupons.Count != 0)
         {
-            return futureCoupons.Count() * Coupons[0].Payout;
+            return futureCoupons.Sum(x => x.Payout) / Money.OriginalNominal;
         }
         else
         {
