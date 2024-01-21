@@ -6,9 +6,9 @@ public readonly record struct Money
 
     public decimal Price { get; }
 
-    public Money(decimal price, decimal nominal)
+    public Money(decimal price, decimal nominal, bool calculateIncome = true)
     {
-        NominalIncome = nominal - price;
+        NominalIncome = calculateIncome ? nominal - price : nominal;
         Price = price;
     }
 }

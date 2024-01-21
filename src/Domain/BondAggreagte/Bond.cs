@@ -56,18 +56,31 @@ public class Bond : AggregateRoot<BondId>
             throw new InvalidPaymentDateException(date);
         }
 
-        var futureCoupons = Coupons.Where(x => x.CanGetCoupon(date, request.ConsiderDividendCutOffDate));
+        return CalculateCoupons(date, request.ConsiderDividendCutOffDate);
+    }
+
+    private decimal CalculateCoupons(DateTime date, bool considerDividendCutOffDate)
+    {
+        var futureCoupons = Coupons.Where(x => x.CanGetCoupon(date, considerDividendCutOffDate));
 
         if (Coupons.Any(x => x.IsFloating))
         {
             var latestCoupon = futureCoupons.Where(x => x.Payout != 0)
                                             .OrderByDescending(x => x.PaymentDate)
-                                            .First();
+                                            .FirstOrDefault();
+
+            latestCoupon ??= Coupons.OrderByDescending(x => x.PaymentDate)
+                                    .First();
+
             return latestCoupon.Payout * futureCoupons.Count();
+        }
+        else if (Coupons.Count != 0)
+        {
+            return futureCoupons.Count() * Coupons[0].Payout;
         }
         else
         {
-            return futureCoupons.Count() * Coupons[0].Payout;
+            return 0;
         }
     }
 

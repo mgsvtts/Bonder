@@ -1,13 +1,17 @@
 ﻿using Application.Calculation.CalculateAll;
+using Application.Calculation.CalculateAll.Services;
 using Application.Calculation.Common.CalculationService;
 using Application.Calculation.Common.Interfaces;
 using Application.Common;
 using Domain.BondAggreagte.Repositories;
+using Google.Api;
 using Infrastructure.Calculation.CalculateAll;
 using Infrastructure.Calculation.Common;
 using Infrastructure.Common;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http;
 using Presentation.Middlewares;
 using RateLimiter;
 using Web.Extensions;
@@ -27,31 +31,21 @@ public static class ProgramExtensions
 
         var rateLimiter = TimeLimiter.GetFromMaxCountByInterval(1, TimeSpan.FromMilliseconds(201));
 
-        builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((httpClient, services) =>
-        {
-            return new TinkoffHttpClient(httpClient,
-                                         services.GetRequiredService<ITinkoffGrpcClient>(),
-                                         services.GetRequiredService<IMapper>(),
-                                         services.GetRequiredService<IDohodHttpClient>(),
-                                         builder.Configuration.GetValue<string>("TinkoffToken"),
-                                         builder.Configuration.GetValue<string>("TinkoffServerUrl"));
-        }).AddHttpMessageHandler(rateLimiter.AsDelegate);
+        builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((httpClient, services) => new TinkoffHttpClient(httpClient,
+                                                                                                                              services.GetRequiredService<ITinkoffGrpcClient>(),
+                                                                                                                              services.GetRequiredService<IMapper>(),
+                                                                                                                              services.GetRequiredService<IDohodHttpClient>(),
+                                                                                                                              builder.Configuration.GetValue<string>("TinkoffToken"),
+                                                                                                                              builder.Configuration.GetValue<string>("TinkoffServerUrl")))
+                       .AddHttpMessageHandler(rateLimiter.AsDelegate);
 
-        builder.Services.AddHttpClient<IDohodHttpClient, DohodHttpClient>(httpClient =>
-        {
-            return new DohodHttpClient(httpClient, builder.Configuration.GetValue<string>("DohodServerUrl"));
-        }).AddHttpMessageHandler(rateLimiter.AsDelegate);
+        builder.Services.AddHttpClient<IDohodHttpClient, DohodHttpClient>(httpClient => new DohodHttpClient(httpClient,
+                                                                                                            builder.Configuration.GetValue<string>("DohodServerUrl")))
+                        .AddHttpMessageHandler(rateLimiter.AsDelegate);
 
         builder.Services.AddSingleton(rateLimiter);
 
-        var appPath = Directory.GetCurrentDirectory().Replace("Web", "Infrastructure\\Common\\");
-        var databasePath = builder.Configuration.GetConnectionString("Database").Replace("???", appPath);
-        builder.Services.AddDbContext<DataContext>((options) => options.UseSqlite(databasePath));
-
-        builder.Services.AddStackExchangeRedisCache(redis =>
-        {
-            redis.Configuration = builder.Configuration.GetConnectionString("Redis");
-        });
+        builder.Services.AddDbContext<DataContext>((options) => options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
 
         return builder;
     }
@@ -63,12 +57,11 @@ public static class ProgramExtensions
             config.RegisterServicesFromAssemblies(typeof(AssemblyReference).Assembly);
         });
 
-       // builder.Services.AddHostedService<BackgroundBondUpdater>();
+        builder.Services.AddHostedService<BackgroundBondUpdater>();
 
         builder.Services.RegisterMapsterConfiguration();
 
         builder.Services.AddSingleton<ICalculationService, CalculationService>();
-        builder.Services.AddTransient<ICacheService, CacheService>();
 
         return builder;
     }
@@ -89,7 +82,6 @@ public static class ProgramExtensions
     public static WebApplicationBuilder AddDomain(this WebApplicationBuilder builder)
     {
         builder.Services.AddTransient<IBondRepository, BondRepository>();
-        builder.Services.AddTransient<IBondCache, BondCache>();
 
         return builder;
     }

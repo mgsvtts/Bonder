@@ -1,21 +1,28 @@
 ﻿using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte;
+using Domain.BondAggreagte.Repositories;
 using Grpc.Core;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Application.Calculation.CalculateAll.Services;
 
 public class BackgroundBondUpdater : BackgroundService
 {
-    private readonly IAllBondsReceiver _bondReceiver;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public BackgroundBondUpdater(IAllBondsReceiver bondReceiver)
+    private IAllBondsReceiver _bondReceiver;
+    private IBondRepository _bondRepository;
+
+    public BackgroundBondUpdater(IServiceScopeFactory scopeFactory)
     {
-        _bondReceiver = bondReceiver;
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        using var scope = InitServices();
+
         const int step = 50;
         var startRange = new Range(0, step);
         IEnumerable<Bond> bondsToAdd = new Bond[step];
@@ -26,8 +33,18 @@ public class BackgroundBondUpdater : BackgroundService
 
             RecreateRange(step, ref startRange);
 
-            AllBonds.AddOrUpdate(bondsToAdd);
+            await _bondRepository.AddOrUpateAsync(bondsToAdd, stoppingToken);
         }
+    }
+
+    private IServiceScope InitServices()
+    {
+        var scope = _scopeFactory.CreateScope();
+
+        _bondReceiver = scope.ServiceProvider.GetRequiredService<IAllBondsReceiver>();
+        _bondRepository = scope.ServiceProvider.GetRequiredService<IBondRepository>();
+
+        return scope;
     }
 
     private void RecreateRange(int step, ref Range startRange)

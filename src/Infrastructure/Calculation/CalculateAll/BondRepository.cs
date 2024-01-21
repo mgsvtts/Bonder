@@ -37,4 +37,22 @@ public sealed class BondRepository : IBondRepository
 
         await _db.SaveChangesAsync(token);
     }
+
+    public async Task<List<Bond>> GetPriceSortedBondsAsync(CancellationToken token = default)
+    {
+        var bonds = await _db.Bonds.Include(x => x.Coupons)
+                                   .OrderBy(x => x.Price)
+                                   .ToListAsync(token);
+
+        return _mapper.Map<List<Bond>>(bonds);
+    }
+
+    public async Task<List<Bond>> GetRatingSortedBondsAsync(CancellationToken token = default)
+    {
+        var bonds = await _db.Bonds.Include(x => x.Coupons)
+                                   .OrderByDescending(x => x.Rating)
+                                   .ToListAsync(token);
+
+        return _mapper.Map<List<Bond>>(bonds);
+    }
 }

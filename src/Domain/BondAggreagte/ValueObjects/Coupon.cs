@@ -7,10 +7,10 @@ public sealed class Coupon
     public DateTime DividendCutOffDate { get; private set; }
     public bool IsFloating { get; private set; }
 
-    public Coupon(DateTime date, decimal payout, DateTime dividendCutOffDate, bool isFloating)
+    public Coupon(DateTime paymentDate, decimal payout, DateTime dividendCutOffDate, bool isFloating)
     {
         Payout = payout;
-        PaymentDate = date.Date;
+        PaymentDate = paymentDate.Date;
         DividendCutOffDate = dividendCutOffDate.Date;
         IsFloating = isFloating;
     }

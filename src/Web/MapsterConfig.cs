@@ -24,7 +24,7 @@ public static class MapsterConfig
                                                                   new Ticker(x.Bond.Symbol.Ticker),
                                                                   new Isin(x.Bond.Symbol.Isin)),
                                                        x.Bond.Symbol.Name,
-                                                       new Money(x.Bond.Price != null ? x.Bond.Price.Value : 0, x.Bond.Nominal),
+                                                       new Money(x.Bond.Price != null ? x.Bond.Price.Value : 0, x.Bond.Nominal, true),
                                                        new Dates(x.Bond.MaturityDate, x.Bond.OfferDate),
                                                        x.Rating,
                                                        x.Coupons));
@@ -37,7 +37,7 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new Infrastructure.Common.Models.Bond
         {
-            Id = x.Identity.Id.ToString(),
+            Id = x.Identity.Id,
             Name = x.Name,
             Ticker = x.Identity.Ticker.Value,
             Isin = x.Identity.Isin.Value,
@@ -49,11 +49,24 @@ public static class MapsterConfig
             Rating = x.Rating
         });
 
+        TypeAdapterConfig<Infrastructure.Common.Models.Bond, Domain.BondAggreagte.Bond>
+        .ForType()
+        .MapWith(x => Domain.BondAggreagte.Bond.Create(new BondId(x.Id, new Ticker(x.Ticker), new Isin(x.Isin)),
+                                                       x.Name,
+                                                       new Money(x.Price, x.NominalIncome, false),
+                                                       new Dates(x.MaturityDate, x.OfferDate),
+                                                       x.Rating,
+                                                       x.Coupons.Adapt<List<Coupon>>()));
+
+        TypeAdapterConfig<Infrastructure.Common.Models.Coupon, Coupon>
+       .ForType()
+       .MapWith(x => new Coupon(x.PaymentDate, x.Payout, x.DividendCutOffDate, x.IsFloating));
+
         TypeAdapterConfig<Coupon, Infrastructure.Common.Models.Coupon>
         .ForType()
         .MapWith(x => new Infrastructure.Common.Models.Coupon
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             DividendCutOffDate = x.DividendCutOffDate,
             IsFloating = x.IsFloating,
             PaymentDate = x.PaymentDate,

@@ -1,5 +1,6 @@
 ﻿using Application.Calculation.CalculateAll;
 using Application.Calculation.CalculateTickers;
+using Domain.BondAggreagte.Dto;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -33,7 +34,7 @@ public class BondController : ControllerBase
     [HttpGet]
     public async IAsyncEnumerable<CalculateResponse> GetState([EnumeratorCancellation] CancellationToken token)
     {
-        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(), token))
+        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetIncomeRequest(DateIntervalType.TillDate, DateTime.Now.AddYears(2))), token))
         {
             yield return result.MapToResponse();
         }

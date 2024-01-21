@@ -1,15 +1,20 @@
-﻿using Infrastructure.Common.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Calculation.Common.Interfaces;
+using Infrastructure.Common.Models;
 
 namespace Infrastructure.Common;
 public sealed class DataContext : DbContext
 {
+    public DbSet<Bond> Bonds { get; set; }
+
     public DataContext(DbContextOptions<DataContext> options) : base(options)
     {
         Database.EnsureCreated();
@@ -29,7 +34,5 @@ public sealed class DataContext : DbContext
               .HasIndex(u => u.BondId)
               .HasDatabaseName("ix_coupon_bond_id");
     }
-
-    public DbSet<Bond> Bonds { get; set; }
 
 }

@@ -1,5 +1,6 @@
 ﻿using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte.ValueObjects;
+using System.Diagnostics;
 using Tinkoff.InvestApi;
 
 namespace Infrastructure.Calculation.CalculateAll;
@@ -9,7 +10,7 @@ public class AllBondsReceiver : IAllBondsReceiver
     private readonly ITInkoffHttpClient _tinkoffHttpClient;
     private readonly InvestApiClient _tinkoffApiClient;
 
-    private IEnumerable<Tinkoff.InvestApi.V1.Bond>? _cache;
+    private IEnumerable<string>? _cache;
 
     public int MaxRange { get; private set; }
 
@@ -25,14 +26,12 @@ public class AllBondsReceiver : IAllBondsReceiver
     {
         var response = await GetFromCacheAsync(takeRange, token);
 
-        var bonds = await _tinkoffHttpClient.GetBondsByTickersAsync(response.Select(x => new Ticker(x.Ticker)), token);
+        var bonds = await _tinkoffHttpClient.GetBondsByTickersAsync(response.Select(x => new Ticker(x)), token);
 
-
-
-        return bonds;
+        return bonds.Where(x => x.Money.Price != 0);
     }
 
-    private async Task<IEnumerable<Tinkoff.InvestApi.V1.Bond>> GetFromCacheAsync(Range range, CancellationToken token)
+    private async Task<IEnumerable<string>> GetFromCacheAsync(Range range, CancellationToken token)
     {
         if (range.Start.Value > MaxRange)
         {
@@ -53,7 +52,6 @@ public class AllBondsReceiver : IAllBondsReceiver
 
         MaxRange = instruments.Count;
 
-        _cache = instruments.OrderByDescending(x => x.Nominal.Units)
-                            .ThenBy(x => x.Ticker);
+        _cache = instruments.Select(x => x.Ticker);
     }
 }
