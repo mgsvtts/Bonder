@@ -7,4 +7,9 @@ public readonly record struct Ticker
     {
         Value = value.Trim().ToUpper();
     }
+
+    public override string ToString()
+    {
+        return Value;
+    }
 }

@@ -12,6 +12,8 @@ public static class CalculateResponseExtensions
                                      CouponIncomeSortedBonds: results.Bonds.Select(x => new IncomeBondResponse(x.Key.Identity.Ticker.Value, x.Key.Name, x.Value.CouponIncome)).OrderByDescending(x => x.Income),
                                      NominalIncomeSortedBonds: results.Bonds.Select(x => new IncomeBondResponse(x.Key.Identity.Ticker.Value, x.Key.Name, x.Value.NominalIncome)).OrderByDescending(x => x.Income),
                                      FullIncomeSortedBonds: results.FullIncomeSortedBonds.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
-                                     CreditRatingSortedBonds: results.RatingSortedBonds.Select(x => new CreditRatingBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Rating)));
+                                     CreditRatingSortedBonds: results.PriceSortedBonds.GroupBy(x => x.Bond.Rating)
+                                                                                      .OrderBy(x=>x.Key)
+                                                                                      .Select(x => new CreditRatingBondResponse(x.Key, x.Select(x => new CreditRatingBond(x.Bond.Identity.Ticker.ToString(), x.Bond.Name)))));
     }
 }

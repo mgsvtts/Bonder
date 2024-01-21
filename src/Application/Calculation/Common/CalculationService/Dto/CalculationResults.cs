@@ -1,6 +1,5 @@
 ﻿using Domain.BondAggreagte;
 using Domain.BondAggreagte.ValueObjects;
-using System.Linq;
 
 namespace Application.Calculation.Common.CalculationService.Dto;
 
@@ -10,20 +9,17 @@ public record struct CalculationResults
 
     public readonly IReadOnlyList<CalculationResult> Results => _results.AsReadOnly();
     public IDictionary<Bond, Income> Bonds { get; }
-    public IEnumerable<CalculationMoneyResult> PriceSortedBonds { get;  }
-    public IEnumerable<CalculationMoneyResult> FullIncomeSortedBonds { get;  }
-    public IEnumerable<CalculationRatingResult> RatingSortedBonds { get;  }
+    public IEnumerable<CalculationMoneyResult> PriceSortedBonds { get; }
+    public IEnumerable<CalculationMoneyResult> FullIncomeSortedBonds { get; }
 
     public CalculationResults(IDictionary<Bond, Income> bonds,
-                              IEnumerable<Bond> priceSortedBonds,
-                              IEnumerable<Bond> ratingSortedBonds)
+                              IEnumerable<Bond> priceSortedBonds)
     {
         _results = new List<CalculationResult>();
 
         Bonds = bonds;
         PriceSortedBonds = priceSortedBonds.Select(x => new CalculationMoneyResult(x, x.Money.Price));
-        FullIncomeSortedBonds = bonds.Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncome));
-        RatingSortedBonds = ratingSortedBonds.Select(x => new CalculationRatingResult(x, x.Rating));
+        FullIncomeSortedBonds = bonds.Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncome));;
     }
 
     public CalculationResults(CalculationRequest request)
@@ -36,10 +32,7 @@ public record struct CalculationResults
                                 .Select(x => new CalculationMoneyResult(x.Key, x.Key.Money.Price));
 
         FullIncomeSortedBonds = Bonds.OrderByDescending(x => x.Value.FullIncome)
-                                     .Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncome));
-
-        RatingSortedBonds = request.Bonds.OrderByDescending(x => x.Rating)
-                                         .Select(x => new CalculationRatingResult(x, x.Rating));
+                                     .Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncome));;
     }
 
     public readonly void Add(CalculationResult result)

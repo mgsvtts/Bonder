@@ -6,5 +6,4 @@ public readonly record struct CalculationRequest(GetIncomeRequest Options, IEnum
 
 public readonly record struct SortedCalculationRequest(GetIncomeRequest Options,
                                                        List<Bond> PriceSortedBonds,
-                                                       List<Bond> FullIncomeSortedBonds,
-                                                       List<Bond> RatingSortedBonds);
+                                                       List<Bond> FullIncomeSortedBonds);

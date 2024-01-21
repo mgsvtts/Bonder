@@ -1,6 +1,5 @@
 ﻿using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte.ValueObjects;
-using System.Diagnostics;
 using Tinkoff.InvestApi;
 
 namespace Infrastructure.Calculation.CalculateAll;

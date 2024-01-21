@@ -36,7 +36,7 @@ public class BondController : ControllerBase
     public async IAsyncEnumerable<CalculateResponse> GetState([EnumeratorCancellation] CancellationToken token)
     {
         var waitSeconds = TimeSpan.FromSeconds(5);
-        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetIncomeRequest(DateIntervalType.TillOfferDate)), token))
+        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetIncomeRequest(DateIntervalType.TillDate, DateTime.Now.AddYears(5))), token))
         {
             yield return result.MapToResponse();
 

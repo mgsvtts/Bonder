@@ -1,16 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
+﻿using Infrastructure.Common.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
-using Application.Calculation.Common.Interfaces;
-using Infrastructure.Common.Models;
 
 namespace Infrastructure.Common;
+
 public sealed class DataContext : DbContext
 {
     public DbSet<Bond> Bonds { get; set; }
@@ -22,6 +15,8 @@ public sealed class DataContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        base.OnModelCreating(builder);
+
         builder.Entity<Bond>()
                .HasIndex(u => u.Ticker)
                .HasDatabaseName("ix_ticker_index");
@@ -34,5 +29,4 @@ public sealed class DataContext : DbContext
               .HasIndex(u => u.BondId)
               .HasDatabaseName("ix_coupon_bond_id");
     }
-
 }

@@ -1,16 +1,11 @@
 ﻿using Domain.BondAggreagte;
 using Domain.BondAggreagte.Repositories;
 using Infrastructure.Common;
-using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Calculation.CalculateAll;
+
 public sealed class BondRepository : IBondRepository
 {
     private readonly DataContext _db;
@@ -42,16 +37,6 @@ public sealed class BondRepository : IBondRepository
     {
         var bonds = await _db.Bonds.Include(x => x.Coupons)
                                    .OrderBy(x => x.Price)
-                                   .ToListAsync(token);
-
-        return _mapper.Map<List<Bond>>(bonds);
-    }
-
-    public async Task<List<Bond>> GetRatingSortedBondsAsync(CancellationToken token = default)
-    {
-        var bonds = await _db.Bonds.Include(x => x.Coupons)
-                                   .Where(x=>x.Rating != null)
-                                   .OrderByDescending(x => x.Rating)
                                    .ToListAsync(token);
 
         return _mapper.Map<List<Bond>>(bonds);
