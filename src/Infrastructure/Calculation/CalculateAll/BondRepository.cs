@@ -50,6 +50,7 @@ public sealed class BondRepository : IBondRepository
     public async Task<List<Bond>> GetRatingSortedBondsAsync(CancellationToken token = default)
     {
         var bonds = await _db.Bonds.Include(x => x.Coupons)
+                                   .Where(x=>x.Rating != null)
                                    .OrderByDescending(x => x.Rating)
                                    .ToListAsync(token);
 

@@ -8,6 +8,7 @@ using Presentation.Controllers.BondController.Calculate;
 using Presentation.Controllers.BondController.Calculate.Request;
 using Presentation.Controllers.BondController.Calculate.Response;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace Presentation.Controllers.BondController;
 
@@ -34,9 +35,12 @@ public class BondController : ControllerBase
     [HttpGet]
     public async IAsyncEnumerable<CalculateResponse> GetState([EnumeratorCancellation] CancellationToken token)
     {
-        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetIncomeRequest(DateIntervalType.TillDate, DateTime.Now.AddYears(2))), token))
+        var waitSeconds = TimeSpan.FromSeconds(5);
+        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetIncomeRequest(DateIntervalType.TillOfferDate)), token))
         {
             yield return result.MapToResponse();
+
+            await Task.Delay(waitSeconds, token);
         }
     }
 }

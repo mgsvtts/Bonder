@@ -33,7 +33,7 @@ public sealed class Bond
     public required decimal Price { get; set; }
 
     [Column("maturity_date")]
-    public required DateTime MaturityDate { get; set; }
+    public required DateTime? MaturityDate { get; set; }
 
     [Column("offer_date")]
     public required DateTime? OfferDate { get; set; }

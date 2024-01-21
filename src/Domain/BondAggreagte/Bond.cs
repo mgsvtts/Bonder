@@ -91,10 +91,13 @@ public class Bond : AggregateRoot<BondId>
 
     private DateTime GetTillDate(GetIncomeRequest request)
     {
+        var maturityDate = Dates.MaturityDate != null ? Dates.MaturityDate : Coupons.OrderByDescending(x => x.PaymentDate).First().PaymentDate;
+        var offerDate = Dates.OfferDate != null ? Dates.OfferDate : maturityDate;
+
         return request.Type switch
         {
-            DateIntervalType.TillMaturityDate => Dates.MaturityDate,
-            DateIntervalType.TillOfferDate => (Dates.OfferDate != null ? Dates.OfferDate : Dates.MaturityDate).Value,
+            DateIntervalType.TillMaturityDate => maturityDate.Value,
+            DateIntervalType.TillOfferDate => offerDate.Value,
             DateIntervalType.TillDate => request.TillDate.Value,
             _ => throw new NotImplementedException(),
         };
@@ -102,18 +105,21 @@ public class Bond : AggregateRoot<BondId>
 
     public bool IsFullIncomeDate(GetIncomeRequest request)
     {
-        return request.IsPaymentType() || DateIsEqualToPaymentDate(request) || DateIsMoreThanPaymentDate(request);
+        return Dates.MaturityDate is not null &&
+               (request.IsPaymentType() ||
+                DateIsEqualToPaymentDate(request) ||
+                DateIsMoreThanPaymentDate(request));
     }
 
     private bool DateIsEqualToPaymentDate(GetIncomeRequest request)
     {
-        return request.TillDate?.Date == Dates.MaturityDate.Date ||
+        return request.TillDate?.Date == Dates.MaturityDate?.Date ||
                request.TillDate?.Date == Dates.OfferDate?.Date;
     }
 
     private bool DateIsMoreThanPaymentDate(GetIncomeRequest request)
     {
-        return request.TillDate?.Date > Dates.MaturityDate.Date ||
+        return request.TillDate?.Date > Dates.MaturityDate?.Date ||
                request.TillDate?.Date > Dates.OfferDate?.Date;
     }
 }

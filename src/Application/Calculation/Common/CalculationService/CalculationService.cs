@@ -40,6 +40,11 @@ public class CalculationService : ICalculationService
             var fullIncomeIndex = request.FullIncomeSortedBonds.IndexOf(bond);
             var ratingIndex = request.RatingSortedBonds.IndexOf(bond);
 
+            if(ratingIndex == -1)
+            {
+                ratingIndex = request.PriceSortedBonds.Count;
+            }
+
             results.Add(new CalculationResult(bond,
                                               CalculatePriority(priceIndex, fullIncomeIndex, ratingIndex)));
         }
