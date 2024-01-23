@@ -23,7 +23,7 @@ public sealed class CalculateAllStreamRequestHandler : IStreamRequestHandler<Cal
         {
             var priceSorted = await _bondRepository.GetPriceSortedBondsAsync(cancellationToken);
 
-            var fullIncomeSorted = priceSorted.OrderByDescending(x => x.GetIncome(request.IncomeRequest).FullIncome)
+            var fullIncomeSorted = priceSorted.OrderByDescending(x => x.GetIncomeOnDate(request.IncomeRequest).FullIncomePercent)
                                               .ToList();
 
             yield return _calculator.Calculate(new SortedCalculationRequest(request.IncomeRequest, priceSorted, fullIncomeSorted));

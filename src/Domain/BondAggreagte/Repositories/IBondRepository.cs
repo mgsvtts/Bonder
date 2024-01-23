@@ -1,8 +1,10 @@
-﻿namespace Domain.BondAggreagte.Repositories;
+﻿using Domain.BondAggreagte.ValueObjects;
+
+namespace Domain.BondAggreagte.Repositories;
 
 public interface IBondRepository
 {
-    Task AddOrUpateAsync(IEnumerable<Bond> bonds, CancellationToken token = default);
+    Task UpdateAsync(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bonds, CancellationToken token = default);
 
     Task<List<Bond>> GetPriceSortedBondsAsync(CancellationToken token = default);
 }

@@ -2,55 +2,49 @@
 using Domain.BondAggreagte.Exceptions;
 using Domain.BondAggreagte.ValueObjects;
 using Domain.Common.Models;
+using System.Xml.Linq;
 
 namespace Domain.BondAggreagte;
 
 public class Bond : AggregateRoot<BondId>
 {
-    private List<Coupon> _coupons = new List<Coupon>();
+    private readonly List<Coupon> _coupons = new List<Coupon>();
 
     public string Name { get; private set; }
-    public IncomePercents Percents { get; private set; }
-    public OriginalMoney Money { get; private set; }
+    public FullIncome Income { get; private set; }
     public Dates Dates { get; private set; }
     public int? Rating { get; private set; }
+
+
     public IReadOnlyList<Coupon> Coupons => _coupons.AsReadOnly();
 
-    private Bond(BondId id) : base(id)
-    { }
-
-    public static Bond Create(BondId id,
-                              string name,
-                              IncomePercents percents,
-                              OriginalMoney money,
-                              Dates dates,
-                              int? rating,
-                              IEnumerable<Coupon> coupons)
+    public Bond(BondId id,
+                 string name,
+                 StaticIncome income,
+                 Dates dates,
+                 int? rating,
+                 IEnumerable<Coupon> coupons) : base(id)
     {
-        return new Bond(id)
-        {
-            Name = name,
-            _coupons = coupons.ToList(),
-            Percents = percents,
-            Dates = dates,
-            Rating = rating,
-            Money = money
-        };
+        Name = name;
+        _coupons = coupons.ToList();
+        Dates = dates;
+        Rating = rating;
+        Income = new FullIncome(income, GetCouponOnlyIncome(new GetIncomeRequest(DateIntervalType.TillOfferDate)));
     }
 
-    public Income GetIncome(GetIncomeRequest request)
+    public FullIncome GetIncomeOnDate(GetIncomeRequest request)
     {
-        var couponIncome = GetCouponOnlyIncomePercent(request);
+        var couponIncome = GetCouponOnlyIncome(request);
 
         if (IsFullIncomeDate(request))
         {
-            return new Income(couponIncome, Percents.NominalPercent);
+            return new FullIncome(Income.StaticIncome, couponIncome);
         }
 
-        return new Income(couponIncome);
+        return new FullIncome(StaticIncome.None, couponIncome);
     }
 
-    private decimal GetCouponOnlyIncomePercent(GetIncomeRequest request)
+    private CouponIncome GetCouponOnlyIncome(GetIncomeRequest request)
     {
         var date = GetTillDate(request);
 
@@ -59,10 +53,10 @@ public class Bond : AggregateRoot<BondId>
             throw new InvalidPaymentDateException(date);
         }
 
-        return CalculateCouponIncomePercent(date, request.ConsiderDividendCutOffDate);
+        return CalculateCouponIncome(date, request.ConsiderDividendCutOffDate);
     }
 
-    private decimal CalculateCouponIncomePercent(DateTime date, bool considerDividendCutOffDate)
+    private CouponIncome CalculateCouponIncome(DateTime date, bool considerDividendCutOffDate)
     {
         var futureCoupons = Coupons.Where(x => x.CanGetCoupon(date, considerDividendCutOffDate));
 
@@ -75,15 +69,21 @@ public class Bond : AggregateRoot<BondId>
             latestCoupon ??= Coupons.OrderByDescending(x => x.PaymentDate)
                                     .First();
 
-            return (latestCoupon.Payout * futureCoupons.Count()) / Money.OriginalNominal;
+            var absoluteIncome = latestCoupon.Payout * futureCoupons.Count();
+            var percentIncome = absoluteIncome / Income.StaticIncome.AbsoluteNominal;
+
+            return new CouponIncome(absoluteIncome, percentIncome);
         }
         else if (Coupons.Count != 0)
         {
-            return futureCoupons.Sum(x => x.Payout) / Money.OriginalNominal;
+            var absoluteIncome = futureCoupons.Sum(x => x.Payout);
+            var percentIncome = absoluteIncome / Income.StaticIncome.AbsoluteNominal;
+
+            return new CouponIncome(absoluteIncome, percentIncome);
         }
         else
         {
-            return 0;
+            return CouponIncome.None;
         }
     }
 

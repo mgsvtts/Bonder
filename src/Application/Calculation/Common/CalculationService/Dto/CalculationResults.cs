@@ -8,18 +8,18 @@ public record struct CalculationResults
     private List<CalculationResult> _results;
 
     public readonly IReadOnlyList<CalculationResult> Results => _results.AsReadOnly();
-    public IDictionary<Bond, Income> Bonds { get; }
+    public IDictionary<Bond, FullIncome> Bonds { get; }
     public IEnumerable<CalculationMoneyResult> PriceSortedBonds { get; }
     public IEnumerable<CalculationMoneyResult> FullIncomeSortedBonds { get; }
 
-    public CalculationResults(IDictionary<Bond, Income> bonds,
+    public CalculationResults(IDictionary<Bond, FullIncome> bonds,
                               IEnumerable<Bond> priceSortedBonds)
     {
         _results = new List<CalculationResult>();
 
         Bonds = bonds;
-        PriceSortedBonds = priceSortedBonds.Select(x => new CalculationMoneyResult(x, x.Percents.PricePercent));
-        FullIncomeSortedBonds = bonds.Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncome));;
+        PriceSortedBonds = priceSortedBonds.Select(x => new CalculationMoneyResult(x, x.Income.StaticIncome.PricePercent));
+        FullIncomeSortedBonds = bonds.Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent));;
     }
 
     public CalculationResults(CalculationRequest request)
@@ -28,11 +28,11 @@ public record struct CalculationResults
 
         Bonds = CalculateIncomes(request);
 
-        PriceSortedBonds = Bonds.OrderBy(x => x.Key.Percents.PricePercent)
-                                .Select(x => new CalculationMoneyResult(x.Key, x.Key.Percents.PricePercent));
+        PriceSortedBonds = Bonds.OrderBy(x => x.Key.Income.StaticIncome.PricePercent)
+                                .Select(x => new CalculationMoneyResult(x.Key, x.Key.Income.StaticIncome.PricePercent));
 
-        FullIncomeSortedBonds = Bonds.OrderByDescending(x => x.Value.FullIncome)
-                                     .Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncome));;
+        FullIncomeSortedBonds = Bonds.OrderByDescending(x => x.Value.FullIncomePercent)
+                                     .Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent));;
     }
 
     public readonly void Add(CalculationResult result)
@@ -48,13 +48,13 @@ public record struct CalculationResults
         return this;
     }
 
-    public static Dictionary<Bond, Income> CalculateIncomes(CalculationRequest request)
+    public static Dictionary<Bond, FullIncome> CalculateIncomes(CalculationRequest request)
     {
-        var dict = new Dictionary<Bond, Income>();
+        var dict = new Dictionary<Bond, FullIncome>();
 
         foreach (var bond in request.Bonds)
         {
-            dict.Add(bond, bond.GetIncome(request.Options));
+            dict.Add(bond, bond.GetIncomeOnDate(request.Options));
         }
 
         return dict;

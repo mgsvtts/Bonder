@@ -1,4 +1,5 @@
 ﻿using Domain.BondAggreagte;
+using Domain.BondAggreagte.ValueObjects;
 
 namespace Application.Calculation.Common.Interfaces;
 
@@ -6,5 +7,5 @@ public interface IAllBondsReceiver
 {
     int MaxRange { get; }
 
-    Task<IEnumerable<Bond>> ReceiveAsync(Range takeRange, CancellationToken token);
+    Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> ReceiveAsync(Range takeRange, CancellationToken token);
 }

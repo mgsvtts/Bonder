@@ -1,6 +1,7 @@
 ﻿using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte;
 using Domain.BondAggreagte.Repositories;
+using Domain.BondAggreagte.ValueObjects;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,15 +26,15 @@ public class BackgroundBondUpdater : BackgroundService
 
         const int step = 10;
         var startRange = new Range(0, step);
-        IEnumerable<Bond> bondsToAdd = new Bond[step];
+        IEnumerable<KeyValuePair<Ticker, StaticIncome>> bondsToUpdate = new KeyValuePair<Ticker, StaticIncome>[step];
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            bondsToAdd = await TryReceiveAsync(startRange, bondsToAdd, stoppingToken);
+            bondsToUpdate = await TryReceiveAsync(startRange, stoppingToken);
 
             RecreateRange(step, ref startRange);
 
-            await _bondRepository.AddOrUpateAsync(bondsToAdd, stoppingToken);
+            await _bondRepository.UpdateAsync(bondsToUpdate, stoppingToken);
         }
     }
 
@@ -59,21 +60,20 @@ public class BackgroundBondUpdater : BackgroundService
         }
     }
 
-    private async Task<IEnumerable<Bond>> TryReceiveAsync(Range startRange, IEnumerable<Bond> bondsToAdd, CancellationToken stoppingToken)
+    private async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> TryReceiveAsync(Range startRange,  
+                                                                                         CancellationToken token)
     {
         try
         {
-            bondsToAdd = await _bondReceiver.ReceiveAsync(startRange, stoppingToken);
+            return  await _bondReceiver.ReceiveAsync(startRange, token);
         }
         catch (RpcException)
         {
-            bondsToAdd = await TryRetryAsync(startRange, bondsToAdd, stoppingToken);
+            return await TryRetryAsync(startRange, token);
         }
-
-        return bondsToAdd;
     }
 
-    private async Task<IEnumerable<Bond>> TryRetryAsync(Range start, IEnumerable<Bond> bondsToUpdate, CancellationToken stoppingToken)
+    private async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> TryRetryAsync(Range start, CancellationToken stoppingToken)
     {
         var retries = 5;
         while (retries > 0)
@@ -88,6 +88,6 @@ public class BackgroundBondUpdater : BackgroundService
             retries--;
         }
 
-        return Array.Empty<Bond>();
+        return Array.Empty<KeyValuePair<Ticker, StaticIncome>>();
     }
 }

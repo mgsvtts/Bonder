@@ -1,5 +1,6 @@
 ﻿using Domain.BondAggreagte;
 using Domain.BondAggreagte.Repositories;
+using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Common;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -18,19 +19,24 @@ public sealed class BondRepository : IBondRepository
         _mapper = mapper;
     }
 
-    public async Task AddOrUpateAsync(IEnumerable<Bond> bonds, CancellationToken token = default)
+    public async Task UpdateAsync(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bonds, CancellationToken token = default)
     {
-        var dbBonds = _mapper.Map<IEnumerable<Infrastructure.Common.Models.Bond>>(bonds);
+        foreach(var pair in bonds)
+        {
+            var dbBond = await _db.Bonds.FirstOrDefaultAsync(x => x.Ticker == pair.Key.ToString(), cancellationToken: token);
 
-        var toUpdate = await _db.Bonds.Where(x => dbBonds.Select(x => x.Ticker).Contains(x.Ticker))
-                                      .ToListAsync(cancellationToken: token);
+            if(dbBond is null)
+            {
+                continue;
+            }
 
-        var toAdd = dbBonds.ExceptBy(toUpdate.Select(x => x.Ticker), x => x.Ticker);
+            dbBond.NominalPercent = pair.Value.NominalPercent;
+            dbBond.AbsoluteNominal = pair.Value.AbsoluteNominal;
+            dbBond.PricePercent = pair.Value.PricePercent;
+            dbBond.AbsolutePrice = pair.Value.AbsolutePrice;
 
-        _db.UpdateRange(toUpdate);
-        await _db.AddRangeAsync(toAdd, token);
-
-        await _db.SaveChangesAsync(token);
+            await _db.SaveChangesAsync(token);
+        }
     }
 
     public async Task<List<Bond>> GetPriceSortedBondsAsync(CancellationToken token = default)

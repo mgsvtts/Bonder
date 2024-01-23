@@ -20,12 +20,11 @@ public static class MapsterConfig
 
         TypeAdapterConfig<(TinkoffValue Bond, List<Coupon> Coupons, int? Rating), Domain.BondAggreagte.Bond>
         .ForType()
-        .MapWith(x => Domain.BondAggreagte.Bond.Create(new BondId(Guid.NewGuid(),
-                                                                  new Ticker(x.Bond.Symbol.Ticker),
-                                                                  new Isin(x.Bond.Symbol.Isin)),
+        .MapWith(x => new Domain.BondAggreagte.Bond(new BondId(Guid.NewGuid(),
+                                                               new Ticker(x.Bond.Symbol.Ticker),
+                                                               new Isin(x.Bond.Symbol.Isin)),
                                                        x.Bond.Symbol.Name,
-                                                       IncomePercents.FromAbsoluteValues(x.Bond.Price != null ? x.Bond.Price.Value : 0, x.Bond.Nominal),
-                                                       new OriginalMoney(x.Bond.Nominal, x.Bond.Price.Value),
+                                                       StaticIncome.FromAbsoluteValues(x.Bond.Price != null ? x.Bond.Price.Value : 0, x.Bond.Nominal),
                                                        new Dates(x.Bond.MaturityDate, x.Bond.OfferDate),
                                                        x.Rating,
                                                        x.Coupons));
@@ -45,22 +44,21 @@ public static class MapsterConfig
             Coupons = x.Coupons.Adapt<List<Infrastructure.Common.Models.Coupon>>(),
             MaturityDate = x.Dates.MaturityDate,
             OfferDate = x.Dates.OfferDate,
-            PricePercent = x.Percents.PricePercent,
-            NominalPercent = x.Percents.NominalPercent,
+            PricePercent = x.Income.StaticIncome.PricePercent,
+            NominalPercent = x.Income.StaticIncome.NominalPercent,
             Rating = x.Rating,
-            OriginalNominal = x.Money.OriginalNominal,
-            OriginalPrice = x.Money.OriginalPrice
+            AbsoluteNominal = x.Income.StaticIncome.AbsolutePrice,
+            AbsolutePrice = x.Income.StaticIncome.AbsolutePrice
         });
 
         TypeAdapterConfig<Infrastructure.Common.Models.Bond, Domain.BondAggreagte.Bond>
         .ForType()
-        .MapWith(x => Domain.BondAggreagte.Bond.Create(new BondId(x.Id, new Ticker(x.Ticker), new Isin(x.Isin)),
-                                                       x.Name,
-                                                       IncomePercents.FromPercents(x.PricePercent, x.NominalPercent),
-                                                       new OriginalMoney(x.OriginalNominal, x.OriginalPrice),
-                                                       new Dates(x.MaturityDate, x.OfferDate),
-                                                       x.Rating,
-                                                       x.Coupons.Adapt<List<Coupon>>()));
+        .MapWith(x => new Domain.BondAggreagte.Bond(new BondId(x.Id, new Ticker(x.Ticker), new Isin(x.Isin)),
+                                                    x.Name,
+                                                    StaticIncome.FromPercents(x.PricePercent, x.NominalPercent, x.AbsolutePrice, x.AbsoluteNominal),
+                                                    new Dates(x.MaturityDate, x.OfferDate),
+                                                    x.Rating,
+                                                    x.Coupons.Adapt<List<Coupon>>()));
 
         TypeAdapterConfig<Infrastructure.Common.Models.Coupon, Coupon>
        .ForType()

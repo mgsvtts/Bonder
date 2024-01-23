@@ -36,6 +36,27 @@ public class TinkoffHttpClient : ITInkoffHttpClient
 
     public async Task<IEnumerable<Bond>> GetBondsByTickersAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
     {
+        var response = await GetTinkoffResponseAsync(tickers, token);
+
+        return await GetBondsParallelAsync(response, token);
+    }
+
+    public async Task<Dictionary<Ticker, StaticIncome>> GetBondPriceAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
+    {
+        var response = await GetTinkoffResponseAsync(tickers, token);
+
+        var result = new Dictionary<Ticker, StaticIncome>();
+
+        foreach(var bond in response.Payload.Values)
+        {
+            result.Add(new Ticker(bond.Symbol.Ticker), StaticIncome.FromAbsoluteValues(bond.Price?.Value ?? 0, bond.Nominal));
+        }
+
+        return result;
+    }
+
+    private async Task<TinkoffResponse> GetTinkoffResponseAsync(IEnumerable<Ticker> tickers, CancellationToken token)
+    {
         var request = SerializeToRequest(tickers);
 
         var content = new HttpRequestMessage
@@ -51,8 +72,7 @@ public class TinkoffHttpClient : ITInkoffHttpClient
 
         var serializedResponse = await response.Content.ReadFromJsonAsync<TinkoffResponse>(cancellationToken: token)
                                  ?? throw new InvalidOperationException("Ошибка получения ответа от Tinkoff");
-
-        return await GetBondsParallelAsync(serializedResponse, token);
+        return serializedResponse;
     }
 
     private async Task<IEnumerable<Bond>> GetBondsParallelAsync(TinkoffResponse serializedResponse, CancellationToken token = default)

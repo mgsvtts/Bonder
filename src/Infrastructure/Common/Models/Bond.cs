@@ -25,11 +25,11 @@ public sealed class Bond
     [Column("price_percent")]
     public required decimal PricePercent { get; set; }
 
-    [Column("original_price")]
-    public required decimal OriginalPrice { get; set; }
+    [Column("absolute_price")]
+    public required decimal AbsolutePrice { get; set; }
 
-    [Column("original_nominal")]
-    public required decimal OriginalNominal { get; set; }
+    [Column("absolute_nominal")]
+    public required decimal AbsoluteNominal { get; set; }
 
     [Column("maturity_date")]
     public required DateTime? MaturityDate { get; set; }
