@@ -66,6 +66,7 @@ public static class ProgramExtensions
             config.RegisterServicesFromAssemblies(typeof(AssemblyReference).Assembly);
         });
 
+        builder.Services.AddHostedService<BackgroundBondPriceUpdater>();
         builder.Services.AddHostedService<BackgroundBondUpdater>();
 
         builder.Services.RegisterMapsterConfiguration();

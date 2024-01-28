@@ -21,7 +21,7 @@ public sealed class CalculateAllStreamRequestHandler : IStreamRequestHandler<Cal
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            var priceSorted = await _bondRepository.GetPriceSortedBondsAsync(cancellationToken);
+            var priceSorted = await _bondRepository.GetPriceSortedAsync(cancellationToken);
 
             var fullIncomeSorted = priceSorted.OrderByDescending(x => x.GetIncomeOnDate(request.IncomeRequest).FullIncomePercent)
                                               .ToList();

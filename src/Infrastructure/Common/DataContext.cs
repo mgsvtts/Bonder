@@ -7,10 +7,10 @@ namespace Infrastructure.Common;
 public sealed class DataContext : DbContext
 {
     public DbSet<Bond> Bonds { get; set; }
+    public DbSet<Coupon> Coupons{ get; set; }
 
     public DataContext(DbContextOptions<DataContext> options) : base(options)
     {
-        Database.EnsureDeleted();
         Database.EnsureCreated();
     }
 

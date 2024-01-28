@@ -29,7 +29,8 @@ public class Bond : AggregateRoot<BondId>
         _coupons = coupons.ToList();
         Dates = dates;
         Rating = rating;
-        Income = new FullIncome(income, GetCouponOnlyIncome(new GetIncomeRequest(DateIntervalType.TillOfferDate)));
+        Income = new FullIncome(income, CouponIncome.None);
+        Income = Income with { CouponIncome = GetCouponOnlyIncome(new GetIncomeRequest(DateIntervalType.TillOfferDate)) };
     }
 
     public FullIncome GetIncomeOnDate(GetIncomeRequest request)

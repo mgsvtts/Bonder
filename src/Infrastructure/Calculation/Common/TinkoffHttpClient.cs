@@ -43,11 +43,11 @@ public class TinkoffHttpClient : ITInkoffHttpClient
 
     public async Task<Dictionary<Ticker, StaticIncome>> GetBondPriceAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
     {
-        var response = await GetTinkoffResponseAsync(tickers, token);
-
         var result = new Dictionary<Ticker, StaticIncome>();
 
-        foreach(var bond in response.Payload.Values)
+        var response = await GetTinkoffResponseAsync(tickers, token);
+
+        foreach (var bond in response.Payload.Values)
         {
             result.Add(new Ticker(bond.Symbol.Ticker), StaticIncome.FromAbsoluteValues(bond.Price?.Value ?? 0, bond.Nominal));
         }
@@ -65,7 +65,6 @@ public class TinkoffHttpClient : ITInkoffHttpClient
             RequestUri = new Uri(_tinkoffUrl + "/api/trading/bonds/list"),
             Method = HttpMethod.Post
         };
-
         var response = await _client.SendAsync(content, token);
 
         response.EnsureSuccessStatusCode();
@@ -86,7 +85,7 @@ public class TinkoffHttpClient : ITInkoffHttpClient
 
         await Task.WhenAll(tasks);
 
-        return tasks.Select(x => x.Result);
+        return tasks.Where(x => x.Exception is null).Select(x => x.Result);
     }
 
     private async Task<Bond> ConvertToDomainBondAsync(TinkoffValue value, CancellationToken token = default)

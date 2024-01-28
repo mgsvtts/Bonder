@@ -1,8 +1,6 @@
-﻿using Application.Calculation.Common.Interfaces;
-using Domain.BondAggreagte;
+
+using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte.Repositories;
-using Domain.BondAggreagte.ValueObjects;
-using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -10,10 +8,11 @@ namespace Application.Calculation.CalculateAll.Services;
 
 public class BackgroundBondUpdater : BackgroundService
 {
-    private readonly IServiceScopeFactory _scopeFactory;
-
-    private IAllBondsReceiver _bondReceiver;
+    private IDohodHttpClient _dohodHttpClient;
     private IBondRepository _bondRepository;
+    private ITinkoffGrpcClient _grpcClient;
+
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public BackgroundBondUpdater(IServiceScopeFactory scopeFactory)
     {
@@ -22,72 +21,57 @@ public class BackgroundBondUpdater : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var scope = InitServices();
-
-        const int step = 10;
-        var startRange = new Range(0, step);
-        IEnumerable<KeyValuePair<Ticker, StaticIncome>> bondsToUpdate = new KeyValuePair<Ticker, StaticIncome>[step];
-
-        while (!stoppingToken.IsCancellationRequested)
+        while (!stoppingToken.IsCancellationRequested && IsValidTime())
         {
-            bondsToUpdate = await TryReceiveAsync(startRange, stoppingToken);
+            using var scope = InitServices();
+            var floatingTask = UpdateFloatingCoupons(stoppingToken);
+            var ratingTask = UpdateRatingAsync(stoppingToken);
 
-            RecreateRange(step, ref startRange);
-
-            await _bondRepository.UpdateAsync(bondsToUpdate, stoppingToken);
+            await Task.WhenAll(floatingTask, ratingTask);
         }
+    }
+
+    private async Task UpdateRatingAsync(CancellationToken token)
+    {
+        const int step = 50;
+        var range = new Range(0, step);
+
+        while (range.Start.Value < await _bondRepository.CountAsync(token))
+        {
+            var bonds = await _bondRepository.TakeRangeAsync(range, token);
+            foreach (var bond in bonds)
+            {
+                var rating = await _dohodHttpClient.GetBondRatingAsync(bond.Identity.Isin, token);
+                await _bondRepository.UpdateRating(bond.Identity, rating ?? 0, token);
+            }
+            range = new Range(range.End, step);
+        }
+    }
+
+    private async Task UpdateFloatingCoupons(CancellationToken token)
+    {
+        var floatingBonds = await _bondRepository.GetAllFloatingAsync(token);
+        foreach (var bond in floatingBonds)
+        {
+            var coupons = await _grpcClient.GetBondCouponsAsync(bond.Identity.Id, token);
+
+            await _bondRepository.UpdateCoupons(coupons, bond.Identity, token);
+        }
+    }
+
+    private static bool IsValidTime()
+    {
+        return DateTime.Now.Hour == 5 && DateTime.Now.Minute == 0;
     }
 
     private IServiceScope InitServices()
     {
         var scope = _scopeFactory.CreateScope();
 
-        _bondReceiver = scope.ServiceProvider.GetRequiredService<IAllBondsReceiver>();
         _bondRepository = scope.ServiceProvider.GetRequiredService<IBondRepository>();
+        _dohodHttpClient = scope.ServiceProvider.GetRequiredService<IDohodHttpClient>();
+        _grpcClient = scope.ServiceProvider.GetRequiredService<ITinkoffGrpcClient>();
 
         return scope;
-    }
-
-    private void RecreateRange(int step, ref Range startRange)
-    {
-        if (startRange.Start.Value > _bondReceiver.MaxRange)
-        {
-            startRange = new Range(0, step);
-        }
-        else
-        {
-            startRange = new Range(startRange.End, startRange.End.Value + step);
-        }
-    }
-
-    private async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> TryReceiveAsync(Range startRange,  
-                                                                                         CancellationToken token)
-    {
-        try
-        {
-            return  await _bondReceiver.ReceiveAsync(startRange, token);
-        }
-        catch (RpcException)
-        {
-            return await TryRetryAsync(startRange, token);
-        }
-    }
-
-    private async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> TryRetryAsync(Range start, CancellationToken stoppingToken)
-    {
-        var retries = 5;
-        while (retries > 0)
-        {
-            try
-            {
-                return await _bondReceiver.ReceiveAsync(start, stoppingToken);
-            }
-            catch
-            { }
-
-            retries--;
-        }
-
-        return Array.Empty<KeyValuePair<Ticker, StaticIncome>>();
     }
 }
