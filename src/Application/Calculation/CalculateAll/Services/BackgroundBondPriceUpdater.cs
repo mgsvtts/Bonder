@@ -55,7 +55,7 @@ public class BackgroundBondPriceUpdater : BackgroundService
     private async Task ProcessBondsAsync(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bondsToUpdate, CancellationToken token)
     {
         var notFoundTickers = await _bondRepository.UpdateIncomesAsync(bondsToUpdate, token);
-        if (!notFoundTickers.Any())
+        if (notFoundTickers.Count == 0)
         {
             return;
         }

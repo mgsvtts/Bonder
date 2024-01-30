@@ -26,7 +26,8 @@ public sealed class BondRepository : IBondRepository
 
     public async Task UpdateRating(BondId id, int rating, CancellationToken token = default)
     {
-        await _db.Bonds.ExecuteUpdateAsync(x => x.SetProperty(x => x.Rating, rating), cancellationToken: token);
+        await _db.Bonds.Where(x => x.Id == id.Id)
+        .ExecuteUpdateAsync(x => x.SetProperty(x => x.Rating, rating), cancellationToken: token);
     }
 
     public async Task<List<Bond>> TakeRangeAsync(Range range, CancellationToken token = default)
@@ -54,9 +55,9 @@ public sealed class BondRepository : IBondRepository
         return _mapper.Map<List<Bond>>(dbBonds);
     }
 
-    public async Task RefreshAsync(IEnumerable<Ticker> oldBondTickers, CancellationToken token = default)
+    public async Task RefreshAsync(IEnumerable<Ticker> newBondTickers, CancellationToken token = default)
     {
-        await _db.Bonds.Where(x => oldBondTickers.Select(x => x.Value).Contains(x.Ticker))
+        await _db.Bonds.Where(x => !newBondTickers.Select(x => x.Value).Contains(x.Ticker))
                        .ExecuteDeleteAsync(cancellationToken: token);
     }
 

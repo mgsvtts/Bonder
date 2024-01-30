@@ -12,7 +12,6 @@ public class AllBondsReceiver : IAllBondsReceiver
     private readonly IBondRepository _bondRepository;
 
     private IEnumerable<Ticker>? _cache;
-
     public int MaxRange { get; private set; }
 
     public AllBondsReceiver(InvestApiClient tinkoffApiClient, ITInkoffHttpClient tinkoffHttpClient, IBondRepository bondRepository)
@@ -20,8 +19,6 @@ public class AllBondsReceiver : IAllBondsReceiver
         _tinkoffApiClient = tinkoffApiClient;
         _tinkoffHttpClient = tinkoffHttpClient;
         _bondRepository = bondRepository;
-
-        MaxRange = 0;
     }
 
     public async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> ReceiveAsync(Range takeRange, CancellationToken token)
@@ -51,7 +48,6 @@ public class AllBondsReceiver : IAllBondsReceiver
     private async Task InitCacheAsync(CancellationToken token)
     {
         var instruments = (await _tinkoffApiClient.Instruments.BondsAsync(token)).Instruments;
-
         MaxRange = instruments.Count;
 
         _cache = instruments.Select(x => new Ticker(x.Ticker));
