@@ -21,13 +21,18 @@ public class BackgroundBondUpdater : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested && IsValidTime())
+        while (!stoppingToken.IsCancellationRequested)
         {
-            using var scope = InitServices();
-            var floatingTask = UpdateFloatingCoupons(stoppingToken);
-            var ratingTask = UpdateRatingAsync(stoppingToken);
+            if (!IsValidTime())
+            {
+                continue;
+            }
 
-            await Task.WhenAll(floatingTask, ratingTask);
+            using var scope = InitServices();
+            await UpdateFloatingCoupons(stoppingToken);
+            await UpdateRatingAsync(stoppingToken);
+
+            //await Task.WhenAll(floatingTask, ratingTask);
         }
     }
 
@@ -38,13 +43,19 @@ public class BackgroundBondUpdater : BackgroundService
 
         while (range.Start.Value < await _bondRepository.CountAsync(token))
         {
-            var bonds = await _bondRepository.TakeRangeAsync(range, token);
-            foreach (var bond in bonds)
+            try
             {
-                var rating = await _dohodHttpClient.GetBondRatingAsync(bond.Identity.Isin, token);
-                await _bondRepository.UpdateRating(bond.Identity, rating ?? 0, token);
+                var bonds = await _bondRepository.TakeRangeAsync(range, token);
+                foreach (var bond in bonds)
+                {
+                    var rating = await _dohodHttpClient.GetBondRatingAsync(bond.Identity.Isin, token);
+                    await _bondRepository.UpdateRating(bond.Identity, rating ?? 0, token);
+                }
             }
-            range = new Range(range.End, step);
+            finally
+            {
+                range = new Range(range.End, step);
+            }
         }
     }
 
@@ -53,7 +64,7 @@ public class BackgroundBondUpdater : BackgroundService
         var floatingBonds = await _bondRepository.GetAllFloatingAsync(token);
         foreach (var bond in floatingBonds)
         {
-            var coupons = await _grpcClient.GetBondCouponsAsync(bond.Identity.Id, token);
+            var coupons = await _grpcClient.GetBondCouponsAsync(bond.Identity.InstrumentId, token);
 
             await _bondRepository.UpdateCoupons(coupons, bond.Identity, token);
         }

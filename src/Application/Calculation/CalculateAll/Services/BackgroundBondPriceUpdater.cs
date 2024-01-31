@@ -44,9 +44,9 @@ public class BackgroundBondPriceUpdater : BackgroundService
         {
             using var scope = InitServices();
 
-            RecreateRange(step, ref startRange);
-
             var bondsToUpdate = await TryReceiveAsync(startRange, token);
+
+            RecreateRange(step, ref startRange);
 
             await ProcessBondsAsync(bondsToUpdate, token);
         }
@@ -78,7 +78,7 @@ public class BackgroundBondPriceUpdater : BackgroundService
 
     private void RecreateRange(int step, ref Range startRange)
     {
-        if (startRange.Start.Value > _bondReceiver.MaxRange)
+        if (startRange.Start.Value > _bondReceiver.GetMaxRange())
         {
             startRange = new Range(0, step);
         }

@@ -5,7 +5,6 @@ namespace Application.Calculation.Common.Interfaces;
 
 public interface IAllBondsReceiver
 {
-    int MaxRange { get; }
-
+    int GetMaxRange();
     Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> ReceiveAsync(Range takeRange, CancellationToken token);
 }

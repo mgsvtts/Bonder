@@ -1,7 +1,9 @@
 ﻿using Application.Calculation.CalculateTickers;
+using Domain.BondAggreagte;
 using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Calculation.Dto.GetBonds.TInkoffApiData;
+using LinqToDB.Tools;
 using Mapster;
 using MapsterMapper;
 using Presentation.Controllers.BondController.Calculate.Request;
@@ -20,7 +22,7 @@ public static class MapsterConfig
 
         TypeAdapterConfig<(TinkoffValue Bond, List<Coupon> Coupons, int? Rating), Domain.BondAggreagte.Bond>
         .ForType()
-        .MapWith(x => new Domain.BondAggreagte.Bond(new BondId(Guid.NewGuid(),
+        .MapWith(x => new Domain.BondAggreagte.Bond(new BondId(x.Bond.Symbol.SecurityUids.InstrumentUid,
                                                                new Ticker(x.Bond.Symbol.Ticker),
                                                                new Isin(x.Bond.Symbol.Isin)),
                                                        x.Bond.Symbol.Name,
@@ -37,7 +39,7 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new Infrastructure.Common.Models.Bond
         {
-            Id = x.Identity.Id,
+            Id = x.Identity.InstrumentId,
             Name = x.Name,
             Ticker = x.Identity.Ticker.Value,
             Isin = x.Identity.Isin.Value,

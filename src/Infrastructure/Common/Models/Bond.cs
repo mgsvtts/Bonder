@@ -1,12 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿
+using LinqToDB.Mapping;
 
 namespace Infrastructure.Common.Models;
 
 [Table("bonds")]
 public sealed class Bond
 {
-    [Key]
+    [PrimaryKey]
     [Column("id")]
     public required Guid Id { get; set; }
 
@@ -40,5 +40,12 @@ public sealed class Bond
     [Column("rating")]
     public required int? Rating { get; set; }
 
+    [Column("updated_at")]
+    public  DateTime UpdatedAt { get; set; }
+
+    [Column("created_at")]
+    public DateTime CreatedAt{ get; set; }
+
+    [Association(ThisKey = nameof(Id), OtherKey = nameof(Coupon.BondId))]
     public List<Coupon> Coupons { get; set; }
 }

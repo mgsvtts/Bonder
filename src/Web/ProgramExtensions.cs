@@ -6,9 +6,11 @@ using Domain.BondAggreagte.Repositories;
 using Infrastructure.Calculation.CalculateAll;
 using Infrastructure.Calculation.Common;
 using Infrastructure.Common;
+using LinqToDB;
+using LinqToDB.AspNet;
+using LinqToDB.AspNet.Logging;
 using MapsterMapper;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore;
 using Presentation.Middlewares;
 using RateLimiter;
 using System.Threading.RateLimiting;
@@ -54,7 +56,9 @@ public static class ProgramExtensions
 
         builder.Services.AddSingleton(rateLimiter);
 
-        builder.Services.AddDbContext<DataContext>((options) => options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
+        builder.Services.AddLinqToDBContext<DbConnection>((provider, options)
+         => options.UsePostgreSQL(builder.Configuration.GetConnectionString("Database"))
+                   .UseDefaultLogging(provider));
 
         return builder;
     }
@@ -66,7 +70,7 @@ public static class ProgramExtensions
             config.RegisterServicesFromAssemblies(typeof(AssemblyReference).Assembly);
         });
 
-        builder.Services.AddHostedService<BackgroundBondPriceUpdater>();
+        //builder.Services.AddHostedService<BackgroundBondPriceUpdater>();
         builder.Services.AddHostedService<BackgroundBondUpdater>();
 
         builder.Services.RegisterMapsterConfiguration();
