@@ -131,7 +131,7 @@ public sealed class BondRepository : IBondRepository
         await _db.CommitTransactionAsync(token);
     }
 
-    public static void SetBondValues(Infrastructure.Common.Models.Bond bond)
+    private static void SetBondValues(Infrastructure.Common.Models.Bond bond)
     {
         bond.CreatedAt = DateTime.Now;
         foreach (var coupon in bond.Coupons)
@@ -140,7 +140,7 @@ public sealed class BondRepository : IBondRepository
         }
     }
 
-    public static async void SetCouponValues(List<Infrastructure.Common.Models.Coupon> coupons, BondId id)
+    private static async void SetCouponValues(List<Infrastructure.Common.Models.Coupon> coupons, BondId id)
     {
         var tasks = coupons.Select(x => Task.Run(() =>
         {
