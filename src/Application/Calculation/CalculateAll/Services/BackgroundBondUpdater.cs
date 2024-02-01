@@ -25,14 +25,15 @@ public class BackgroundBondUpdater : BackgroundService
         {
             if (!IsValidTime())
             {
+                await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken);
                 continue;
             }
 
             using var scope = InitServices();
-            await UpdateFloatingCoupons(stoppingToken);
-            await UpdateRatingAsync(stoppingToken);
+            var couponTask = UpdateFloatingCoupons(stoppingToken);
+            var ratingTask = UpdateRatingAsync(stoppingToken);
 
-            //await Task.WhenAll(floatingTask, ratingTask);
+            await Task.WhenAll(couponTask, ratingTask);
         }
     }
 
@@ -41,21 +42,27 @@ public class BackgroundBondUpdater : BackgroundService
         const int step = 50;
         var range = new Range(0, step);
 
-        while (range.Start.Value < await _bondRepository.CountAsync(token))
+        var count = await _bondRepository.CountAsync(token);
+        while (range.End.Value < count)
         {
             try
             {
-                var bonds = await _bondRepository.TakeRangeAsync(range, token);
-                foreach (var bond in bonds)
-                {
-                    var rating = await _dohodHttpClient.GetBondRatingAsync(bond.Identity.Isin, token);
-                    await _bondRepository.UpdateRating(bond.Identity, rating ?? 0, token);
-                }
+                await UpdateRatingAsync(range, token);
             }
             finally
             {
-                range = new Range(range.End, step);
+                range = new Range(range.End, range.End.Value + step);
             }
+        }
+    }
+
+    private async Task UpdateRatingAsync(Range range, CancellationToken token)
+    {
+        var bonds = await _bondRepository.TakeRangeAsync(range, token);
+        foreach (var bond in bonds)
+        {
+            var rating = await _dohodHttpClient.GetBondRatingAsync(bond.Identity.Isin, token);
+            await _bondRepository.UpdateRating(bond.Identity, rating, token);
         }
     }
 
@@ -72,7 +79,7 @@ public class BackgroundBondUpdater : BackgroundService
 
     private static bool IsValidTime()
     {
-        return DateTime.Now.Hour == 5 && DateTime.Now.Minute == 0;
+        return DateTime.Now.Hour == 1;
     }
 
     private IServiceScope InitServices()

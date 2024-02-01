@@ -26,7 +26,7 @@ public sealed class BondRepository : IBondRepository
         return await _db.Bonds.CountAsync(token);
     }
 
-    public async Task UpdateRating(BondId id, int rating, CancellationToken token = default)
+    public async Task UpdateRating(BondId id, int? rating, CancellationToken token = default)
     {
         await _db.Bonds.Where(x => x.Id == id.InstrumentId)
         .Set(x => x.Rating, rating)
@@ -37,6 +37,7 @@ public sealed class BondRepository : IBondRepository
     public async Task<List<Bond>> TakeRangeAsync(Range range, CancellationToken token = default)
     {
         var dbBonds = await _db.Bonds
+        .LoadWith(x => x.Coupons)
         .Skip(range.Start.Value)
         .Take(range.End.Value - range.Start.Value)
         .ToListAsync(token: token);
