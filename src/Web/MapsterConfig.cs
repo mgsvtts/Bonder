@@ -46,7 +46,6 @@ public static class MapsterConfig
             Coupons = x.Coupons.Adapt<List<Infrastructure.Common.Models.Coupon>>(),
             MaturityDate = x.Dates.MaturityDate,
             OfferDate = x.Dates.OfferDate,
-            PricePercent = x.Income.StaticIncome.PricePercent,
             NominalPercent = x.Income.StaticIncome.NominalPercent,
             Rating = x.Rating,
             AbsoluteNominal = x.Income.StaticIncome.AbsolutePrice,
@@ -57,7 +56,7 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new Domain.BondAggreagte.Bond(new BondId(x.Id, new Ticker(x.Ticker), new Isin(x.Isin)),
                                                     x.Name,
-                                                    StaticIncome.FromPercents(x.PricePercent, x.NominalPercent, x.AbsolutePrice, x.AbsoluteNominal),
+                                                    StaticIncome.FromPercents(x.NominalPercent, x.AbsolutePrice, x.AbsoluteNominal),
                                                     new Dates(x.MaturityDate, x.OfferDate),
                                                     x.Rating,
                                                     x.Coupons.Adapt<List<Coupon>>()));

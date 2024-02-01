@@ -89,7 +89,6 @@ public sealed class BondRepository : IBondRepository
             .Where(x => x.Ticker == key.ToString())
             .Set(x => x.NominalPercent, value.NominalPercent)
             .Set(x => x.AbsoluteNominal, value.AbsoluteNominal)
-            .Set(x => x.PricePercent, value.PricePercent)
             .Set(x => x.AbsolutePrice, value.AbsolutePrice)
             .Set(x => x.UpdatedAt, DateTime.Now)
             .UpdateAsync(token);
@@ -101,7 +100,7 @@ public sealed class BondRepository : IBondRepository
     {
         var bonds = await _db.Bonds
         .LoadWith(x => x.Coupons)
-        .OrderBy(x => x.PricePercent)
+        .OrderBy(x => x.AbsolutePrice)
         .ToListAsync(token);
 
         return _mapper.Map<List<Bond>>(bonds);

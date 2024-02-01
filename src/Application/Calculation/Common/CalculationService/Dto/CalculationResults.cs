@@ -18,8 +18,8 @@ public record struct CalculationResults
         _results = new List<CalculationResult>();
 
         Bonds = bonds;
-        PriceSortedBonds = priceSortedBonds.Select(x => new CalculationMoneyResult(x, x.Income.StaticIncome.PricePercent));
-        FullIncomeSortedBonds = bonds.Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent));;
+        PriceSortedBonds = priceSortedBonds.Select(x => new CalculationMoneyResult(x, x.Income.StaticIncome.AbsolutePrice));
+        FullIncomeSortedBonds = bonds.Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent));
     }
 
     public CalculationResults(CalculationRequest request)
@@ -28,11 +28,11 @@ public record struct CalculationResults
 
         Bonds = CalculateIncomes(request);
 
-        PriceSortedBonds = Bonds.OrderBy(x => x.Key.Income.StaticIncome.PricePercent)
-                                .Select(x => new CalculationMoneyResult(x.Key, x.Key.Income.StaticIncome.PricePercent));
+        PriceSortedBonds = Bonds.OrderBy(x => x.Key.Income.StaticIncome.AbsolutePrice)
+                                .Select(x => new CalculationMoneyResult(x.Key, x.Key.Income.StaticIncome.AbsolutePrice));
 
         FullIncomeSortedBonds = Bonds.OrderByDescending(x => x.Value.FullIncomePercent)
-                                     .Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent));;
+                                     .Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent));
     }
 
     public readonly void Add(CalculationResult result)

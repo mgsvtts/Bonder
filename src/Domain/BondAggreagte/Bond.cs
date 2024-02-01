@@ -49,7 +49,7 @@ public class Bond : AggregateRoot<BondId>
     {
         var date = GetTillDate(request);
 
-        if (date < DateTime.Now)
+        if (date < DateTime.Now.Date)
         {
             throw new InvalidPaymentDateException(date);
         }
@@ -63,34 +63,40 @@ public class Bond : AggregateRoot<BondId>
 
         if (Coupons.Any(x => x.IsFloating))
         {
-            var latestCoupon = futureCoupons.Where(x => x.Payout != 0)
-                                            .OrderByDescending(x => x.PaymentDate)
-                                            .FirstOrDefault();
-
-            latestCoupon ??= Coupons.OrderByDescending(x => x.PaymentDate)
-                                    .First();
-
-            var absoluteIncome = latestCoupon.Payout * futureCoupons.Count();
-            var percentIncome = absoluteIncome / Income.StaticIncome.AbsoluteNominal;
-
-            return new CouponIncome(absoluteIncome, percentIncome);
+            return GetFloatingCouponsIncome(futureCoupons);
         }
         else if (Coupons.Count != 0)
         {
-            var absoluteIncome = futureCoupons.Sum(x => x.Payout);
-            var percentIncome = absoluteIncome / Income.StaticIncome.AbsoluteNominal;
+            return GetOrdinaryCouponsIncome(futureCoupons);
+        }
 
-            return new CouponIncome(absoluteIncome, percentIncome);
-        }
-        else
-        {
-            return CouponIncome.None;
-        }
+        return CouponIncome.None;
     }
 
-    public override string ToString()
+    private CouponIncome GetOrdinaryCouponsIncome(IEnumerable<Coupon> futureCoupons)
     {
-        return Name;
+        var absoluteIncome = futureCoupons.Sum(x => x.Payout);
+
+        return new CouponIncome(absoluteIncome, GetCouponPercentIncome(absoluteIncome));
+    }
+
+    private CouponIncome GetFloatingCouponsIncome(IEnumerable<Coupon> futureCoupons)
+    {
+        var latestCoupon = futureCoupons.Where(x => x.Payout != 0)
+                                        .OrderByDescending(x => x.PaymentDate)
+                                        .FirstOrDefault();
+
+        latestCoupon ??= Coupons.OrderByDescending(x => x.PaymentDate)
+                                .First();
+
+        var absoluteIncome = latestCoupon.Payout * futureCoupons.Count();
+
+        return new CouponIncome(absoluteIncome, GetCouponPercentIncome(absoluteIncome));
+    }
+
+    private decimal GetCouponPercentIncome(decimal absoluteCouponIncome)
+    {
+        return absoluteCouponIncome / Income.StaticIncome.AbsoluteNominal;
     }
 
     private DateTime GetTillDate(GetIncomeRequest request)
@@ -107,7 +113,7 @@ public class Bond : AggregateRoot<BondId>
         };
     }
 
-    public bool IsFullIncomeDate(GetIncomeRequest request)
+    private bool IsFullIncomeDate(GetIncomeRequest request)
     {
         return Dates.MaturityDate is not null &&
                (request.IsPaymentType() ||
@@ -125,5 +131,10 @@ public class Bond : AggregateRoot<BondId>
     {
         return request.TillDate?.Date > Dates.MaturityDate?.Date ||
                request.TillDate?.Date > Dates.OfferDate?.Date;
+    }
+
+    public override string ToString()
+    {
+        return Name;
     }
 }

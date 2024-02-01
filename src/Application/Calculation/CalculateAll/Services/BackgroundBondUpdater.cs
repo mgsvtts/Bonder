@@ -79,7 +79,7 @@ public class BackgroundBondUpdater : BackgroundService
 
     private static bool IsValidTime()
     {
-        return DateTime.Now.Hour == 1;
+        return DateTime.Now.Hour == 5;
     }
 
     private IServiceScope InitServices()

@@ -22,9 +22,6 @@ public sealed class Bond
     [Column("nominal_percent")]
     public required decimal NominalPercent { get; set; }
 
-    [Column("price_percent")]
-    public required decimal PricePercent { get; set; }
-
     [Column("absolute_price")]
     public required decimal AbsolutePrice { get; set; }
 
