@@ -29,19 +29,22 @@ public sealed class Bond
     public required decimal AbsoluteNominal { get; set; }
 
     [Column("maturity_date")]
-    public required DateTime? MaturityDate { get; set; }
+    public required DateOnly? MaturityDate { get; set; }
 
     [Column("offer_date")]
-    public required DateTime? OfferDate { get; set; }
+    public required DateOnly? OfferDate { get; set; }
 
     [Column("rating")]
     public required int? Rating { get; set; }
 
     [Column("updated_at")]
-    public  DateTime UpdatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 
     [Column("created_at")]
-    public DateTime CreatedAt{ get; set; }
+    public DateTime CreatedAt { get; set; }
+
+    [Column("is_amortized")]
+    public required bool IsAmortized { get; set; }
 
     [Association(ThisKey = nameof(Id), OtherKey = nameof(Coupon.BondId))]
     public List<Coupon> Coupons { get; set; }

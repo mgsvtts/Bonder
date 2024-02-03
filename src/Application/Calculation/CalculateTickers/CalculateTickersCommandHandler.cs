@@ -6,18 +6,18 @@ namespace Application.Calculation.CalculateTickers;
 
 public sealed class CalculateTickersCommandHandler : IRequestHandler<CalculateTickersCommand, CalculationResults>
 {
-    private readonly ITInkoffHttpClient _httpClient;
+    private readonly IBondBuilder _builder;
     private readonly ICalculationService _calculator;
 
-    public CalculateTickersCommandHandler(ICalculationService calculator, ITInkoffHttpClient httpClient)
+    public CalculateTickersCommandHandler(ICalculationService calculator, IBondBuilder builder)
     {
         _calculator = calculator;
-        _httpClient = httpClient;
+        _builder = builder;
     }
 
     public async Task<CalculationResults> Handle(CalculateTickersCommand request, CancellationToken cancellationToken)
     {
-        var bonds = await _httpClient.GetBondsByTickersAsync(request.Tickers.DistinctBy(x => x.Value), cancellationToken);
+        var bonds = await _builder.BuildAsync(request.Tickers.DistinctBy(x => x.Value), cancellationToken);
 
         return _calculator.Calculate(new CalculationRequest(request.Options, bonds));
     }

@@ -1,7 +1,7 @@
 ﻿using System.Buffers.Text;
 using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte;
-using Domain.BondAggreagte.Repositories;
+using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.ValueObjects;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +15,7 @@ public class BackgroundBondPriceUpdater : BackgroundService
 
     private IAllBondsReceiver _bondReceiver;
     private IBondRepository _bondRepository;
-    private ITInkoffHttpClient _httpClient;
+    private IBondBuilder _bondBuilder;
 
     public BackgroundBondPriceUpdater(IServiceScopeFactory scopeFactory)
     {
@@ -61,7 +61,7 @@ public class BackgroundBondPriceUpdater : BackgroundService
             return;
         }
 
-        var notFoundBonds = await _httpClient.GetBondsByTickersAsync(notFoundTickers, token);
+        var notFoundBonds = await _bondBuilder.BuildAsync(notFoundTickers, token);
 
         await _bondRepository.AddAsync(notFoundBonds, token);
     }
@@ -72,7 +72,7 @@ public class BackgroundBondPriceUpdater : BackgroundService
 
         _bondReceiver = scope.ServiceProvider.GetRequiredService<IAllBondsReceiver>();
         _bondRepository = scope.ServiceProvider.GetRequiredService<IBondRepository>();
-        _httpClient = scope.ServiceProvider.GetRequiredService<ITInkoffHttpClient>();
+        _bondBuilder = scope.ServiceProvider.GetRequiredService<IBondBuilder>();
 
         return scope;
     }

@@ -1,6 +1,6 @@
 ﻿using Application.Calculation.Common.CalculationService.Dto;
 using Application.Calculation.Common.Interfaces;
-using Domain.BondAggreagte.Repositories;
+using Domain.BondAggreagte.Abstractions;
 using MediatR;
 using System.Runtime.CompilerServices;
 

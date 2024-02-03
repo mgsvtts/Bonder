@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace Domain.BondAggreagte;
 
-public class Bond : AggregateRoot<BondId>
+public sealed class Bond : AggregateRoot<BondId>
 {
     private readonly List<Coupon> _coupons = new List<Coupon>();
 
@@ -14,21 +14,22 @@ public class Bond : AggregateRoot<BondId>
     public FullIncome Income { get; private set; }
     public Dates Dates { get; private set; }
     public int? Rating { get; private set; }
-
-
+    public bool IsAmortized { get; private set; }
     public IReadOnlyList<Coupon> Coupons => _coupons.AsReadOnly();
 
     public Bond(BondId id,
-                 string name,
-                 StaticIncome income,
-                 Dates dates,
-                 int? rating,
-                 IEnumerable<Coupon> coupons) : base(id)
+                string name,
+                StaticIncome income,
+                Dates dates,
+                int? rating,
+                bool isAmortized,
+                IEnumerable<Coupon> coupons) : base(id)
     {
         Name = name;
         _coupons = coupons.ToList();
         Dates = dates;
         Rating = rating;
+        IsAmortized = isAmortized;
         Income = new FullIncome(income, CouponIncome.None);
         Income = Income with { CouponIncome = GetCouponOnlyIncome(new GetIncomeRequest(DateIntervalType.TillOfferDate)) };
     }
@@ -49,7 +50,7 @@ public class Bond : AggregateRoot<BondId>
     {
         var date = GetTillDate(request);
 
-        if (date < DateTime.Now.Date)
+        if (date < DateOnly.FromDateTime(DateTime.Now.Date))
         {
             throw new InvalidPaymentDateException(date);
         }
@@ -57,7 +58,7 @@ public class Bond : AggregateRoot<BondId>
         return CalculateCouponIncome(date, request.ConsiderDividendCutOffDate);
     }
 
-    private CouponIncome CalculateCouponIncome(DateTime date, bool considerDividendCutOffDate)
+    private CouponIncome CalculateCouponIncome(DateOnly date, bool considerDividendCutOffDate)
     {
         var futureCoupons = Coupons.Where(x => x.CanGetCoupon(date, considerDividendCutOffDate));
 
@@ -86,8 +87,11 @@ public class Bond : AggregateRoot<BondId>
                                         .OrderByDescending(x => x.PaymentDate)
                                         .FirstOrDefault();
 
-        latestCoupon ??= Coupons.OrderByDescending(x => x.PaymentDate)
-                                .First();
+        if (latestCoupon == default)
+        {
+            latestCoupon = Coupons.OrderByDescending(x => x.PaymentDate)
+                                  .First();
+        }
 
         var absoluteIncome = latestCoupon.Payout * futureCoupons.Count();
 
@@ -99,7 +103,7 @@ public class Bond : AggregateRoot<BondId>
         return absoluteCouponIncome / Income.StaticIncome.AbsoluteNominal;
     }
 
-    private DateTime GetTillDate(GetIncomeRequest request)
+    private DateOnly GetTillDate(GetIncomeRequest request)
     {
         var maturityDate = Dates.MaturityDate != null ? Dates.MaturityDate : Coupons.OrderByDescending(x => x.PaymentDate).First().PaymentDate;
         var offerDate = Dates.OfferDate != null ? Dates.OfferDate : maturityDate;
@@ -123,14 +127,14 @@ public class Bond : AggregateRoot<BondId>
 
     private bool DateIsEqualToPaymentDate(GetIncomeRequest request)
     {
-        return request.TillDate?.Date == Dates.MaturityDate?.Date ||
-               request.TillDate?.Date == Dates.OfferDate?.Date;
+        return request.TillDate == Dates.MaturityDate ||
+               request.TillDate == Dates.OfferDate;
     }
 
     private bool DateIsMoreThanPaymentDate(GetIncomeRequest request)
     {
-        return request.TillDate?.Date > Dates.MaturityDate?.Date ||
-               request.TillDate?.Date > Dates.OfferDate?.Date;
+        return request.TillDate > Dates.MaturityDate ||
+               request.TillDate > Dates.OfferDate;
     }
 
     public override string ToString()

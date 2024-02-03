@@ -4,5 +4,5 @@ namespace Application.Calculation.Common.Interfaces;
 
 public interface ITinkoffGrpcClient
 {
-    public Task<List<Coupon>> GetBondCouponsAsync(Guid instrumentId, CancellationToken token);
+    public Task<List<Coupon>> GetCouponsAsync(Guid instrumentId, CancellationToken token = default);
 }

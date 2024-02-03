@@ -1,6 +1,6 @@
 ﻿using System.Data;
 using Domain.BondAggreagte;
-using Domain.BondAggreagte.Repositories;
+using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Common;
 using LinqToDB;

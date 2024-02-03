@@ -1,6 +1,6 @@
 
 using Application.Calculation.Common.Interfaces;
-using Domain.BondAggreagte.Repositories;
+using Domain.BondAggreagte.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -71,7 +71,7 @@ public class BackgroundBondUpdater : BackgroundService
         var floatingBonds = await _bondRepository.GetAllFloatingAsync(token);
         foreach (var bond in floatingBonds)
         {
-            var coupons = await _grpcClient.GetBondCouponsAsync(bond.Identity.InstrumentId, token);
+            var coupons = await _grpcClient.GetCouponsAsync(bond.Identity.InstrumentId, token);
 
             await _bondRepository.UpdateCoupons(coupons, bond.Identity, token);
         }

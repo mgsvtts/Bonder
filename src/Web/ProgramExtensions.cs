@@ -2,7 +2,7 @@
 using Application.Calculation.Common.CalculationService;
 using Application.Calculation.Common.Interfaces;
 using Application.Common;
-using Domain.BondAggreagte.Repositories;
+using Domain.BondAggreagte.Abstractions;
 using Infrastructure.Calculation.CalculateAll;
 using Infrastructure.Calculation.Common;
 using Infrastructure.Common;
@@ -10,8 +10,9 @@ using LinqToDB;
 using LinqToDB.AspNet;
 using LinqToDB.AspNet.Logging;
 using MapsterMapper;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.RateLimiting;
-using Presentation.Middlewares;
+using Presentation.Filters;
 using RateLimiter;
 using System.Threading.RateLimiting;
 using Web.Extensions;
@@ -41,9 +42,7 @@ public static class ProgramExtensions
         builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((httpClient, services) =>
         {
             return new TinkoffHttpClient(httpClient,
-                                         services.GetRequiredService<ITinkoffGrpcClient>(),
                                          services.GetRequiredService<IMapper>(),
-                                         services.GetRequiredService<IDohodHttpClient>(),
                                          builder.Configuration.GetValue<string>("TinkoffToken"),
                                          builder.Configuration.GetValue<string>("TinkoffServerUrl"));
         }).AddHttpMessageHandler(rateLimiter.AsDelegate);
@@ -52,6 +51,13 @@ public static class ProgramExtensions
         {
             return new DohodHttpClient(httpClient,
                                        builder.Configuration.GetValue<string>("DohodServerUrl"));
+        }).AddHttpMessageHandler(rateLimiter.AsDelegate);
+
+        builder.Services.AddHttpClient<IMoexHttpClient, MoexHttpClient>((httpClient, services) =>
+        {
+            return new MoexHttpClient(httpClient,
+                                      services.GetRequiredService<IMapper>(),
+                                      builder.Configuration.GetValue<string>("MoexServerUrl"));
         }).AddHttpMessageHandler(rateLimiter.AsDelegate);
 
         builder.Services.AddSingleton(rateLimiter);
@@ -87,7 +93,7 @@ public static class ProgramExtensions
     {
         builder.Services.AddControllers(options =>
         {
-            options.Filters.Add<CustomExceptionFilter>();
+            options.Filters.Add<ExceptionFilterAttribute>();
         });
 
         builder.Services.AddEndpointsApiExplorer();
@@ -99,6 +105,7 @@ public static class ProgramExtensions
     public static WebApplicationBuilder AddDomain(this WebApplicationBuilder builder)
     {
         builder.Services.AddTransient<IBondRepository, BondRepository>();
+        builder.Services.AddTransient<IBondBuilder, BondBuilder>();
 
         return builder;
     }

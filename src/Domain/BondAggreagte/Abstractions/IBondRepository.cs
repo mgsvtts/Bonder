@@ -1,6 +1,6 @@
 ﻿using Domain.BondAggreagte.ValueObjects;
 
-namespace Domain.BondAggreagte.Repositories;
+namespace Domain.BondAggreagte.Abstractions;
 
 public interface IBondRepository
 {

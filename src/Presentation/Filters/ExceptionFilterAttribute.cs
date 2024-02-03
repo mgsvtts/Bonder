@@ -4,9 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Net;
 
-namespace Presentation.Middlewares;
+namespace Presentation.Filters;
 
-public sealed class CustomExceptionFilter : IExceptionFilter
+[AttributeUsage(AttributeTargets.All)]
+public sealed class ExceptionFilterAttribute : Attribute, IExceptionFilter
 {
     public void OnException(ExceptionContext context)
     {
@@ -42,7 +43,7 @@ public sealed class CustomExceptionFilter : IExceptionFilter
             },
             _ => new ContentResult
             {
-                Content = $"Error in {actionName}: \n {exceptionMessage} \n {exceptionStack}",
+                Content = $"Error in {actionName}: \n {exceptionMessage}",
                 StatusCode = 500,
                 ContentType = "text/plain",
             },

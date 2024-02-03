@@ -7,12 +7,14 @@ using Microsoft.AspNetCore.Mvc;
 using Presentation.Controllers.BondController.Calculate;
 using Presentation.Controllers.BondController.Calculate.Request;
 using Presentation.Controllers.BondController.Calculate.Response;
+using Presentation.Filters;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Presentation.Controllers.BondController;
 
 [Route("api/calculate")]
+[ExceptionFilter]
 public class BondController : ControllerBase
 {
     private readonly ISender _sender;
@@ -36,7 +38,7 @@ public class BondController : ControllerBase
     public async IAsyncEnumerable<CalculateResponse> GetState([EnumeratorCancellation] CancellationToken token)
     {
         var waitSeconds = TimeSpan.FromSeconds(5);
-        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetIncomeRequest(DateIntervalType.TillDate, DateTime.Now.AddYears(5))), token))
+        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetIncomeRequest(DateIntervalType.TillDate, DateOnly.FromDateTime(DateTime.Now.AddYears(5)))), token))
         {
             yield return result.MapToResponse();
 

@@ -5,11 +5,11 @@ namespace Domain.BondAggreagte.Dto;
 public sealed class GetIncomeRequest
 {
     public DateIntervalType Type { get; }
-    public DateTime? TillDate { get; }
+    public DateOnly? TillDate { get; }
     public bool ConsiderDividendCutOffDate { get; }
 
     public GetIncomeRequest(DateIntervalType type,
-                            DateTime? date = null,
+                            DateOnly? date = null,
                             bool considerDividendCutOffDate = true)
     {
         if (type == DateIntervalType.TillDate && date == null)

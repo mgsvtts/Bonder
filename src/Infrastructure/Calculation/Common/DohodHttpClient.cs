@@ -30,7 +30,7 @@ public sealed class DohodHttpClient : IDohodHttpClient
         response.EnsureSuccessStatusCode();
 
         var serializedResponse = await response.Content.ReadFromJsonAsync<IEnumerable<DohodItem>>(cancellationToken: token)
-                                 ?? throw new InvalidOperationException("Ошибка получения ответа от Dohod.ru");
+                                 ?? throw new InvalidOperationException("Ошибка получения ответа от dohod.ru");
 
         var item = serializedResponse.FirstOrDefault(x => x?.Isin?.ToUpper() == isin.Value);
 
@@ -46,6 +46,6 @@ public sealed class DohodHttpClient : IDohodHttpClient
             ["mode"] = "regular"
         };
 
-        return _serverUrl + "/assets/components/dohodbonds/connectorweb.php" + new QueryBuilder(query);
+        return _serverUrl + new QueryBuilder(query);
     }
 }

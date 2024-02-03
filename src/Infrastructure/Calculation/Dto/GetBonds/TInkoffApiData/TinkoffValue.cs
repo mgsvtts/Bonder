@@ -18,4 +18,7 @@ public sealed class TinkoffValue
 
     [JsonPropertyName("matDate")]
     public DateTime? MaturityDate { get; set; }
+
+    [JsonPropertyName("serial")]
+    public bool IsAmortized{ get; set; }
 }

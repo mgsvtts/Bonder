@@ -1,0 +1,89 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http.Json;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
+using Application.Calculation.Common.Interfaces;
+using Domain.BondAggreagte.ValueObjects;
+using Infrastructure.Calculation.Dto.GetAmortization;
+using MapsterMapper;
+using Microsoft.AspNetCore.Http.Extensions;
+
+namespace Infrastructure.Calculation.Common
+{
+    public class MoexHttpClient : IMoexHttpClient
+    {
+        private static readonly Dictionary<string, string> _query = GetQueryParams();
+
+        private readonly HttpClient _client;
+        private readonly string _serverUrl;
+        private readonly IMapper _mapper;
+
+        public MoexHttpClient(HttpClient client,
+                              IMapper mapper,
+                              string serverUrl)
+        {
+            _mapper = mapper;
+            _client = client;
+            _serverUrl = serverUrl;
+        }
+
+        public async Task<List<Coupon>> GetAmortizedCouponsAsync(Ticker ticker, CancellationToken token = default)
+        {
+            var content = new HttpRequestMessage
+            {
+                RequestUri = new Uri(BuildQuery(ticker)),
+                Method = HttpMethod.Get
+            };
+
+            var response = await _client.SendAsync(content, token);
+
+            response.EnsureSuccessStatusCode();
+
+            var serializedResponse = await response.Content.ReadFromJsonAsync<IEnumerable<MoexItem>>(cancellationToken: token);
+
+            return MapToCoupons(serializedResponse);
+        }
+
+        private string BuildQuery(Ticker ticker)
+        {
+            return _serverUrl + $"/{ticker}.json" + new QueryBuilder(_query);
+        }
+
+        private static Dictionary<string, string> GetQueryParams()
+        {
+            return new Dictionary<string, string>
+            {
+                ["from"] = DateOnly.MinValue.ToString(),
+                ["till"] = DateOnly.MaxValue.ToString(),
+                ["start"] = "0",
+                ["limit"] = int.MaxValue.ToString(),
+                ["iss.only"] = "amortizations,coupons",
+                ["iss.json"] = "extended",
+                ["iss.meta"] = "off",
+            };
+        }
+
+        private List<Coupon> MapToCoupons(IEnumerable<MoexItem>? moexItems)
+        {
+            var moexItem = moexItems?.FirstOrDefault(x => x.Coupons != null)
+                                     ?? throw new InvalidOperationException("Ошибка получения ответа от moex.com");
+
+            var coupons = _mapper.Map<List<Coupon>>(moexItem.Coupons);
+
+            for (int i = 0; i < coupons.Count; i++)
+            {
+                foreach (var amortization in moexItem.Amortizations)
+                {
+                    if (coupons[i].PaymentDate == amortization.Date && amortization.Payment != null)
+                    {
+                        coupons[i] = coupons[i] with { Payout = coupons[i].Payout + amortization.Payment.Value };
+                    }
+                }
+            }
+
+            return coupons;
+        }
+    }
+}

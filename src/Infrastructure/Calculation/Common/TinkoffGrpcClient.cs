@@ -17,7 +17,7 @@ public class TinkoffGrpcClient : ITinkoffGrpcClient
         _mapper = mapper;
     }
 
-    public async Task<List<Domain.BondAggreagte.ValueObjects.Coupon>> GetBondCouponsAsync(Guid instrumentId, CancellationToken token)
+    public async Task<List<Domain.BondAggreagte.ValueObjects.Coupon>> GetCouponsAsync(Guid instrumentId, CancellationToken token = default)
     {
         var coupons = await _tinkoffApiClient.Instruments.GetBondCouponsAsync(new GetBondCouponsRequest
         {

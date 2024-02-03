@@ -1,5 +1,5 @@
 ﻿using Application.Calculation.Common.Interfaces;
-using Domain.BondAggreagte.Repositories;
+using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.ValueObjects;
 using Tinkoff.InvestApi;
 

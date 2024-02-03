@@ -1,25 +1,12 @@
 ﻿namespace Domain.BondAggreagte.ValueObjects;
 
-public sealed class Coupon
+public readonly record struct Coupon(DateOnly PaymentDate, decimal Payout, DateOnly DividendCutOffDate, bool IsFloating)
 {
-    public DateTime PaymentDate { get; private set; }
-    public decimal Payout { get; private set; }
-    public DateTime DividendCutOffDate { get; private set; }
-    public bool IsFloating { get; private set; }
-
-    public Coupon(DateTime paymentDate, decimal payout, DateTime dividendCutOffDate, bool isFloating)
+    public bool CanGetCoupon(DateOnly tillDate, bool considerDividendCutOffDate)
     {
-        Payout = payout;
-        PaymentDate = paymentDate.Date;
-        DividendCutOffDate = dividendCutOffDate.Date;
-        IsFloating = isFloating;
-    }
+        var paymentDate = considerDividendCutOffDate ? PaymentDate.AddDays(PaymentDate.DayNumber - DividendCutOffDate.DayNumber)
+                                                             : PaymentDate;
 
-    public bool CanGetCoupon(DateTime tillDate, bool considerDividendCutOffDate)
-    {
-        var paymentDate = considerDividendCutOffDate ? PaymentDate.Add(PaymentDate - DividendCutOffDate)
-                                                     : PaymentDate;
-
-        return tillDate.Date >= paymentDate && DateTime.Now.Date < paymentDate;
+        return tillDate >= paymentDate && DateOnly.FromDateTime(DateTime.Now.Date) < paymentDate;
     }
 }

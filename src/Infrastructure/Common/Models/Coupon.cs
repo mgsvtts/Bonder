@@ -17,13 +17,13 @@ public sealed class Coupon
     public Bond Bond { get; set; }
 
     [Column("payment_date")]
-    public required DateTime PaymentDate { get; set; }
+    public required DateOnly PaymentDate { get; set; }
 
     [Column("payout")]
     public required decimal Payout { get; set; }
 
     [Column("dividend_cut_off_date")]
-    public required DateTime DividendCutOffDate { get; set; }
+    public required DateOnly DividendCutOffDate { get; set; }
 
     [Column("is_floating")]
     public required bool IsFloating { get; set; }
