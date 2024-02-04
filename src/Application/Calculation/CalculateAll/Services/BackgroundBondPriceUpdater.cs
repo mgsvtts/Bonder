@@ -6,50 +6,61 @@ using Domain.BondAggreagte.ValueObjects;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Quartz;
 
 namespace Application.Calculation.CalculateAll.Services;
 
-public class BackgroundBondPriceUpdater : BackgroundService
+[DisallowConcurrentExecution]
+public class BackgroundBondPriceUpdater : IJob
 {
-    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IAllBondsReceiver _bondReceiver;
+    private readonly IBondRepository _bondRepository;
+    private readonly IBondBuilder _bondBuilder;
 
-    private IAllBondsReceiver _bondReceiver;
-    private IBondRepository _bondRepository;
-    private IBondBuilder _bondBuilder;
-
-    public BackgroundBondPriceUpdater(IServiceScopeFactory scopeFactory)
+    public BackgroundBondPriceUpdater(IAllBondsReceiver bondReceiver,
+                                      IBondRepository bondRepository,
+                                      IBondBuilder bondBuilder)
     {
-        _scopeFactory = scopeFactory;
+        _bondReceiver = bondReceiver;
+        _bondRepository = bondRepository;
+        _bondBuilder = bondBuilder;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken token)
+    public async Task Execute(IJobExecutionContext context)
     {
-
-        while (!token.IsCancellationRequested)
+        try
         {
-            try
-            {
-                await BeginAsync(token);
-            }
-            catch
-            { }
+            await ExecuteAsync(context);
         }
+        catch
+        { }
     }
 
-    private async Task BeginAsync(CancellationToken token)
+    private async Task ExecuteAsync(IJobExecutionContext context)
     {
         const int step = 10;
         var startRange = new Range(0, step);
 
-        while (!token.IsCancellationRequested)
+        while (startRange.Start.Value <= _bondReceiver.GetMaxRange())
         {
-            using var scope = InitServices();
-
-            var bondsToUpdate = await TryReceiveAsync(startRange, token);
+            var bondsToUpdate = await TryReceiveAsync(startRange, context.CancellationToken);
 
             RecreateRange(step, ref startRange);
 
-            await ProcessBondsAsync(bondsToUpdate, token);
+            await ProcessBondsAsync(bondsToUpdate, context.CancellationToken);
+        }
+    }
+
+    private async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> TryReceiveAsync(Range startRange,
+                                                                                         CancellationToken token)
+    {
+        try
+        {
+            return await _bondReceiver.ReceiveAsync(startRange, token);
+        }
+        catch (RpcException)
+        {
+            return await TryRetryAsync(startRange, token);
         }
     }
 
@@ -66,17 +77,6 @@ public class BackgroundBondPriceUpdater : BackgroundService
         await _bondRepository.AddAsync(notFoundBonds, token);
     }
 
-    private IServiceScope InitServices()
-    {
-        var scope = _scopeFactory.CreateScope();
-
-        _bondReceiver = scope.ServiceProvider.GetRequiredService<IAllBondsReceiver>();
-        _bondRepository = scope.ServiceProvider.GetRequiredService<IBondRepository>();
-        _bondBuilder = scope.ServiceProvider.GetRequiredService<IBondBuilder>();
-
-        return scope;
-    }
-
     private void RecreateRange(int step, ref Range startRange)
     {
         if (startRange.Start.Value > _bondReceiver.GetMaxRange())
@@ -86,19 +86,6 @@ public class BackgroundBondPriceUpdater : BackgroundService
         else
         {
             startRange = new Range(startRange.End, startRange.End.Value + step);
-        }
-    }
-
-    private async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> TryReceiveAsync(Range startRange,
-                                                                                         CancellationToken token)
-    {
-        try
-        {
-            return await _bondReceiver.ReceiveAsync(startRange, token);
-        }
-        catch (RpcException)
-        {
-            return await TryRetryAsync(startRange, token);
         }
     }
 

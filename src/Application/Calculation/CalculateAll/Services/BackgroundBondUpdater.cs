@@ -3,38 +3,31 @@ using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Quartz;
 
 namespace Application.Calculation.CalculateAll.Services;
 
-public class BackgroundBondUpdater : BackgroundService
+public class BackgroundBondUpdater : IJob
 {
-    private IDohodHttpClient _dohodHttpClient;
-    private IBondRepository _bondRepository;
-    private ITinkoffGrpcClient _grpcClient;
+    private readonly IDohodHttpClient _dohodHttpClient;
+    private readonly IBondRepository _bondRepository;
+    private readonly ITinkoffGrpcClient _grpcClient;
 
-    private readonly IServiceScopeFactory _scopeFactory;
-
-    public BackgroundBondUpdater(IServiceScopeFactory scopeFactory)
+    public BackgroundBondUpdater(IDohodHttpClient dohodHttpClient,
+                                 IBondRepository bondRepository,
+                                 ITinkoffGrpcClient grpcClient)
     {
-        _scopeFactory = scopeFactory;
+        _dohodHttpClient = dohodHttpClient;
+        _bondRepository = bondRepository;
+        _grpcClient = grpcClient;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public async Task Execute(IJobExecutionContext context)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            if (!IsValidTime())
-            {
-                await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken);
-                continue;
-            }
+        var couponTask = UpdateFloatingCoupons(context.CancellationToken);
+        var ratingTask = UpdateRatingAsync(context.CancellationToken);
 
-            using var scope = InitServices();
-            var couponTask = UpdateFloatingCoupons(stoppingToken);
-            var ratingTask = UpdateRatingAsync(stoppingToken);
-
-            await Task.WhenAll(couponTask, ratingTask);
-        }
+        await Task.WhenAll(couponTask, ratingTask);
     }
 
     private async Task UpdateRatingAsync(CancellationToken token)
@@ -43,7 +36,7 @@ public class BackgroundBondUpdater : BackgroundService
         var range = new Range(0, step);
 
         var count = await _bondRepository.CountAsync(token);
-        while (range.End.Value < count)
+        while (range.Start.Value < count)
         {
             try
             {
@@ -75,21 +68,5 @@ public class BackgroundBondUpdater : BackgroundService
 
             await _bondRepository.UpdateCoupons(coupons, bond.Identity, token);
         }
-    }
-
-    private static bool IsValidTime()
-    {
-        return DateTime.Now.Hour == 5;
-    }
-
-    private IServiceScope InitServices()
-    {
-        var scope = _scopeFactory.CreateScope();
-
-        _bondRepository = scope.ServiceProvider.GetRequiredService<IBondRepository>();
-        _dohodHttpClient = scope.ServiceProvider.GetRequiredService<IDohodHttpClient>();
-        _grpcClient = scope.ServiceProvider.GetRequiredService<ITinkoffGrpcClient>();
-
-        return scope;
     }
 }

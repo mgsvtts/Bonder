@@ -9,8 +9,6 @@
 
   <ItemGroup>
       <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-	  <PackageReference Include="MediatR" Version="12.2.0" />
-	  <PackageReference Include="Mapster" Version="7.4.0" />
 	  <PackageReference Include="RateLimiter" Version="2.2.0" />
   </ItemGroup>
 

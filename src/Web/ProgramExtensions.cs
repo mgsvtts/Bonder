@@ -13,6 +13,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.RateLimiting;
 using Presentation.Filters;
+using Quartz;
 using RateLimiter;
 using System.Threading.RateLimiting;
 using Web.Extensions;
@@ -78,8 +79,18 @@ public static class ProgramExtensions
 
         if (builder.Configuration.GetValue<bool>("TurnOnDaemons"))
         {
-            builder.Services.AddHostedService<BackgroundBondPriceUpdater>();
-            builder.Services.AddHostedService<BackgroundBondUpdater>();
+            builder.Services.AddQuartz(configure =>
+            {
+                var priceKey = new JobKey(nameof(BackgroundBondPriceUpdater));
+                var bondKey = new JobKey(nameof(BackgroundBondUpdater));
+
+                configure.AddJob<BackgroundBondPriceUpdater>(priceKey)
+                .AddTrigger(trigger => trigger.ForJob(priceKey).WithSimpleSchedule(schedule => schedule.WithInterval(TimeSpan.FromTicks(1))
+                                                                                                       .WithRepeatCount(int.MaxValue)));
+                configure.AddJob<BackgroundBondUpdater>(bondKey)
+                .AddTrigger(trigger => trigger.ForJob(bondKey).WithCronSchedule("0 0 5 ? * * *"));
+            });
+            builder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
         }
 
         builder.Services.RegisterMapsterConfiguration();
