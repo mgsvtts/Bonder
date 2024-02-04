@@ -1,4 +1,4 @@
-﻿using Application.Calculation.CalculateAll.Services;
+﻿using Application.Calculation.CalculateAll.Jobs;
 using Application.Calculation.Common.CalculationService;
 using Application.Calculation.Common.Interfaces;
 using Application.Common;
@@ -81,12 +81,12 @@ public static class ProgramExtensions
         {
             builder.Services.AddQuartz(configure =>
             {
-                var priceKey = new JobKey(nameof(BackgroundBondPriceUpdater));
+                var priceKey = new JobKey(nameof(UpdateBondPriceJob));
                 var bondKey = new JobKey(nameof(BackgroundBondUpdater));
 
-                configure.AddJob<BackgroundBondPriceUpdater>(priceKey)
+                configure.AddJob<UpdateBondPriceJob>(priceKey)
                 .AddTrigger(trigger => trigger.ForJob(priceKey).WithSimpleSchedule(schedule => schedule.WithInterval(TimeSpan.FromTicks(1))
-                                                                                                       .WithRepeatCount(int.MaxValue)));
+                                                                                                       .RepeatForever()));
                 configure.AddJob<BackgroundBondUpdater>(bondKey)
                 .AddTrigger(trigger => trigger.ForJob(bondKey).WithCronSchedule("0 0 5 ? * * *"));
             });

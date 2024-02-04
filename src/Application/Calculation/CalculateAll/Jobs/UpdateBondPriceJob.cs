@@ -8,16 +8,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Quartz;
 
-namespace Application.Calculation.CalculateAll.Services;
+namespace Application.Calculation.CalculateAll.Jobs;
 
 [DisallowConcurrentExecution]
-public class BackgroundBondPriceUpdater : IJob
+public class UpdateBondPriceJob : IJob
 {
     private readonly IAllBondsReceiver _bondReceiver;
     private readonly IBondRepository _bondRepository;
     private readonly IBondBuilder _bondBuilder;
 
-    public BackgroundBondPriceUpdater(IAllBondsReceiver bondReceiver,
+    public UpdateBondPriceJob(IAllBondsReceiver bondReceiver,
                                       IBondRepository bondRepository,
                                       IBondBuilder bondBuilder)
     {
