@@ -1,4 +1,5 @@
 ﻿using Application.Calculation.CalculateAll;
+using Application.Calculation.CalculateAll.Query;
 using Application.Calculation.CalculateTickers;
 using Domain.BondAggreagte.Dto;
 using MapsterMapper;
@@ -38,11 +39,17 @@ public class BondController : ControllerBase
     public async IAsyncEnumerable<CalculateResponse> GetState([EnumeratorCancellation] CancellationToken token)
     {
         var waitSeconds = TimeSpan.FromSeconds(5);
-        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetIncomeRequest(DateIntervalType.TillDate, DateOnly.FromDateTime(DateTime.Now.AddYears(5)))), token))
+        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetIncomeRequest(DateIntervalType.TillOfferDate)), token))
         {
             yield return result.MapToResponse();
 
             await Task.Delay(waitSeconds, token);
         }
+    }
+
+    [HttpGet("current-state")]
+    public async Task<IActionResult> GetCurrentState(GetIncomeRequest request, CancellationToken token)
+    {
+        return Ok(await _sender.Send(new CalculateAllCommand(request), token));
     }
 }

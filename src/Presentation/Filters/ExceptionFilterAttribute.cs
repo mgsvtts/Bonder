@@ -6,15 +6,11 @@ using System.Net;
 
 namespace Presentation.Filters;
 
-[AttributeUsage(AttributeTargets.All)]
+[AttributeUsage(AttributeTargets.Class)]
 public sealed class ExceptionFilterAttribute : Attribute, IExceptionFilter
 {
     public void OnException(ExceptionContext context)
     {
-        var actionName = context.ActionDescriptor.DisplayName;
-        var exceptionStack = context.Exception.StackTrace;
-        var exceptionMessage = context.Exception.Message;
-
         context.Result = context.Exception switch
         {
             UnauthorizedAccessException => new ContentResult
@@ -43,7 +39,7 @@ public sealed class ExceptionFilterAttribute : Attribute, IExceptionFilter
             },
             _ => new ContentResult
             {
-                Content = $"Error in {actionName}: \n {exceptionMessage}",
+                Content = $"Error in {context.ActionDescriptor.DisplayName}: \n {context.Exception.Message}",
                 StatusCode = 500,
                 ContentType = "text/plain",
             },

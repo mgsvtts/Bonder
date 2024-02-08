@@ -48,19 +48,19 @@ public sealed class Bond : AggregateRoot<BondId>
 
     private CouponIncome GetCouponOnlyIncome(GetIncomeRequest request)
     {
-        var date = GetTillDate(request);
+        var dateTo = GetTillDate(request);
 
-        if (date < DateOnly.FromDateTime(DateTime.Now.Date))
+        if (dateTo < DateOnly.FromDateTime(DateTime.Now.Date))
         {
-            throw new InvalidPaymentDateException(date);
+            throw new InvalidPaymentDateException(dateTo);
         }
 
-        return CalculateCouponIncome(date, request.ConsiderDividendCutOffDate);
+        return CalculateCouponIncome(request.DateFrom, dateTo, request.ConsiderDividendCutOffDate);
     }
 
-    private CouponIncome CalculateCouponIncome(DateOnly date, bool considerDividendCutOffDate)
+    private CouponIncome CalculateCouponIncome(DateOnly dateFrom, DateOnly dateTo, bool considerDividendCutOffDate)
     {
-        var futureCoupons = Coupons.Where(x => x.CanGetCoupon(date, considerDividendCutOffDate));
+        var futureCoupons = Coupons.Where(x => x.CanGetCoupon(dateFrom, dateTo, considerDividendCutOffDate));
 
         if (Coupons.Any(x => x.IsFloating))
         {
@@ -112,29 +112,24 @@ public sealed class Bond : AggregateRoot<BondId>
         {
             DateIntervalType.TillMaturityDate => maturityDate.Value,
             DateIntervalType.TillOfferDate => offerDate.Value,
-            DateIntervalType.TillDate => request.TillDate.Value,
+            DateIntervalType.TillCustomDate => request.DateTo.Value,
             _ => throw new NotImplementedException(),
         };
     }
 
     private bool IsFullIncomeDate(GetIncomeRequest request)
     {
-        return Dates.MaturityDate is not null &&
+        return (Dates.MaturityDate is not null || Dates.OfferDate is not null) &&
                (request.IsPaymentType() ||
-                DateIsEqualToPaymentDate(request) ||
-                DateIsMoreThanPaymentDate(request));
+                DateIsMoreOrEqualToPaymentDate(request));
     }
 
-    private bool DateIsEqualToPaymentDate(GetIncomeRequest request)
+    private bool DateIsMoreOrEqualToPaymentDate(GetIncomeRequest request)
     {
-        return request.TillDate == Dates.MaturityDate ||
-               request.TillDate == Dates.OfferDate;
-    }
-
-    private bool DateIsMoreThanPaymentDate(GetIncomeRequest request)
-    {
-        return request.TillDate > Dates.MaturityDate ||
-               request.TillDate > Dates.OfferDate;
+        return request.DateTo >= Dates.MaturityDate ||
+               request.DateTo >= Dates.OfferDate ||
+               request.DateFrom >= Dates.MaturityDate ||
+               request.DateFrom >= Dates.OfferDate;
     }
 
     public override string ToString()

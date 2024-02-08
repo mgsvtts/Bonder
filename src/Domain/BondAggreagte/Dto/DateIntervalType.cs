@@ -4,5 +4,5 @@ public enum DateIntervalType
 {
     TillMaturityDate,
     TillOfferDate,
-    TillDate
+    TillCustomDate
 }

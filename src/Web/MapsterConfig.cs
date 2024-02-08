@@ -18,7 +18,7 @@ public static class MapsterConfig
     {
         TypeAdapterConfig<CalculateRequest, CalculateTickersCommand>
         .ForType()
-        .MapWith(x => new CalculateTickersCommand(new GetIncomeRequest(x.Options.Type, x.Options.TillDate, x.Options.ConsiderDividendCutOffDate),
+        .MapWith(x => new CalculateTickersCommand(x.Options,
                                                   x.Tickers.Select(x => new Ticker(x))));
 
         TypeAdapterConfig<TinkoffValue, Bond>

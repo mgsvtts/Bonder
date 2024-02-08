@@ -1,4 +1,5 @@
 ﻿using Application.Calculation.CalculateAll.Jobs;
+using Application.Calculation.CalculateAll.Services;
 using Application.Calculation.Common.CalculationService;
 using Application.Calculation.Common.Interfaces;
 using Application.Common;
@@ -96,6 +97,7 @@ public static class ProgramExtensions
         builder.Services.RegisterMapsterConfiguration();
 
         builder.Services.AddSingleton<ICalculationService, CalculationService>();
+        builder.Services.AddTransient<ICalculateAllService, CalculateAllService>();
 
         return builder;
     }

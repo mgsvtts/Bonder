@@ -5,7 +5,7 @@ namespace Domain.BondAggreagte.Exceptions;
 
 public sealed class IntervalTypeException : DomainLogicException
 {
-    public IntervalTypeException() : base($"Interval with type {DateIntervalType.TillDate} must have a date")
+    public IntervalTypeException() : base($"Interval with type {DateIntervalType.TillCustomDate} must have a date")
     {
     }
 }

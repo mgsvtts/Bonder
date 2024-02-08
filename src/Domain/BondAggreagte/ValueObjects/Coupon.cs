@@ -2,11 +2,11 @@
 
 public readonly record struct Coupon(DateOnly PaymentDate, decimal Payout, DateOnly DividendCutOffDate, bool IsFloating)
 {
-    public bool CanGetCoupon(DateOnly tillDate, bool considerDividendCutOffDate)
+    public bool CanGetCoupon(DateOnly dateFrom, DateOnly dateTo, bool considerDividendCutOffDate)
     {
-        var paymentDate = considerDividendCutOffDate ? PaymentDate.AddDays(PaymentDate.DayNumber - DividendCutOffDate.DayNumber)
-                                                             : PaymentDate;
+        var paymentDate = considerDividendCutOffDate ? dateTo.AddDays(PaymentDate.DayNumber - DividendCutOffDate.DayNumber)
+                                                             : dateTo;
 
-        return tillDate >= paymentDate && DateOnly.FromDateTime(DateTime.Now.Date) < paymentDate;
+        return dateFrom >= paymentDate && DateOnly.FromDateTime(DateTime.Now.Date) < paymentDate;
     }
 }
