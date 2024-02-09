@@ -39,7 +39,7 @@ public sealed class ExceptionFilterAttribute : Attribute, IExceptionFilter
             },
             _ => new ContentResult
             {
-                Content = $"Error in {context.ActionDescriptor.DisplayName}: \n {context.Exception.Message}",
+                Content = $"Error in {context.ActionDescriptor.DisplayName}:{Environment.NewLine}{context.Exception.Message}",
                 StatusCode = 500,
                 ContentType = "text/plain",
             },

@@ -48,8 +48,9 @@ public class BondController : ControllerBase
     }
 
     [HttpGet("current-state")]
-    public async Task<IActionResult> GetCurrentState(GetIncomeRequest request, CancellationToken token)
+    public async Task<IActionResult> GetCurrentState(CalculationOptions request, CancellationToken token)
     {
-        return Ok(await _sender.Send(new CalculateAllCommand(request), token));
+        var result = await _sender.Send(new CalculateAllCommand(_mapper.Map<GetIncomeRequest>(request)), token);
+        return Ok(result.MapToResponse());
     }
 }

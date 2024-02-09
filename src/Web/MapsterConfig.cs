@@ -18,21 +18,31 @@ public static class MapsterConfig
     {
         TypeAdapterConfig<CalculateRequest, CalculateTickersCommand>
         .ForType()
-        .MapWith(x => new CalculateTickersCommand(x.Options,
+        .MapWith(x => new CalculateTickersCommand(x.Options.Adapt<GetIncomeRequest>(),
                                                   x.Tickers.Select(x => new Ticker(x))));
+
+        TypeAdapterConfig<CalculationOptions, GetIncomeRequest>
+        .ForType()
+        .MapWith(x => new GetIncomeRequest
+        (
+            x.Type ?? DateIntervalType.TillOfferDate,
+            x.PriceFrom ?? 0,
+            x.PriceTo ?? decimal.MaxValue,
+            x.NominalFrom ?? 0,
+            x.NominalTo ?? decimal.MaxValue,
+            x.YearCouponFrom ?? 0,
+            x.YearCouponTo ?? decimal.MaxValue,
+            x.RatingFrom ?? 0,
+            x.RatingTo ?? 10,
+            x.DateFrom,
+            x.DateTo,
+            x.ConsiderDividendCutOffDate,
+            x.IncludeUnknownRatings ?? true
+        ));
 
         TypeAdapterConfig<TinkoffValue, Bond>
         .ForType()
-        .MapWith(x => new Bond(new BondId(x.Symbol.SecurityUids.InstrumentUid,
-                                          new Ticker(x.Symbol.Ticker),
-                                          new Isin(x.Symbol.Isin)),
-                                  x.Symbol.Name,
-                                  StaticIncome.FromAbsoluteValues(x.Price != null ? x.Price.Value : 0, x.Nominal),
-                                  new Dates(x.MaturityDate != null ? DateOnly.FromDateTime(x.MaturityDate.Value) : null,
-                                           x.OfferDate != null ? DateOnly.FromDateTime(x.OfferDate.Value) : null),
-                                  0,
-                                  x.IsAmortized,
-                                  new List<Coupon>()));
+        .MapWith(x => CustomMappings.CreateBond(x));
 
         TypeAdapterConfig<(Bond Bond, List<Coupon> Coupons, int? Rating), Bond>
         .ForType()
@@ -105,5 +115,25 @@ public static class MapsterConfig
         var mapperConfig = new Mapper(typeAdapterConfig);
 
         services.AddSingleton<IMapper>(mapperConfig);
+    }
+
+}
+
+public static class CustomMappings
+{
+    public static Bond CreateBond(TinkoffValue value)
+    {
+        var maturityDate = value.MaturityDate ?? value.CallDate;
+
+        return new Bond(new BondId(value.Symbol.SecurityUids.InstrumentUid,
+                                   new Ticker(value.Symbol.Ticker),
+                                   new Isin(value.Symbol.Isin)),
+                        value.Symbol.Name,
+                        StaticIncome.FromAbsoluteValues(value.Price != null ? value.Price.Value : 0, value.Nominal),
+                        new Dates(maturityDate != null ? DateOnly.FromDateTime(maturityDate.Value) : null,
+                                  value.OfferDate != null ? DateOnly.FromDateTime(value.OfferDate.Value) : null),
+                        0,
+                        value.IsAmortized,
+                        new List<Coupon>());
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using Domain.BondAggreagte;
 using Domain.BondAggreagte.Abstractions;
+using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Common;
 using LinqToDB;
@@ -94,6 +95,29 @@ public sealed class BondRepository : IBondRepository
             .UpdateAsync(token);
         }
         return notFoundTickers;
+    }
+
+    public async Task<List<Bond>> GetPriceSortedAsync(GetIncomeRequest filter, CancellationToken token = default)
+    {
+        var filteredBonds = _db.Bonds
+        .Where(x => x.AbsolutePrice >= filter.PriceFrom)
+        .Where(x => x.AbsolutePrice <= filter.PriceTo)
+        .Where(x => x.Rating >= filter.RatingFrom)
+        .Where(x => x.Rating <= filter.RatingTo)
+        .Where(x => x.AbsoluteNominal >= filter.NominalFrom)
+        .Where(x => x.AbsoluteNominal <= filter.NominalTo);
+
+        if (!filter.IncludeUnknownRatings)
+        {
+            filteredBonds = filteredBonds.Where(x => x.Rating != null);
+        }
+
+        var bonds = await filteredBonds.LoadWith(x => x.Coupons.Where(x => x.PaymentDate >= filter.DateFrom)
+                                                                       .Where(x => x.PaymentDate <= filter.DateTo))
+        .OrderBy(x => x.AbsolutePrice)
+        .ToListAsync(token);
+
+        return _mapper.Map<List<Bond>>(bonds.Where(x=>x.Ticker == "RU000A0ZZ505"));
     }
 
     public async Task<List<Bond>> GetPriceSortedAsync(CancellationToken token = default)

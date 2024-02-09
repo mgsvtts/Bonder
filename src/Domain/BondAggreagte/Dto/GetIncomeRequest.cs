@@ -18,6 +18,7 @@ public sealed class GetIncomeRequest
     public DateOnly? DateTo { get; }
     public int RatingFrom { get; }
     public int RatingTo { get; }
+    public bool IncludeUnknownRatings { get; }
 
     public GetIncomeRequest(DateIntervalType type,
                             decimal priceFrom = 0,
@@ -30,7 +31,8 @@ public sealed class GetIncomeRequest
                             int ratingTo = 10,
                             DateOnly? dateFrom = null,
                             DateOnly? dateTo = null,
-                            bool considerDividendCutOffDate = true)
+                            bool considerDividendCutOffDate = true,
+                            bool includeUnknownRatings = true)
     {
         Guard.Against.OutOfRange(priceFrom, nameof(priceFrom), 0, priceTo, $"{nameof(priceFrom)} must be less than {nameof(priceTo)}");
         Guard.Against.OutOfRange(nominalFrom, nameof(nominalFrom), 0, nominalTo, $"{nameof(nominalFrom)} must be less than {nameof(nominalTo)}");
@@ -49,6 +51,7 @@ public sealed class GetIncomeRequest
         RatingTo = Guard.Against.Negative(ratingTo);
         Type = type;
         ConsiderDividendCutOffDate = considerDividendCutOffDate;
+        IncludeUnknownRatings = includeUnknownRatings;
     }
 
     public bool IsPaymentType()

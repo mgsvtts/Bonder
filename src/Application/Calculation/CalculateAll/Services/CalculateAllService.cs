@@ -22,10 +22,10 @@ public class CalculateAllService : ICalculateAllService
 
     public async Task<CalculationResults> CalculateAllAsync(GetIncomeRequest request, CancellationToken token = default)
     {
-        var priceSorted = await _bondRepository.GetPriceSortedAsync(token);
+        var priceSorted = await _bondRepository.GetPriceSortedAsync(request, token);
 
         var fullIncomeSorted = priceSorted.OrderByDescending(x => x.GetIncomeOnDate(request).FullIncomePercent)
-                                          .ToList();
+        .ToList();
 
         return _calculator.Calculate(new SortedCalculationRequest(request, priceSorted, fullIncomeSorted));
     }

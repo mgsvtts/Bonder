@@ -1,4 +1,2 @@
-﻿using Domain.BondAggreagte.Dto;
-
-namespace Presentation.Controllers.BondController.Calculate.Request;
-public sealed record CalculateRequest(GetIncomeRequest Options, IEnumerable<string> Tickers);
+﻿namespace Presentation.Controllers.BondController.Calculate.Request;
+public sealed record CalculateRequest(CalculationOptions Options, IEnumerable<string> Tickers);

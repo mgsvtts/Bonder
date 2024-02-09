@@ -17,6 +17,7 @@ using Presentation.Filters;
 using Quartz;
 using RateLimiter;
 using System.Threading.RateLimiting;
+using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 using Web.Extensions;
 using Web.Extensions.Mapping;
 
@@ -110,7 +111,10 @@ public static class ProgramExtensions
         });
 
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.AddEnumsWithValuesFixFilters();
+        });
 
         return builder;
     }

@@ -16,7 +16,7 @@ public static class CustomDateGuard
         {
             throw new ArgumentException($"{nameof(dateTo)} cannot be null", nameof(dateTo));
         }
-        if (type == DateIntervalType.TillCustomDate && dateTo > dateFrom)
+        if (type == DateIntervalType.TillCustomDate && dateFrom > dateTo)
         {
             throw new ArgumentException($"{nameof(dateTo)} must be less than {nameof(dateFrom)}", nameof(dateTo));
         }

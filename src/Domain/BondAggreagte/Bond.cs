@@ -50,11 +50,6 @@ public sealed class Bond : AggregateRoot<BondId>
     {
         var dateTo = GetTillDate(request);
 
-        if (dateTo < DateOnly.FromDateTime(DateTime.Now.Date))
-        {
-            throw new InvalidPaymentDateException(dateTo);
-        }
-
         return CalculateCouponIncome(request.DateFrom, dateTo, request.ConsiderDividendCutOffDate);
     }
 
@@ -84,13 +79,13 @@ public sealed class Bond : AggregateRoot<BondId>
     private CouponIncome GetFloatingCouponsIncome(IEnumerable<Coupon> futureCoupons)
     {
         var latestCoupon = futureCoupons.Where(x => x.Payout != 0)
-                                        .OrderByDescending(x => x.PaymentDate)
-                                        .FirstOrDefault();
+        .OrderByDescending(x => x.PaymentDate)
+        .FirstOrDefault();
 
         if (latestCoupon == default)
         {
             latestCoupon = Coupons.OrderByDescending(x => x.PaymentDate)
-                                  .First();
+            .First();
         }
 
         var absoluteIncome = latestCoupon.Payout * futureCoupons.Count();
