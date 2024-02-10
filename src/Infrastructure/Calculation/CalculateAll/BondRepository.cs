@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using Infrastructure.Common.Extensions;
 using Domain.BondAggreagte;
 using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.Dto;
@@ -99,25 +100,21 @@ public sealed class BondRepository : IBondRepository
 
     public async Task<List<Bond>> GetPriceSortedAsync(GetIncomeRequest filter, CancellationToken token = default)
     {
-        var filteredBonds = _db.Bonds
+        var bonds = await _db.Bonds
+        .Where(x => x.MaturityDate >= filter.DateFrom || x.OfferDate >= filter.DateFrom)
+        .Where(x => x.MaturityDate <= filter.DateTo || x.OfferDate <= filter.DateTo)
         .Where(x => x.AbsolutePrice >= filter.PriceFrom)
         .Where(x => x.AbsolutePrice <= filter.PriceTo)
-        .Where(x => x.Rating >= filter.RatingFrom)
-        .Where(x => x.Rating <= filter.RatingTo)
+        .Where(x => x.Rating == null || (x.Rating >= filter.RatingFrom && x.Rating <= filter.RatingTo))
         .Where(x => x.AbsoluteNominal >= filter.NominalFrom)
-        .Where(x => x.AbsoluteNominal <= filter.NominalTo);
-
-        if (!filter.IncludeUnknownRatings)
-        {
-            filteredBonds = filteredBonds.Where(x => x.Rating != null);
-        }
-
-        var bonds = await filteredBonds.LoadWith(x => x.Coupons.Where(x => x.PaymentDate >= filter.DateFrom)
-                                                                       .Where(x => x.PaymentDate <= filter.DateTo))
+        .Where(x => x.AbsoluteNominal <= filter.NominalTo)
+        .WhereIf(!filter.IncludeUnknownRatings, x => x.Rating != null)
+        .LoadWith(x => x.Coupons.Where(x => x.PaymentDate >= filter.DateFrom)
+                                .Where(x => x.PaymentDate <= filter.DateTo))
         .OrderBy(x => x.AbsolutePrice)
         .ToListAsync(token);
 
-        return _mapper.Map<List<Bond>>(bonds.Where(x=>x.Ticker == "RU000A0ZZ505"));
+        return _mapper.Map<List<Bond>>(bonds);
     }
 
     public async Task<List<Bond>> GetPriceSortedAsync(CancellationToken token = default)

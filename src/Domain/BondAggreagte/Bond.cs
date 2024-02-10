@@ -107,7 +107,7 @@ public sealed class Bond : AggregateRoot<BondId>
         {
             DateIntervalType.TillMaturityDate => maturityDate.Value,
             DateIntervalType.TillOfferDate => offerDate.Value,
-            DateIntervalType.TillCustomDate => request.DateTo.Value,
+            DateIntervalType.TillCustomDate => request.DateTo,
             _ => throw new NotImplementedException(),
         };
     }

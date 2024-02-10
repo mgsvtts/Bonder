@@ -105,6 +105,7 @@ public static class MapsterConfig
             DividendCutOffDate = x.DividendCutOffDate,
             IsFloating = x.IsFloating,
             PaymentDate = x.PaymentDate,
+            CreatedAt = DateTime.Now,
             Payout = x.Payout
         });
 

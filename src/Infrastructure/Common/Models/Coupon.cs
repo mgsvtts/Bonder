@@ -23,7 +23,7 @@ public sealed class Coupon
     public required decimal Payout { get; set; }
 
     [Column("dividend_cut_off_date")]
-    public required DateOnly DividendCutOffDate { get; set; }
+    public required DateOnly? DividendCutOffDate { get; set; }
 
     [Column("is_floating")]
     public required bool IsFloating { get; set; }

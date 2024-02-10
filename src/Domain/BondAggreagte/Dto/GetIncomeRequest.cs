@@ -15,7 +15,7 @@ public sealed class GetIncomeRequest
     public decimal YearCouponFrom { get; }
     public decimal YearCouponTo { get; }
     public DateOnly DateFrom { get; }
-    public DateOnly? DateTo { get; }
+    public DateOnly DateTo { get; }
     public int RatingFrom { get; }
     public int RatingTo { get; }
     public bool IncludeUnknownRatings { get; }

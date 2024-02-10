@@ -8,7 +8,7 @@ public class MoexCouponItem
     public DateOnly Date { get; set; }
 
     [JsonPropertyName("recorddate")]
-    public DateOnly CutOffDate { get; set; }
+    public DateOnly? CutOffDate { get; set; }
 
     [JsonPropertyName("value")]
     public decimal? Payout { get; set; }
