@@ -19,7 +19,6 @@ using RateLimiter;
 using System.Threading.RateLimiting;
 using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 using Web.Extensions;
-using Web.Extensions.Mapping;
 
 namespace Web;
 

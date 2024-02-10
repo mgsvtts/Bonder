@@ -5,7 +5,7 @@ using Domain.BondAggreagte.Abstractions;
 using MediatR;
 using System.Runtime.CompilerServices;
 
-namespace Application.Calculation.CalculateAll;
+namespace Application.Calculation.CalculateAll.Stream;
 
 public sealed class CalculateAllStreamRequestHandler : IStreamRequestHandler<CalculateAllStreamRequest, CalculationResults>
 {

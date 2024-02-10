@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Application.Calculation.CalculateAll.Query;
 using Application.Calculation.CalculateAll.Services;
 using Application.Calculation.Common.CalculationService.Dto;
 using MediatR;

@@ -12,7 +12,7 @@ public interface IBondRepository
     Task<List<Bond>> GetAllFloatingAsync(CancellationToken token = default);
     Task RefreshAsync(IEnumerable<Ticker> oldBondTickers, CancellationToken token = default);
     Task<List<Ticker>> UpdateIncomesAsync(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bonds, CancellationToken token = default);
-    Task<List<Bond>> GetPriceSortedAsync(GetIncomeRequest filter, CancellationToken token = default);
+    Task<List<Bond>> GetPriceSortedAsync(GetIncomeRequest filter, IEnumerable<Ticker>? tickers = null, CancellationToken token = default);
     Task<List<Bond>> GetPriceSortedAsync(CancellationToken token = default);
     Task AddAsync(IEnumerable<Bond> bonds, CancellationToken token = default);
 }

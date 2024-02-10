@@ -10,7 +10,7 @@ using MapsterMapper;
 using Presentation.Controllers.BondController.Calculate.Request;
 using System.Reflection;
 
-namespace Web.Extensions.Mapping;
+namespace Web;
 
 public static class MapsterConfig
 {

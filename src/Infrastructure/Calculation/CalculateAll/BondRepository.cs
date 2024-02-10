@@ -98,9 +98,10 @@ public sealed class BondRepository : IBondRepository
         return notFoundTickers;
     }
 
-    public async Task<List<Bond>> GetPriceSortedAsync(GetIncomeRequest filter, CancellationToken token = default)
+    public async Task<List<Bond>> GetPriceSortedAsync(GetIncomeRequest filter, IEnumerable<Ticker>? tickers = null, CancellationToken token = default)
     {
         var bonds = await _db.Bonds
+        .WhereIf(tickers != null, x => tickers!.Select(x => x.Value).Contains(x.Ticker))
         .Where(x => x.MaturityDate >= filter.DateFrom || x.OfferDate >= filter.DateFrom)
         .Where(x => x.MaturityDate <= filter.DateTo || x.OfferDate <= filter.DateTo)
         .Where(x => x.AbsolutePrice >= filter.PriceFrom)

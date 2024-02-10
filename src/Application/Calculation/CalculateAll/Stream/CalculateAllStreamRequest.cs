@@ -2,5 +2,5 @@
 using Domain.BondAggreagte.Dto;
 using MediatR;
 
-namespace Application.Calculation.CalculateAll;
+namespace Application.Calculation.CalculateAll.Stream;
 public sealed record CalculateAllStreamRequest(GetIncomeRequest IncomeRequest) : IStreamRequest<CalculationResults>;
