@@ -1,5 +1,5 @@
-﻿using Application.Calculation.CalculateAll;
-using Application.Calculation.CalculateAll.Query;
+﻿using Application.Calculation.CalculateAll.Command;
+using Application.Calculation.CalculateAll.Stream;
 using Application.Calculation.CalculateTickers;
 using Domain.BondAggreagte.Dto;
 using MapsterMapper;
