@@ -11,8 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Presentation.Controllers
 {
     [Authorize]
-    [Route("api/[controller]")]
-    [ApiController]
+    [Route("api/auth")]
     public class UsersController : ControllerBase
     {
         private readonly IJwtTokenManager _tokenManager;
@@ -37,10 +36,9 @@ namespace Presentation.Controllers
             return users;
         }
 
-        public record RegisterRequest(string UserName, string Password, string Email);
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterAsync(RegisterRequest request)
+        public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
         {
             var result = await _userService.RegisterAsync(new User
             {
@@ -49,11 +47,12 @@ namespace Presentation.Controllers
                 UserName = request.UserName,
             }, request.Password);
 
-            return Ok(result);
+            return Ok(new { Succes = result });
         }
+
         [AllowAnonymous]
-        [HttpPost("authenticate")]
-        public async Task<IActionResult> AuthenticateAsync(ValidateUserRequest request)
+        [HttpPost("login")]
+        public async Task<IActionResult> AuthenticateAsync([FromBody] ValidateUserRequest request)
         {
             var validUser = await _userService.IsValidUserAsync(request);
 
@@ -69,13 +68,7 @@ namespace Presentation.Controllers
                 return Unauthorized("Invalid Attempt!");
             }
 
-            var obj = new User
-            {
-                RefreshToken = token.RefreshToken,
-                UserName = request.UserName
-            };
-
-            await _userService.AddUserRefreshTokensAsync(obj);
+            await _userService.SetRefreshTokenAsync(request.UserName, token.RefreshToken);
             await _userService.SaveChangesAsync();
 
             return Ok(token);
@@ -83,7 +76,7 @@ namespace Presentation.Controllers
 
         [AllowAnonymous]
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh(Tokens token)
+        public async Task<IActionResult> Refresh([FromBody] Tokens token)
         {
             var principal = _tokenManager.GetPrincipalFromExpiredToken(token.AccessToken);
             var username = principal.Identity?.Name;
@@ -108,8 +101,7 @@ namespace Presentation.Controllers
                 UserName = username
             };
 
-            await _userService.DeleteUserRefreshTokensAsync(username, token.RefreshToken);
-            await _userService.AddUserRefreshTokensAsync(obj);
+            await _userService.SetRefreshTokenAsync(username, newJwtToken.RefreshToken);
             await _userService.SaveChangesAsync();
 
             return Ok(newJwtToken);

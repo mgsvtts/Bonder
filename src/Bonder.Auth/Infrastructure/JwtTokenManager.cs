@@ -34,15 +34,17 @@ public class JwtTokenManager : IJwtTokenManager
         try
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var tokenKey = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]);
+            var key = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
               {
-                 new Claim(ClaimTypes.Name, userName)
+                 new Claim(ClaimTypes.Name, userName),
+                 new Claim(JwtRegisteredClaimNames.Aud, _configuration["JWT:Audience"]),
+                 new Claim(JwtRegisteredClaimNames.Iss, _configuration["JWT:Issuer"])
               }),
                 Expires = DateTime.Now.AddMinutes(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var refreshToken = GenerateRefreshToken();

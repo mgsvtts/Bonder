@@ -24,19 +24,10 @@ public class UserRepository : IUserRepository
 
         return result.Succeeded;
     }
-    public async Task AddUserRefreshTokensAsync(User user)
+    public async Task SetRefreshTokenAsync(string userName, string refreshToken)
     {
-        await _db.Users.Where(x => x.UserName == user.UserName)
-        .ExecuteUpdateAsync(call => call.SetProperty(x => x.RefreshToken, user.RefreshToken));
-    }
-
-    public async Task DeleteUserRefreshTokensAsync(string username, string refreshToken)
-    {
-        var item = await _db.Users.FirstOrDefaultAsync(x => x.UserName == username && x.RefreshToken == refreshToken);
-        if (item != null)
-        {
-            _db.Users.Remove(item);
-        }
+        await _db.Users.Where(x => x.UserName == userName)
+        .ExecuteUpdateAsync(call => call.SetProperty(x => x.RefreshToken, refreshToken));
     }
 
     public Task<User?> GetSavedRefreshTokensAsync(string username, string refreshToken)

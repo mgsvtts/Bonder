@@ -33,7 +33,7 @@ namespace Web
                 o.SaveToken = true;
                 o.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true, 
+                    ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
@@ -48,7 +48,7 @@ namespace Web
                     {
                         if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
                         {
-                            context.Response.Headers.Add("IS-TOKEN-EXPIRED", "true");
+                            context.Response.Headers.Add("TOKEN-EXPIRED", "true");
                         }
                         return Task.CompletedTask;
                     }
