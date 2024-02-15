@@ -1,11 +1,16 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Domain;
-using Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using Application.Common;
+using Domain.UserAggregate.Repositories;
+using Infrastructure.Users;
+using Infrastructure.Common;
+using Infrastructure.Common.Models;
+using Domain.UserAggregate;
+using Infrastructure.Token;
 
 namespace Web
 {
@@ -15,10 +20,10 @@ namespace Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddTransient<IJwtTokenManager, JwtTokenManager>();
+            builder.Services.AddSingleton<IJWTTokenGenerator, JwtTokenGenerator>();
             builder.Services.AddTransient<IUserRepository, UserRepository>();
             builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
-            builder.Services.AddIdentityApiEndpoints<User>()
+            builder.Services.AddIdentityApiEndpoints<Infrastructure.Common.Models.User>()
                             .AddEntityFrameworkStores<DatabaseContext>()
                             .AddDefaultTokenProviders();
 

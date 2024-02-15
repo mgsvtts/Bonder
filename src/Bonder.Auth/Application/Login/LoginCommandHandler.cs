@@ -1,0 +1,40 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Application.Common;
+using Domain.Exceptions;
+using Domain.UserAggregate.Repositories;
+using Domain.UserAggregate.ValueObjects;
+using MediatR;
+
+namespace Application.Login;
+
+public class LoginCommandHandler : IRequestHandler<LoginCommand, Tokens>
+{
+    private readonly IUserRepository _userRepository;
+    private readonly IJWTTokenGenerator _tokenGenerator;
+
+    public LoginCommandHandler(IUserRepository userRepository, IJWTTokenGenerator tokenGenerator)
+    {
+        _userRepository = userRepository;
+        _tokenGenerator = tokenGenerator;
+    }
+
+    public async Task<Tokens> Handle(LoginCommand request, CancellationToken cancellationToken)
+    {
+        var validUser = await _userRepository.IsValidUserAsync(request.UserName, request.Password, cancellationToken);
+
+        if (!validUser)
+        {
+            throw new AuthorizationException("Incorrect username or password");
+        }
+
+        var token = _tokenGenerator.Generate(request.UserName)
+        ?? throw new AuthorizationException("Invalid Attempt!");
+
+        await _userRepository.SetRefreshTokenAsync(request.UserName, token.RefreshToken, cancellationToken);
+
+        return token;
+    }
+}
