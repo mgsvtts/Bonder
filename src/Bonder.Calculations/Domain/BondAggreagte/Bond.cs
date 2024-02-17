@@ -76,13 +76,15 @@ public sealed class Bond : AggregateRoot<BondId>
 
     private CouponIncome GetFloatingCouponsIncome(IEnumerable<Coupon> futureCoupons)
     {
-        var latestCoupon = futureCoupons.Where(x => x.Payout != 0)
+        var latestCoupon = futureCoupons
+        .Where(x => x.Payout != 0)
         .OrderByDescending(x => x.PaymentDate)
         .FirstOrDefault();
 
         if (latestCoupon == default)
         {
-            latestCoupon = Coupons.OrderByDescending(x => x.PaymentDate)
+            latestCoupon = Coupons
+            .OrderByDescending(x => x.PaymentDate)
             .First();
         }
 

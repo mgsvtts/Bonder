@@ -139,11 +139,6 @@ public static class ProgramExtensions
 
         app.MapControllers();
 
-        app.UseWebSockets(new WebSocketOptions
-        {
-            KeepAliveInterval = TimeSpan.FromSeconds(15)
-        });
-
         return app;
     }
 }

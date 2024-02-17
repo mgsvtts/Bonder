@@ -20,7 +20,8 @@ public class CalculateAllService : ICalculateAllService
     {
         var priceSorted = await _bondRepository.GetPriceSortedAsync(request, token: token);
 
-        var fullIncomeSorted = priceSorted.OrderByDescending(x => x.GetIncomeOnDate(request).FullIncomePercent)
+        var fullIncomeSorted = priceSorted
+        .OrderByDescending(x => x.GetIncomeOnDate(request).FullIncomePercent)
         .ToList();
 
         return _calculator.Calculate(new SortedCalculationRequest(request, priceSorted, fullIncomeSorted));

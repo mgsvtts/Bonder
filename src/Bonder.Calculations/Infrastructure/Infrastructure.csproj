@@ -5,13 +5,32 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Mapster" Version="7.4.0"/>
-    <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0"/>
-    <PackageReference Include="Tinkoff.InvestApi" Version="0.6.7"/>
-    <PackageReference Include="linq2db.PostgreSQL" Version="5.3.2"/>
-    <PackageReference Include="linq2db.AspNet" Version="5.3.2"/>
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\CopyMe.PostgreSQL.tt.txt" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\DataAnnotations.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\DataModel.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\EditableObject.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\Equatable.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\Humanizer.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\LinqToDB.PostgreSQL.Tools.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\LinqToDB.PostgreSQL.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\LinqToDB.Tools.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\LinqToDB.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\MultipleFiles.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\NotifyDataErrorInfo.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\NotifyPropertyChanged.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\ObsoleteAttributes.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\PluralizationService.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\T4Model.ttinclude" />
+    <None Remove="C:\Users\mgsvt\.nuget\packages\linq2db.postgresql\5.3.2\contentFiles\any\any\LinqToDB.Templates\Validation.ttinclude" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Application\Application.csproj"/>
+    <PackageReference Include="Mapster" Version="7.4.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
+    <PackageReference Include="Tinkoff.InvestApi" Version="0.6.7" />
+    <PackageReference Include="linq2db.PostgreSQL" Version="5.3.2" />
+    <PackageReference Include="linq2db.AspNet" Version="5.3.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Application\Application.csproj" />
   </ItemGroup>
 </Project>

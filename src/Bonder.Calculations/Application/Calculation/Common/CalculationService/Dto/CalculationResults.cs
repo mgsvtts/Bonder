@@ -28,11 +28,13 @@ public record struct CalculationResults
 
         Bonds = CalculateIncomes(request);
 
-        PriceSortedBonds = Bonds.OrderBy(x => x.Key.Income.StaticIncome.AbsolutePrice)
-                                .Select(x => new CalculationMoneyResult(x.Key, x.Key.Income.StaticIncome.AbsolutePrice));
+        PriceSortedBonds = Bonds
+        .OrderBy(x => x.Key.Income.StaticIncome.AbsolutePrice)
+        .Select(x => new CalculationMoneyResult(x.Key, x.Key.Income.StaticIncome.AbsolutePrice));
 
-        FullIncomeSortedBonds = Bonds.OrderByDescending(x => x.Value.FullIncomePercent)
-                                     .Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent));
+        FullIncomeSortedBonds = Bonds
+        .OrderByDescending(x => x.Value.FullIncomePercent)
+        .Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent));
     }
 
     public readonly void Add(CalculationResult result)
@@ -42,8 +44,9 @@ public record struct CalculationResults
 
     public CalculationResults OrderByPriority()
     {
-        _results = _results.OrderBy(x => x.Priority)
-                           .ToList();
+        _results = _results
+        .OrderBy(x => x.Priority)
+        .ToList();
 
         return this;
     }

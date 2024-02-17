@@ -1,0 +1,9 @@
+﻿using Presentation.Controllers.Dto.AddClaims;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Presentation.Controllers.Dto.RemoveClaims;
+public sealed record RemoveClaimRequest(string UserName, IEnumerable<string> Claims);

@@ -1,5 +1,6 @@
 ﻿using Application.Calculation.Common.Interfaces;
 using Google.Protobuf.WellKnownTypes;
+using LinqToDB;
 using MapsterMapper;
 using Tinkoff.InvestApi;
 using Tinkoff.InvestApi.V1;

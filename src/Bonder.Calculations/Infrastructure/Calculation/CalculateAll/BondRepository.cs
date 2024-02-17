@@ -30,7 +30,8 @@ public sealed class BondRepository : IBondRepository
 
     public async Task UpdateRating(BondId id, int? rating, CancellationToken token = default)
     {
-        await _db.Bonds.Where(x => x.Id == id.InstrumentId)
+        await _db.Bonds
+        .Where(x => x.Id == id.InstrumentId)
         .Set(x => x.Rating, rating)
         .Set(x => x.UpdatedAt, DateTime.Now)
         .UpdateAsync(token: token);
@@ -49,7 +50,9 @@ public sealed class BondRepository : IBondRepository
 
     public async Task UpdateCoupons(IEnumerable<Coupon> coupons, BondId id, CancellationToken token = default)
     {
-        await _db.Coupons.Where(x => x.BondId == id.InstrumentId).DeleteAsync(token);
+        await _db.Coupons
+        .Where(x => x.BondId == id.InstrumentId)
+        .DeleteAsync(token);
 
         var dbCoupons = _mapper.Map<List<Infrastructure.Common.Models.Coupon>>(coupons);
 
@@ -70,8 +73,9 @@ public sealed class BondRepository : IBondRepository
 
     public async Task RefreshAsync(IEnumerable<Ticker> newBondTickers, CancellationToken token = default)
     {
-        await _db.Bonds.Where(x => !newBondTickers.Select(x => x.Value).Contains(x.Ticker))
-                       .DeleteAsync(token: token);
+        await _db.Bonds
+        .Where(x => !newBondTickers.Select(x => x.Value).Contains(x.Ticker))
+        .DeleteAsync(token: token);
     }
 
     public async Task<List<Ticker>> UpdateIncomesAsync(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bonds, CancellationToken token = default)

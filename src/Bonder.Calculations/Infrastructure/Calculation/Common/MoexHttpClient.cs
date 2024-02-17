@@ -5,80 +5,79 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Http.Extensions;
 using System.Net.Http.Json;
 
-namespace Infrastructure.Calculation.Common
+namespace Infrastructure.Calculation.Common;
+
+public class MoexHttpClient : IMoexHttpClient
 {
-    public class MoexHttpClient : IMoexHttpClient
+    private static readonly Dictionary<string, string> _query = GetQueryParams();
+
+    private readonly HttpClient _client;
+    private readonly string _serverUrl;
+    private readonly IMapper _mapper;
+
+    public MoexHttpClient(HttpClient client,
+                          IMapper mapper,
+                          string serverUrl)
     {
-        private static readonly Dictionary<string, string> _query = GetQueryParams();
+        _mapper = mapper;
+        _client = client;
+        _serverUrl = serverUrl;
+    }
 
-        private readonly HttpClient _client;
-        private readonly string _serverUrl;
-        private readonly IMapper _mapper;
-
-        public MoexHttpClient(HttpClient client,
-                              IMapper mapper,
-                              string serverUrl)
+    public async Task<List<Coupon>> GetAmortizedCouponsAsync(Ticker ticker, CancellationToken token = default)
+    {
+        var content = new HttpRequestMessage
         {
-            _mapper = mapper;
-            _client = client;
-            _serverUrl = serverUrl;
-        }
+            RequestUri = new Uri(BuildQuery(ticker)),
+            Method = HttpMethod.Get
+        };
 
-        public async Task<List<Coupon>> GetAmortizedCouponsAsync(Ticker ticker, CancellationToken token = default)
+        var response = await _client.SendAsync(content, token);
+
+        response.EnsureSuccessStatusCode();
+
+        var serializedResponse = await response.Content.ReadFromJsonAsync<IEnumerable<MoexItem>>(cancellationToken: token);
+
+        return MapToCoupons(serializedResponse);
+    }
+
+    private string BuildQuery(Ticker ticker)
+    {
+        return _serverUrl + $"/{ticker}.json" + new QueryBuilder(_query);
+    }
+
+    private static Dictionary<string, string> GetQueryParams()
+    {
+        return new Dictionary<string, string>
         {
-            var content = new HttpRequestMessage
+            ["from"] = DateOnly.MinValue.ToString(),
+            ["till"] = DateOnly.MaxValue.ToString(),
+            ["start"] = "0",
+            ["limit"] = int.MaxValue.ToString(),
+            ["iss.only"] = "amortizations,coupons",
+            ["iss.json"] = "extended",
+            ["iss.meta"] = "off",
+        };
+    }
+
+    private List<Coupon> MapToCoupons(IEnumerable<MoexItem>? moexItems)
+    {
+        var moexItem = moexItems?.FirstOrDefault(x => x.Coupons != null)
+                                 ?? throw new InvalidOperationException("Ошибка получения ответа от moex.com");
+
+        var coupons = _mapper.Map<List<Coupon>>(moexItem.Coupons);
+
+        for (int i = 0; i < coupons.Count; i++)
+        {
+            foreach (var amortization in moexItem.Amortizations)
             {
-                RequestUri = new Uri(BuildQuery(ticker)),
-                Method = HttpMethod.Get
-            };
-
-            var response = await _client.SendAsync(content, token);
-
-            response.EnsureSuccessStatusCode();
-
-            var serializedResponse = await response.Content.ReadFromJsonAsync<IEnumerable<MoexItem>>(cancellationToken: token);
-
-            return MapToCoupons(serializedResponse);
-        }
-
-        private string BuildQuery(Ticker ticker)
-        {
-            return _serverUrl + $"/{ticker}.json" + new QueryBuilder(_query);
-        }
-
-        private static Dictionary<string, string> GetQueryParams()
-        {
-            return new Dictionary<string, string>
-            {
-                ["from"] = DateOnly.MinValue.ToString(),
-                ["till"] = DateOnly.MaxValue.ToString(),
-                ["start"] = "0",
-                ["limit"] = int.MaxValue.ToString(),
-                ["iss.only"] = "amortizations,coupons",
-                ["iss.json"] = "extended",
-                ["iss.meta"] = "off",
-            };
-        }
-
-        private List<Coupon> MapToCoupons(IEnumerable<MoexItem>? moexItems)
-        {
-            var moexItem = moexItems?.FirstOrDefault(x => x.Coupons != null)
-                                     ?? throw new InvalidOperationException("Ошибка получения ответа от moex.com");
-
-            var coupons = _mapper.Map<List<Coupon>>(moexItem.Coupons);
-
-            for (int i = 0; i < coupons.Count; i++)
-            {
-                foreach (var amortization in moexItem.Amortizations)
+                if (coupons[i].PaymentDate == amortization.Date && amortization.Payment != null)
                 {
-                    if (coupons[i].PaymentDate == amortization.Date && amortization.Payment != null)
-                    {
-                        coupons[i] = coupons[i] with { Payout = coupons[i].Payout + amortization.Payment.Value };
-                    }
+                    coupons[i] = coupons[i] with { Payout = coupons[i].Payout + amortization.Payment.Value };
                 }
             }
-
-            return coupons;
         }
+
+        return coupons;
     }
 }

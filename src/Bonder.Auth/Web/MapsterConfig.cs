@@ -1,10 +1,12 @@
-using Application.AddClaim;
+using Application.Claims.Add;
+using Application.Claims.Remove;
 using Application.Login;
 using Domain.UserAggregate;
 using Domain.UserAggregate.ValueObjects;
 using Mapster;
 using MapsterMapper;
 using Presentation.Controllers.Dto.AddClaims;
+using Presentation.Controllers.Dto.RemoveClaims;
 using System.Net.Mail;
 using System.Reflection;
 using System.Security.Claims;
@@ -24,9 +26,13 @@ public static class MapsterConfig
             RefreshToken = x.Tokens.RefreshToken
         });
 
-        TypeAdapterConfig<(string CurrentUser, AddClaimRequest Request), AddClaimCommand>
+        TypeAdapterConfig<(string CurrentUser, AddClaimRequest Request), AddClaimsCommand>
         .ForType()
-        .MapWith(x => new AddClaimCommand(new UserName(x.CurrentUser), new UserName(x.Request.UserName), x.Request.Claims.Adapt<IEnumerable<Claim>>()));
+        .MapWith(x => new AddClaimsCommand(new UserName(x.CurrentUser), new UserName(x.Request.UserName), x.Request.Claims.Adapt<IEnumerable<Claim>>()));
+
+        TypeAdapterConfig<(string CurrentUser, RemoveClaimRequest Request), RemoveClaimsCommand>
+        .ForType()
+        .MapWith(x => new RemoveClaimsCommand(new UserName(x.CurrentUser), new UserName(x.Request.UserName), x.Request.Claims));
 
         TypeAdapterConfig<UserClaim, Claim>
         .ForType()

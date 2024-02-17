@@ -13,8 +13,8 @@ using System.Runtime.CompilerServices;
 
 namespace Presentation.Controllers.BondController;
 
-[Route("api/calculate")]
 [ExceptionFilter]
+[Route("api/calculate")]
 public class BondController : ControllerBase
 {
     private readonly ISender _sender;

@@ -69,6 +69,20 @@ public class UserRepository : IUserRepository
         }
 
         var actualClaims = await _userManager.GetClaimsAsync(user);
+
+        return _mapper.Map<Domain.UserAggregate.User>((user, actualClaims));
+    }
+
+    public async Task<Domain.UserAggregate.User> RemoveClaimsAsync(UserName userName, IEnumerable<string> claims, CancellationToken cancellationToken = default)
+    {
+        var user = await GetByUserNameInternalAsync(userName, cancellationToken);
+
+        await _db.UserClaims
+        .Where(x => claims.Contains(x.ClaimType))
+        .ExecuteDeleteAsync(cancellationToken: cancellationToken);
+
+        var actualClaims = await _userManager.GetClaimsAsync(user);
+
         return _mapper.Map<Domain.UserAggregate.User>((user, actualClaims));
     }
 
