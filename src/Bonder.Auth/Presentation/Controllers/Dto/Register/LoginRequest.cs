@@ -1,3 +1,3 @@
 namespace Presentation.Controllers.Dto.Register;
 
-public record LoginRequest(string UserName, string Password);
+public sealed record LoginRequest(string UserName, string Password);

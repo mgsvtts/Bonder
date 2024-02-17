@@ -17,7 +17,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand>
 
     public async Task Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
-        var user = new User(new UserId(Guid.NewGuid()), new UserName(request.UserName), new MailAddress(request.Email));
+        var user = new User(new UserId(Guid.NewGuid()), new UserName(request.UserName));
 
         await _userRepository.RegisterAsync(user, request.Password);
     }

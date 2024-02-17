@@ -6,7 +6,7 @@ namespace Domain.BondAggreagte;
 
 public sealed class Bond : AggregateRoot<BondId>
 {
-    private readonly List<Coupon> _coupons = new List<Coupon>();
+    private readonly List<Coupon> _coupons = [];
 
     public string Name { get; private set; }
     public FullIncome Income { get; private set; }

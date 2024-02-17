@@ -7,10 +7,12 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Controllers.Dto.Register;
+using Presentation.Filters;
 
 namespace Presentation.Controllers;
 
 [AllowAnonymous]
+[ExceptionFilter]
 [Route("api/auth")]
 public partial class AuthController : ControllerBase
 {

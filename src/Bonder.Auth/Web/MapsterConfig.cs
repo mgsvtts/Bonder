@@ -19,7 +19,6 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new Infrastructure.Common.Models.User
         {
-            Email = x.Email.ToString(),
             Id = x.Identity.Identity.ToString(),
             UserName = x.UserName.Name,
             RefreshToken = x.Tokens.RefreshToken
@@ -49,7 +48,6 @@ public static class MapsterConfig
                         .ForType()
                         .MapWith(x => new User(new UserId(Guid.Parse(x.User.Id)),
                                                new UserName(x.User.UserName),
-                                               new MailAddress(x.User.Email),
                                                x.Claims,
                                                new Tokens(x.User.RefreshToken, null)));
 
@@ -57,7 +55,6 @@ public static class MapsterConfig
                 .ForType()
                 .MapWith(x => new User(new UserId(Guid.Parse(x.User.Id)),
                                        new UserName(x.User.UserName),
-                                       new MailAddress(x.User.Email),
                                        x.Claims,
                                        new Tokens(x.User.RefreshToken, null)));
 

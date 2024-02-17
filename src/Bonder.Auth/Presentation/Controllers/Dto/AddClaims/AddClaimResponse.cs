@@ -1,3 +1,3 @@
 namespace Presentation.Controllers.Dto.AddClaims;
 
-public record AddClaimResponse(string UserName, IEnumerable<UserClaim> Claims);
+public sealed record AddClaimResponse(string UserName, IEnumerable<UserClaim> Claims);

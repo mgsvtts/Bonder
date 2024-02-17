@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.Refresh;
 
-public record RefreshTokensCommand(Tokens ExpiredTokens) : IRequest<Tokens>;
+public sealed record RefreshTokensCommand(Tokens ExpiredTokens) : IRequest<Tokens>;

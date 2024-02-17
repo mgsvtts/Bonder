@@ -26,11 +26,11 @@ public class JwtTokenGenerator : IJWTTokenGenerator
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new List<Claim>
-                {
-                   new(ClaimTypes.Name, userName.Name),
-                   new(JwtRegisteredClaimNames.Aud, _audience),
-                   new(JwtRegisteredClaimNames.Iss, _issuer)
-                }),
+            {
+                new(ClaimTypes.Name, userName.Name),
+                new(JwtRegisteredClaimNames.Aud, _audience),
+                new(JwtRegisteredClaimNames.Iss, _issuer)
+            }),
             Expires = DateTime.Now.AddHours(1),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(_key), SecurityAlgorithms.HmacSha256Signature)
         };

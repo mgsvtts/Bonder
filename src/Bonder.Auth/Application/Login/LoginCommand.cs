@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.Login;
 
-public record LoginCommand(UserName UserName, string Password) : IRequest<Tokens>;
+public sealed record LoginCommand(UserName UserName, string Password) : IRequest<Tokens>;

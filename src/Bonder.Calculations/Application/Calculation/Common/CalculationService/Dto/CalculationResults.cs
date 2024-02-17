@@ -15,7 +15,7 @@ public record struct CalculationResults
     public CalculationResults(IDictionary<Bond, FullIncome> bonds,
                               IEnumerable<Bond> priceSortedBonds)
     {
-        _results = new List<CalculationResult>();
+        _results = [];
 
         Bonds = bonds;
         PriceSortedBonds = priceSortedBonds.Select(x => new CalculationMoneyResult(x, x.Income.StaticIncome.AbsolutePrice));
@@ -24,7 +24,7 @@ public record struct CalculationResults
 
     public CalculationResults(CalculationRequest request)
     {
-        _results = new List<CalculationResult>();
+        _results = [];
 
         Bonds = CalculateIncomes(request);
 

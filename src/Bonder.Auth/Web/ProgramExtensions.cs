@@ -59,7 +59,7 @@ public static class ProgramExtensions
             x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         }).AddJwtBearer(o =>
         {
-            var Key = Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]);
+            var key = Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]);
             o.SaveToken = true;
             o.TokenValidationParameters = new TokenValidationParameters
             {
@@ -69,7 +69,7 @@ public static class ProgramExtensions
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = builder.Configuration["JWT:Issuer"],
                 ValidAudience = builder.Configuration["JWT:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Key),
+                IssuerSigningKey = new SymmetricSecurityKey(key),
                 ClockSkew = TimeSpan.Zero
             };
             o.Events = new JwtBearerEvents
