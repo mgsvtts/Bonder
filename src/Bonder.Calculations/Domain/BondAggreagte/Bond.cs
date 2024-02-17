@@ -1,8 +1,6 @@
 ﻿using Domain.BondAggreagte.Dto;
-using Domain.BondAggreagte.Exceptions;
 using Domain.BondAggreagte.ValueObjects;
 using Domain.Common.Models;
-using System.Xml.Linq;
 
 namespace Domain.BondAggreagte;
 

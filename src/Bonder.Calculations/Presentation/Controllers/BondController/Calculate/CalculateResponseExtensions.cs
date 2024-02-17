@@ -13,7 +13,7 @@ public static class CalculateResponseExtensions
                                      NominalIncomeSortedBonds: results.Bonds.Select(x => new IncomeBondResponse(x.Key.Identity.Ticker.Value, x.Key.Name, x.Value.StaticIncome.NominalPercent)).OrderByDescending(x => x.Income),
                                      FullIncomeSortedBonds: results.FullIncomeSortedBonds.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
                                      CreditRatingSortedBonds: results.PriceSortedBonds.GroupBy(x => x.Bond.Rating)
-                                                                                      .OrderBy(x=>x.Key)
+                                                                                      .OrderBy(x => x.Key)
                                                                                       .Select(x => new CreditRatingBondResponse(x.Key, x.Select(x => new CreditRatingBond(x.Bond.Identity.Ticker.ToString(), x.Bond.Name)))));
     }
 }

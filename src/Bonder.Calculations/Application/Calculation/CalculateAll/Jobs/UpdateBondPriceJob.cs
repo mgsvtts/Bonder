@@ -1,11 +1,7 @@
-﻿using System.Buffers.Text;
-using Application.Calculation.Common.Interfaces;
-using Domain.BondAggreagte;
+﻿using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.ValueObjects;
 using Grpc.Core;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Quartz;
 
 namespace Application.Calculation.CalculateAll.Jobs;

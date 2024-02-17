@@ -10,7 +10,6 @@ using Presentation.Controllers.BondController.Calculate.Request;
 using Presentation.Controllers.BondController.Calculate.Response;
 using Presentation.Filters;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 
 namespace Presentation.Controllers.BondController;
 

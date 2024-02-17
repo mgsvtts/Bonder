@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
+using Application.Common;
+using Domain.UserAggregate.ValueObjects;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using Application.Common;
-using Domain.UserAggregate.ValueObjects;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Infrastructure.Token;
 
@@ -26,17 +21,17 @@ public class JwtTokenGenerator : IJWTTokenGenerator
         _key = Encoding.UTF8.GetBytes(key);
     }
 
-    public Tokens? Generate(string userName)
+    public Tokens? Generate(UserName userName)
     {
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new List<Claim>
                 {
-                   new(ClaimTypes.Name, userName),
+                   new(ClaimTypes.Name, userName.Name),
                    new(JwtRegisteredClaimNames.Aud, _audience),
                    new(JwtRegisteredClaimNames.Iss, _issuer)
                 }),
-            Expires = DateTime.Now.AddMinutes(1),
+            Expires = DateTime.Now.AddHours(1),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(_key), SecurityAlgorithms.HmacSha256Signature)
         };
 
@@ -47,8 +42,13 @@ public class JwtTokenGenerator : IJWTTokenGenerator
         return new Tokens(GenerateRefreshToken(), tokenHandler.WriteToken(token));
     }
 
-    public async Task<ClaimsPrincipal> GetPrincipalFromTokenAsync(string token)
+    public async Task<ClaimsPrincipal> GetPrincipalFromTokenAsync(string? token)
     {
+        if (string.IsNullOrEmpty(token))
+        {
+            throw new ArgumentException($"Token cannot be null or empty", nameof(token));
+        }
+
         var validationParams = new TokenValidationParameters
         {
             ValidateIssuer = false,

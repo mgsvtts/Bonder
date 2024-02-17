@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Application.Common;
 using Domain.Exceptions;
 using Domain.UserAggregate.Repositories;
@@ -24,9 +20,9 @@ public class RefreshTokensCommandHandler : IRequestHandler<RefreshTokensCommand,
     public async Task<Tokens> Handle(RefreshTokensCommand request, CancellationToken cancellationToken)
     {
         var principal = await _tokenGenerator.GetPrincipalFromTokenAsync(request.ExpiredTokens.AccessToken);
-        var username = principal.Identity?.Name;
+        var username = new UserName(principal.Identity?.Name);
 
-        var saved = await _userRepository.GetByUserNameAndTokenAsync(username, request.ExpiredTokens.RefreshToken, cancellationToken);
+        var saved = await _userRepository.GetByUserNameAsync(username, cancellationToken);
 
         var newTokens = _tokenGenerator.Generate(username);
 

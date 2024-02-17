@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Json;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Calculation.Dto.GetAmortization;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http.Extensions;
+using System.Net.Http.Json;
 
 namespace Infrastructure.Calculation.Common
 {

@@ -1,13 +1,13 @@
-﻿using System.Data;
-using Infrastructure.Common.Extensions;
-using Domain.BondAggreagte;
+﻿using Domain.BondAggreagte;
 using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Common;
+using Infrastructure.Common.Extensions;
 using LinqToDB;
 using LinqToDB.Data;
 using MapsterMapper;
+using System.Data;
 
 namespace Infrastructure.Calculation.CalculateAll;
 

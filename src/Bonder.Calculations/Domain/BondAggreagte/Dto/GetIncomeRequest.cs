@@ -1,6 +1,5 @@
 ﻿using Ardalis.GuardClauses;
 using Domain.BondAggreagte.Dto.Guards;
-using Domain.BondAggreagte.Exceptions;
 
 namespace Domain.BondAggreagte.Dto;
 

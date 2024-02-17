@@ -1,7 +1,6 @@
 ﻿using Application.Calculation.Common.CalculationService.Dto;
 using Application.Calculation.Common.CalculationService.Extensions;
 using Application.Calculation.Common.Interfaces;
-using Domain.BondAggreagte;
 
 namespace Application.Calculation.Common.CalculationService;
 
@@ -51,9 +50,9 @@ public class CalculationService : ICalculationService
         return priceIndex + fullIncomeIndex + ratingIndex;
     }
 
-    private static int ConvertIndex (int? rating)
+    private static int ConvertIndex(int? rating)
     {
-        if(rating is null || rating == -1)
+        if (rating is null || rating == -1)
         {
             return _mixRating;
         }

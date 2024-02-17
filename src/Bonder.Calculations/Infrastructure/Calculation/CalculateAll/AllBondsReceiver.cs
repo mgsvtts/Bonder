@@ -29,6 +29,7 @@ public class AllBondsReceiver : IAllBondsReceiver
 
         return bonds.Where(x => x.Value.AbsolutePrice != 0);
     }
+
     public int GetMaxRange()
     {
         return _maxRange;

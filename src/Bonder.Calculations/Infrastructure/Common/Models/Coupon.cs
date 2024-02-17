@@ -1,5 +1,4 @@
-﻿
-using LinqToDB.Mapping;
+﻿using LinqToDB.Mapping;
 
 namespace Infrastructure.Common.Models;
 
@@ -8,7 +7,7 @@ public sealed class Coupon
 {
     [PrimaryKey]
     [Column("id")]
-    public required Guid Id { get; set; }
+    public Guid Id { get; set; }
 
     [Column("bond_id")]
     public Guid BondId { get; set; }
@@ -17,16 +16,16 @@ public sealed class Coupon
     public Bond Bond { get; set; }
 
     [Column("payment_date")]
-    public required DateOnly PaymentDate { get; set; }
+    public DateOnly PaymentDate { get; set; }
 
     [Column("payout")]
-    public required decimal Payout { get; set; }
+    public decimal Payout { get; set; }
 
     [Column("dividend_cut_off_date")]
-    public required DateOnly? DividendCutOffDate { get; set; }
+    public DateOnly? DividendCutOffDate { get; set; }
 
     [Column("is_floating")]
-    public required bool IsFloating { get; set; }
+    public bool IsFloating { get; set; }
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }

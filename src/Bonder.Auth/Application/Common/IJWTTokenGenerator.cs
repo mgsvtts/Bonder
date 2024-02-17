@@ -5,6 +5,7 @@ namespace Application.Common;
 
 public interface IJWTTokenGenerator
 {
-    Tokens? Generate(string userName);
-    Task<ClaimsPrincipal> GetPrincipalFromTokenAsync(string token);
+    Tokens? Generate(UserName userName);
+
+    Task<ClaimsPrincipal> GetPrincipalFromTokenAsync(string? token);
 }

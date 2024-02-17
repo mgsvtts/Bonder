@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Application.Calculation.Common.CalculationService.Dto;
 using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte.Abstractions;

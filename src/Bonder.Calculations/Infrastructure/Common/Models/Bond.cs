@@ -1,5 +1,4 @@
-﻿
-using LinqToDB.Mapping;
+﻿using LinqToDB.Mapping;
 
 namespace Infrastructure.Common.Models;
 
@@ -8,34 +7,34 @@ public sealed class Bond
 {
     [PrimaryKey]
     [Column("id")]
-    public required Guid Id { get; set; }
+    public Guid Id { get; set; }
 
     [Column("ticker")]
-    public required string Ticker { get; set; }
+    public string Ticker { get; set; }
 
     [Column("isin")]
-    public required string Isin { get; set; }
+    public string Isin { get; set; }
 
     [Column("name")]
-    public required string Name { get; set; }
+    public string Name { get; set; }
 
     [Column("nominal_percent")]
-    public required decimal NominalPercent { get; set; }
+    public decimal NominalPercent { get; set; }
 
     [Column("absolute_price")]
-    public required decimal AbsolutePrice { get; set; }
+    public decimal AbsolutePrice { get; set; }
 
     [Column("absolute_nominal")]
-    public required decimal AbsoluteNominal { get; set; }
+    public decimal AbsoluteNominal { get; set; }
 
     [Column("maturity_date")]
-    public required DateOnly? MaturityDate { get; set; }
+    public DateOnly? MaturityDate { get; set; }
 
     [Column("offer_date")]
-    public required DateOnly? OfferDate { get; set; }
+    public DateOnly? OfferDate { get; set; }
 
     [Column("rating")]
-    public required int? Rating { get; set; }
+    public int? Rating { get; set; }
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }
@@ -44,7 +43,7 @@ public sealed class Bond
     public DateTime CreatedAt { get; set; }
 
     [Column("is_amortized")]
-    public required bool IsAmortized { get; set; }
+    public bool IsAmortized { get; set; }
 
     [Association(ThisKey = nameof(Id), OtherKey = nameof(Coupon.BondId))]
     public List<Coupon> Coupons { get; set; }

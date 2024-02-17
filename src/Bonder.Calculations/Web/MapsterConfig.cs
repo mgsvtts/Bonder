@@ -4,7 +4,6 @@ using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Calculation.Dto.GetAmortization;
 using Infrastructure.Calculation.Dto.GetBonds.TInkoffApiData;
-using LinqToDB.Tools;
 using Mapster;
 using MapsterMapper;
 using Presentation.Controllers.BondController.Calculate.Request;
@@ -117,7 +116,6 @@ public static class MapsterConfig
 
         services.AddSingleton<IMapper>(mapperConfig);
     }
-
 }
 
 public static class CustomMappings
