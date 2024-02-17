@@ -1,5 +1,4 @@
-﻿using Domain.Common.Exceptions;
-using Grpc.Core;
+using Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Net;
@@ -17,11 +16,11 @@ public sealed class ExceptionFilterAttribute : Attribute, IExceptionFilter
 
         context.Result = context.Exception switch
         {
-            DomainLogicException => new ContentResult
+            AuthorizationException or UnauthorizedAccessException => new ContentResult
             {
-                StatusCode = (int)HttpStatusCode.UnprocessableEntity,
+                StatusCode = (int)HttpStatusCode.Unauthorized,
                 Content = JsonSerializer.Serialize(errors),
-                ContentType = "application/json"
+                ContentType = "application/json",
             },
             _ => new ContentResult
             {

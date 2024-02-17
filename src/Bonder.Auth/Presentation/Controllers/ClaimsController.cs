@@ -4,10 +4,12 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Controllers.Dto.AddClaims;
+using Presentation.Filters;
 
 namespace Presentation.Controllers;
 
 [Authorize]
+[ExceptionFilter]
 [Route("api/claims")]
 public class ClaimsController : ControllerBase
 {
