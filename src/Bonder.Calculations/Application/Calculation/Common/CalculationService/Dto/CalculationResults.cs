@@ -18,7 +18,7 @@ public record struct CalculationResults
         _results = [];
 
         Bonds = bonds;
-        PriceSortedBonds = priceSortedBonds.Select(x => new CalculationMoneyResult(x, x.Income.StaticIncome.AbsolutePrice));
+        PriceSortedBonds = priceSortedBonds.Select(x => new CalculationMoneyResult(x, x.Income.StaticIncome.PricePercent));
         FullIncomeSortedBonds = bonds.Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent));
     }
 
@@ -29,8 +29,8 @@ public record struct CalculationResults
         Bonds = CalculateIncomes(request);
 
         PriceSortedBonds = Bonds
-        .OrderBy(x => x.Key.Income.StaticIncome.AbsolutePrice)
-        .Select(x => new CalculationMoneyResult(x.Key, x.Key.Income.StaticIncome.AbsolutePrice));
+        .OrderBy(x => x.Key.Income.StaticIncome.PricePercent)
+        .Select(x => new CalculationMoneyResult(x.Key, x.Key.Income.StaticIncome.PricePercent));
 
         FullIncomeSortedBonds = Bonds
         .OrderByDescending(x => x.Value.FullIncomePercent)

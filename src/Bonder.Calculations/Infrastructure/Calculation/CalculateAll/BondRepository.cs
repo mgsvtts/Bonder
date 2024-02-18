@@ -93,7 +93,7 @@ public sealed class BondRepository : IBondRepository
 
             await _db.Bonds
             .Where(x => x.Ticker == key.ToString())
-            .Set(x => x.NominalPercent, value.NominalPercent)
+            .Set(x => x.PricePercent, value.PricePercent)
             .Set(x => x.AbsoluteNominal, value.AbsoluteNominal)
             .Set(x => x.AbsolutePrice, value.AbsolutePrice)
             .Set(x => x.UpdatedAt, DateTime.Now)
@@ -116,7 +116,7 @@ public sealed class BondRepository : IBondRepository
         .WhereIf(!filter.IncludeUnknownRatings, x => x.Rating != null);
 
         var bonds = await query
-        .OrderBy(x => x.AbsolutePrice)
+        .OrderByDescending(x => x.PricePercent)
         .Skip((filter.PageInfo.CurrentPage - 1) * filter.PageInfo.ItemsOnPage)
         .Take(filter.PageInfo.ItemsOnPage)
         .LoadWith(x => x.Coupons.Where(x => x.PaymentDate >= filter.DateFrom)
@@ -128,7 +128,7 @@ public sealed class BondRepository : IBondRepository
         var itemsOnPage = bonds.Count < filter.PageInfo.ItemsOnPage ? bonds.Count : filter.PageInfo.ItemsOnPage;
 
         var pageInfo = new PageInfo(filter.PageInfo.CurrentPage,
-                                    (total / filter.PageInfo.ItemsOnPage) + 1,
+                                   (total / filter.PageInfo.ItemsOnPage) + 1,
                                     itemsOnPage,
                                     total);
 

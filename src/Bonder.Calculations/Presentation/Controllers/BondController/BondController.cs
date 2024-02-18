@@ -6,7 +6,6 @@ using Domain.BondAggreagte.Dto;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.Controllers.BondController.Calculate;
 using Presentation.Controllers.BondController.Calculate.Request;
 using Presentation.Controllers.BondController.Calculate.Response;
 using Presentation.Filters;
@@ -51,10 +50,6 @@ public sealed class BondController : ControllerBase
     [HttpGet("current-state")]
     public async Task<IActionResult> GetCurrentState(CalculationOptions request, CancellationToken token)
     {
-        if(request.PageInfo is null)
-        {
-            request = request with { PageInfo = new PageInfoRequest() };
-        }
         var result = await _sender.Send(new CalculateAllCommand(_mapper.Map<GetPriceSortedRequest>(request)), token);
 
         return Ok(_mapper.Map<CalculateResponse>(result));

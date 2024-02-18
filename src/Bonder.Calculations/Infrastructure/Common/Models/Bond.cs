@@ -18,8 +18,8 @@ public sealed class Bond
     [Column("name")]
     public string Name { get; set; }
 
-    [Column("nominal_percent")]
-    public decimal NominalPercent { get; set; }
+    [Column("price_percent")]
+    public decimal PricePercent { get; set; }
 
     [Column("absolute_price")]
     public decimal AbsolutePrice { get; set; }

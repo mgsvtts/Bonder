@@ -37,7 +37,7 @@ public class UpdateBondPriceJob : IJob
         const int step = 10;
         var startRange = new Range(0, step);
 
-        while (startRange.Start.Value <= _bondReceiver.GetMaxRange())
+        while (startRange.Start.Value - step <= _bondReceiver.GetMaxRange())
         {
             var bondsToUpdate = await TryReceiveAsync(startRange, context.CancellationToken);
 
@@ -75,7 +75,7 @@ public class UpdateBondPriceJob : IJob
 
     private void RecreateRange(int step, ref Range startRange)
     {
-        if (startRange.Start.Value > _bondReceiver.GetMaxRange())
+        if (startRange.Start.Value >= _bondReceiver.GetMaxRange())
         {
             startRange = new Range(0, step);
         }

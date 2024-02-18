@@ -5,7 +5,7 @@ namespace Domain.BondAggreagte.Abstractions.Dto;
 
 public readonly record struct PageInfo
 {
-    public const int MaxItemsOnPage = 50;
+    public const int MaxItemsOnPage = 25;
 
     public int CurrentPage { get; }
     public int LastPage { get; }

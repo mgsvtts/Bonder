@@ -3,7 +3,7 @@ public readonly record struct StaticIncome
 {
     public static StaticIncome None => new StaticIncome(0, 0, 0);
 
-    public readonly decimal NominalPercent { get; }
+    public readonly decimal PricePercent { get; }
     public readonly decimal AbsolutePrice { get; }
     public readonly decimal AbsoluteNominal { get; }
 
@@ -11,7 +11,7 @@ public readonly record struct StaticIncome
                          decimal price,
                          decimal nominal)
     {
-        NominalPercent = nominalPercent;
+        PricePercent = nominalPercent;
         AbsolutePrice = price;
         AbsoluteNominal = nominal;
     }

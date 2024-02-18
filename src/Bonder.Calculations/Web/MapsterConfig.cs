@@ -28,7 +28,7 @@ public static class MapsterConfig
         .MapWith(x => new GetPriceSortedRequest
         (
             x.Type ?? DateIntervalType.TillOfferDate,
-            new PageInfo(x.PageInfo.CurrentPage, x.PageInfo.ItemsOnPage),
+            x.PageInfo != null ? new PageInfo(x.PageInfo.CurrentPage, x.PageInfo.ItemsOnPage) : new PageInfo(1, 20),
             x.PriceFrom ?? 0,
             x.PriceTo ?? decimal.MaxValue,
             x.NominalFrom ?? 0,
@@ -79,11 +79,12 @@ public static class MapsterConfig
             Coupons = x.Coupons.Adapt<List<Infrastructure.Common.Models.Coupon>>(),
             MaturityDate = x.Dates.MaturityDate,
             OfferDate = x.Dates.OfferDate,
-            NominalPercent = x.Income.StaticIncome.NominalPercent,
+            PricePercent = x.Income.StaticIncome.PricePercent,
             Rating = x.Rating,
-            AbsoluteNominal = x.Income.StaticIncome.AbsolutePrice,
+            AbsoluteNominal = x.Income.StaticIncome.AbsoluteNominal,
             AbsolutePrice = x.Income.StaticIncome.AbsolutePrice,
-            IsAmortized = x.IsAmortized
+            IsAmortized = x.IsAmortized,
+            CreatedAt = DateTime.Now
         });
 
         TypeAdapterConfig<CalculateAllResponse, CalculateResponse>
@@ -94,7 +95,7 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new Bond(new BondId(x.Id, new Ticker(x.Ticker), new Isin(x.Isin)),
                                                     x.Name,
-                                                    StaticIncome.FromPercents(x.NominalPercent, x.AbsolutePrice, x.AbsoluteNominal),
+                                                    StaticIncome.FromPercents(x.PricePercent, x.AbsolutePrice, x.AbsoluteNominal),
                                                     new Dates(x.MaturityDate, x.OfferDate),
                                                     x.Rating,
                                                     x.IsAmortized,
@@ -149,7 +150,6 @@ public static class CustomMappings
         return new CalculateResponse(CalculatedBonds: results.Results.Results.Select(x => new CalculatedBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Priority)),
                                      PriceSortedBonds: results.Results.PriceSortedBonds.Select(x => new PriceBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
                                      CouponIncomeSortedBonds: results.Results.Bonds.Select(x => new IncomeBondResponse(x.Key.Identity.Ticker.Value, x.Key.Name, x.Value.CouponIncome.CouponPercent)).OrderByDescending(x => x.Income),
-                                     NominalIncomeSortedBonds: results.Results.Bonds.Select(x => new IncomeBondResponse(x.Key.Identity.Ticker.Value, x.Key.Name, x.Value.StaticIncome.NominalPercent)).OrderByDescending(x => x.Income),
                                      FullIncomeSortedBonds: results.Results.FullIncomeSortedBonds.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
                                      CreditRatingSortedBonds: results.Results.PriceSortedBonds.GroupBy(x => x.Bond.Rating)
                                                                                               .OrderBy(x => x.Key)
