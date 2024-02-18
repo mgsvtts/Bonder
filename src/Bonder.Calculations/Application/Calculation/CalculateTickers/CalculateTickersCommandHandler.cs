@@ -1,11 +1,12 @@
-﻿using Application.Calculation.Common.CalculationService.Dto;
+﻿using Application.Calculation.CalculateAll.Services.Dto;
+using Application.Calculation.Common.CalculationService.Dto;
 using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte.Abstractions;
 using MediatR;
 
 namespace Application.Calculation.CalculateTickers;
 
-public sealed class CalculateTickersCommandHandler : IRequestHandler<CalculateTickersCommand, CalculationResults>
+public sealed class CalculateTickersCommandHandler : IRequestHandler<CalculateTickersCommand, CalculateAllResponse>
 {
     private readonly IBondRepository _repository;
     private readonly ICalculationService _calculator;
@@ -16,10 +17,10 @@ public sealed class CalculateTickersCommandHandler : IRequestHandler<CalculateTi
         _repository = repository;
     }
 
-    public async Task<CalculationResults> Handle(CalculateTickersCommand request, CancellationToken cancellationToken)
+    public async Task<CalculateAllResponse> Handle(CalculateTickersCommand request, CancellationToken cancellationToken)
     {
         var bonds = await _repository.GetPriceSortedAsync(request.Options, request.Tickers, cancellationToken);
 
-        return _calculator.Calculate(new CalculationRequest(request.Options, bonds));
+        return new CalculateAllResponse(_calculator.Calculate(new CalculationRequest(request.Options, bonds.Bonds)), bonds.PageInfo);
     }
 }

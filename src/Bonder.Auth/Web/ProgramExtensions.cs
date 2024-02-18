@@ -31,9 +31,12 @@ public static class ProgramExtensions
     {
         builder.Services.AddSingleton<IJWTTokenGenerator, JwtTokenGenerator>(x =>
         {
-            return new JwtTokenGenerator(builder.Configuration["JWT:Audience"],
-                                         builder.Configuration["JWT:Issuer"],
-                                         builder.Configuration["JWT:Key"]);
+            var section = builder.Configuration.GetSection("JWT");
+
+            return new JwtTokenGenerator(section.GetValue<string>("Audience"),
+                                         section.GetValue<string>("Issuer"),
+                                         section.GetValue<string>("Key"),
+                                         section.GetValue<int>("Lifetime"));
         });
 
         builder.Services.AddMediatR(config =>

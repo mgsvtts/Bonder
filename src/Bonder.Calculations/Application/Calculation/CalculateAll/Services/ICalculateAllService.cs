@@ -1,9 +1,9 @@
-using Application.Calculation.Common.CalculationService.Dto;
-using Domain.BondAggreagte.Dto;
+using Application.Calculation.CalculateAll.Services.Dto;
+using Domain.BondAggreagte.Abstractions.Dto;
 
 namespace Application.Calculation.CalculateAll.Services;
 
 public interface ICalculateAllService
 {
-    public Task<CalculationResults> CalculateAllAsync(GetIncomeRequest request, CancellationToken token = default);
+    public Task<CalculateAllResponse> CalculateAllAsync(GetPriceSortedRequest request, CancellationToken token = default);
 }

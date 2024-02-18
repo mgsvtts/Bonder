@@ -1,6 +1,6 @@
 ﻿using Domain.BondAggreagte;
 using Domain.BondAggreagte.Abstractions;
-using Domain.BondAggreagte.Dto;
+using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Common;
 using Infrastructure.Common.Extensions;
@@ -102,9 +102,9 @@ public sealed class BondRepository : IBondRepository
         return notFoundTickers;
     }
 
-    public async Task<List<Bond>> GetPriceSortedAsync(GetIncomeRequest filter, IEnumerable<Ticker>? tickers = null, CancellationToken token = default)
+    public async Task<GetPriceSorterResponse> GetPriceSortedAsync(GetPriceSortedRequest filter, IEnumerable<Ticker>? tickers = null, CancellationToken token = default)
     {
-        var bonds = await _db.Bonds
+        var query = _db.Bonds
         .WhereIf(tickers != null, x => tickers!.Select(x => x.Value).Contains(x.Ticker))
         .Where(x => x.MaturityDate >= filter.DateFrom || x.OfferDate >= filter.DateFrom)
         .Where(x => x.MaturityDate <= filter.DateTo || x.OfferDate <= filter.DateTo)
@@ -113,13 +113,26 @@ public sealed class BondRepository : IBondRepository
         .Where(x => x.Rating == null || (x.Rating >= filter.RatingFrom && x.Rating <= filter.RatingTo))
         .Where(x => x.AbsoluteNominal >= filter.NominalFrom)
         .Where(x => x.AbsoluteNominal <= filter.NominalTo)
-        .WhereIf(!filter.IncludeUnknownRatings, x => x.Rating != null)
+        .WhereIf(!filter.IncludeUnknownRatings, x => x.Rating != null);
+
+        var bonds = await query
+        .OrderBy(x => x.AbsolutePrice)
+        .Skip((filter.PageInfo.CurrentPage - 1) * filter.PageInfo.ItemsOnPage)
+        .Take(filter.PageInfo.ItemsOnPage)
         .LoadWith(x => x.Coupons.Where(x => x.PaymentDate >= filter.DateFrom)
                                 .Where(x => x.PaymentDate <= filter.DateTo))
-        .OrderBy(x => x.AbsolutePrice)
-        .ToListAsync(token);
+        .ToListAsync(token: token);
 
-        return _mapper.Map<List<Bond>>(bonds);
+        var total = await query.CountAsync(token: token);
+
+        var itemsOnPage = bonds.Count < filter.PageInfo.ItemsOnPage ? bonds.Count : filter.PageInfo.ItemsOnPage;
+
+        var pageInfo = new PageInfo(filter.PageInfo.CurrentPage,
+                                    (total / filter.PageInfo.ItemsOnPage) + 1,
+                                    itemsOnPage,
+                                    total);
+
+        return new GetPriceSorterResponse(pageInfo, _mapper.Map<List<Bond>>(bonds));
     }
 
     public async Task<List<Bond>> GetPriceSortedAsync(CancellationToken token = default)

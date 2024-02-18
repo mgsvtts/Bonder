@@ -1,5 +1,7 @@
-﻿using Application.Calculation.CalculateTickers;
+﻿using Application.Calculation.CalculateAll.Services.Dto;
+using Application.Calculation.CalculateTickers;
 using Domain.BondAggreagte;
+using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Calculation.Dto.GetAmortization;
@@ -7,6 +9,7 @@ using Infrastructure.Calculation.Dto.GetBonds.TInkoffApiData;
 using Mapster;
 using MapsterMapper;
 using Presentation.Controllers.BondController.Calculate.Request;
+using Presentation.Controllers.BondController.Calculate.Response;
 using System.Reflection;
 
 namespace Web;
@@ -17,14 +20,15 @@ public static class MapsterConfig
     {
         TypeAdapterConfig<CalculateRequest, CalculateTickersCommand>
         .ForType()
-        .MapWith(x => new CalculateTickersCommand(x.Options.Adapt<GetIncomeRequest>(),
+        .MapWith(x => new CalculateTickersCommand(x.Options.Adapt<GetPriceSortedRequest>(),
                                                   x.Tickers.Select(x => new Ticker(x))));
 
-        TypeAdapterConfig<CalculationOptions, GetIncomeRequest>
+        TypeAdapterConfig<CalculationOptions, GetPriceSortedRequest>
         .ForType()
-        .MapWith(x => new GetIncomeRequest
+        .MapWith(x => new GetPriceSortedRequest
         (
             x.Type ?? DateIntervalType.TillOfferDate,
+            new PageInfo(x.PageInfo.CurrentPage, x.PageInfo.ItemsOnPage),
             x.PriceFrom ?? 0,
             x.PriceTo ?? decimal.MaxValue,
             x.NominalFrom ?? 0,
@@ -82,6 +86,10 @@ public static class MapsterConfig
             IsAmortized = x.IsAmortized
         });
 
+        TypeAdapterConfig<CalculateAllResponse, CalculateResponse>
+        .ForType()
+        .MapWith(x => CustomMappings.MapToCalculateResponse(x));
+
         TypeAdapterConfig<Infrastructure.Common.Models.Bond, Bond>
         .ForType()
         .MapWith(x => new Bond(new BondId(x.Id, new Ticker(x.Ticker), new Isin(x.Isin)),
@@ -134,5 +142,18 @@ public static class CustomMappings
                         0,
                         value.IsAmortized,
                         new List<Coupon>());
+    }
+
+    public static CalculateResponse MapToCalculateResponse(CalculateAllResponse results)
+    {
+        return new CalculateResponse(CalculatedBonds: results.Results.Results.Select(x => new CalculatedBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Priority)),
+                                     PriceSortedBonds: results.Results.PriceSortedBonds.Select(x => new PriceBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
+                                     CouponIncomeSortedBonds: results.Results.Bonds.Select(x => new IncomeBondResponse(x.Key.Identity.Ticker.Value, x.Key.Name, x.Value.CouponIncome.CouponPercent)).OrderByDescending(x => x.Income),
+                                     NominalIncomeSortedBonds: results.Results.Bonds.Select(x => new IncomeBondResponse(x.Key.Identity.Ticker.Value, x.Key.Name, x.Value.StaticIncome.NominalPercent)).OrderByDescending(x => x.Income),
+                                     FullIncomeSortedBonds: results.Results.FullIncomeSortedBonds.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
+                                     CreditRatingSortedBonds: results.Results.PriceSortedBonds.GroupBy(x => x.Bond.Rating)
+                                                                                              .OrderBy(x => x.Key)
+                                                                                              .Select(x => new CreditRatingBondResponse(x.Key, x.Select(x => new CreditRatingBond(x.Bond.Identity.Ticker.ToString(), x.Bond.Name)))),
+                                     results.PageInfo);
     }
 }

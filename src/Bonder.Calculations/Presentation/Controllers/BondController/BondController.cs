@@ -1,6 +1,7 @@
 ﻿using Application.Calculation.CalculateAll.Command;
 using Application.Calculation.CalculateAll.Stream;
 using Application.Calculation.CalculateTickers;
+using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.Dto;
 using MapsterMapper;
 using MediatR;
@@ -31,16 +32,17 @@ public class BondController : ControllerBase
     {
         var result = await _sender.Send(_mapper.Map<CalculateTickersCommand>(request), token);
 
-        return result.MapToResponse();
+        return _mapper.Map<CalculateResponse>(result);
     }
 
     [HttpGet]
-    public async IAsyncEnumerable<CalculateResponse> GetState([EnumeratorCancellation] CancellationToken token)
+    public async IAsyncEnumerable<CalculateResponse> GetState([FromQuery] PageInfoRequest pageInfo, [EnumeratorCancellation] CancellationToken token)
     {
         var waitSeconds = TimeSpan.FromSeconds(5);
-        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetIncomeRequest(DateIntervalType.TillOfferDate)), token))
+        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetPriceSortedRequest(DateIntervalType.TillOfferDate,
+                                                                                        new PageInfo(pageInfo.CurrentPage, pageInfo.ItemsOnPage))), token))
         {
-            yield return result.MapToResponse();
+            yield return _mapper.Map<CalculateResponse>(result);
 
             await Task.Delay(waitSeconds, token);
         }
@@ -49,8 +51,8 @@ public class BondController : ControllerBase
     [HttpGet("current-state")]
     public async Task<IActionResult> GetCurrentState(CalculationOptions request, CancellationToken token)
     {
-        var result = await _sender.Send(new CalculateAllCommand(_mapper.Map<GetIncomeRequest>(request)), token);
+        var result = await _sender.Send(new CalculateAllCommand(_mapper.Map<GetPriceSortedRequest>(request)), token);
 
-        return Ok(result.MapToResponse());
+        return Ok(_mapper.Map<CalculateResponse>(result));
     }
 }

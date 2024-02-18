@@ -7,7 +7,6 @@ using Mapster;
 using MapsterMapper;
 using Presentation.Controllers.Dto.AddClaims;
 using Presentation.Controllers.Dto.RemoveClaims;
-using System.Net.Mail;
 using System.Reflection;
 using System.Security.Claims;
 

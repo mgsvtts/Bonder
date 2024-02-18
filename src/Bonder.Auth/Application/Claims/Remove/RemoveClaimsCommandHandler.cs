@@ -1,15 +1,10 @@
 ﻿using Domain.Exceptions;
-using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Domain.UserAggregate.Repositories;
 using MediatR;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Application.Claims.Remove;
+
 public class RemoveClaimsCommandHandler : IRequestHandler<RemoveClaimsCommand, User>
 {
     private readonly IUserRepository _userRepository;

@@ -3,7 +3,7 @@ using Domain.BondAggreagte.Dto.Guards;
 
 namespace Domain.BondAggreagte.Dto;
 
-public sealed class GetIncomeRequest
+public class GetIncomeRequest
 {
     public DateIntervalType Type { get; }
     public bool ConsiderDividendCutOffDate { get; }

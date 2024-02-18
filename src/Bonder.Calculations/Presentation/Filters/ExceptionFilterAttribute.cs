@@ -1,5 +1,4 @@
 ﻿using Domain.Common.Exceptions;
-using Grpc.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Net;

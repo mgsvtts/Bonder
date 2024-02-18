@@ -1,7 +1,8 @@
+using Application.Calculation.CalculateAll.Services.Dto;
 using Application.Calculation.Common.CalculationService.Dto;
 using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte.Abstractions;
-using Domain.BondAggreagte.Dto;
+using Domain.BondAggreagte.Abstractions.Dto;
 
 namespace Application.Calculation.CalculateAll.Services;
 
@@ -16,14 +17,15 @@ public class CalculateAllService : ICalculateAllService
         _calculator = calculator;
     }
 
-    public async Task<CalculationResults> CalculateAllAsync(GetIncomeRequest request, CancellationToken token = default)
+    public async Task<CalculateAllResponse> CalculateAllAsync(GetPriceSortedRequest request, CancellationToken token = default)
     {
-        var priceSorted = await _bondRepository.GetPriceSortedAsync(request, token: token);
+        var paginatedBonds = await _bondRepository.GetPriceSortedAsync(request, token: token);
 
-        var fullIncomeSorted = priceSorted
+        var fullIncomeSorted = paginatedBonds.Bonds
         .OrderByDescending(x => x.GetIncomeOnDate(request).FullIncomePercent)
         .ToList();
 
-        return _calculator.Calculate(new SortedCalculationRequest(request, priceSorted, fullIncomeSorted));
+        return new CalculateAllResponse(_calculator.Calculate(new SortedCalculationRequest(request, paginatedBonds.Bonds, fullIncomeSorted)),
+                                        paginatedBonds.PageInfo);
     }
 }

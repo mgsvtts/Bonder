@@ -2,7 +2,6 @@ using Domain.UserAggregate;
 using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using MediatR;
-using System.Net.Mail;
 
 namespace Application.Register;
 

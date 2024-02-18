@@ -14,4 +14,5 @@ public sealed record CalculationOptions(DateIntervalType? Type,
                                         DateOnly? DateTo,
                                         int? RatingFrom,
                                         int? RatingTo,
-                                        bool? IncludeUnknownRatings);
+                                        bool? IncludeUnknownRatings,
+                                        PageInfoRequest PageInfo);

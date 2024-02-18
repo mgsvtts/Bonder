@@ -10,14 +10,16 @@ namespace Infrastructure.Token;
 
 public class JwtTokenGenerator : IJWTTokenGenerator
 {
-    private readonly string _audience;
-    private readonly string _issuer;
     private readonly byte[] _key;
+    private readonly string _issuer;
+    private readonly string _audience;
+    private readonly int _lifetimeInSeconds;
 
-    public JwtTokenGenerator(string audience, string issuer, string key)
+    public JwtTokenGenerator(string audience, string issuer, string key, int lifetimeInSeconds)
     {
-        _audience = audience;
         _issuer = issuer;
+        _audience = audience;
+        _lifetimeInSeconds = lifetimeInSeconds;
         _key = Encoding.UTF8.GetBytes(key);
     }
 
@@ -31,7 +33,7 @@ public class JwtTokenGenerator : IJWTTokenGenerator
                 new(JwtRegisteredClaimNames.Aud, _audience),
                 new(JwtRegisteredClaimNames.Iss, _issuer)
             }),
-            Expires = DateTime.Now.AddHours(1),
+            Expires = DateTime.Now.AddSeconds(_lifetimeInSeconds),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(_key), SecurityAlgorithms.HmacSha256Signature)
         };
 

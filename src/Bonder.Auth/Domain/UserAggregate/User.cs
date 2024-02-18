@@ -1,6 +1,5 @@
 using Domain.Common.Models;
 using Domain.UserAggregate.ValueObjects;
-using System.Net.Mail;
 using System.Security.Claims;
 
 namespace Domain.UserAggregate;
