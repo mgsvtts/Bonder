@@ -1,7 +1,7 @@
 ﻿using Domain.BondAggreagte;
 using Domain.BondAggreagte.ValueObjects;
 
-namespace Application.Calculation.Common.Interfaces;
+namespace Application.Calculation.Common.Abstractions;
 
 public interface ITInkoffHttpClient
 {

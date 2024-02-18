@@ -35,15 +35,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "src\Bonder.Auth\Web\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bonder.Portfolio", "Bonder.Portfolio", "{4A7CC1D8-194B-41EC-904C-FE1A53708A0D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Web", "src\Bonder.Portfolio\Web\Web.csproj", "{BF80C82D-E7F1-4D29-9CA9-864D9E6DE453}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "src\Bonder.Portfolio\Web\Web.csproj", "{BF80C82D-E7F1-4D29-9CA9-864D9E6DE453}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "src\Bonder.Portfolio\Application\Application.csproj", "{6DA24645-5AE1-49CF-8BB7-DE45F254E72A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "src\Bonder.Portfolio\Application\Application.csproj", "{6DA24645-5AE1-49CF-8BB7-DE45F254E72A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "src\Bonder.Portfolio\Domain\Domain.csproj", "{62CAD28B-0098-4906-B346-D47455426665}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "src\Bonder.Portfolio\Domain\Domain.csproj", "{62CAD28B-0098-4906-B346-D47455426665}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "src\Bonder.Portfolio\Infrastructure\Infrastructure.csproj", "{BA6C17A2-1F8D-432A-97FE-CBDF133A66D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "src\Bonder.Portfolio\Infrastructure\Infrastructure.csproj", "{BA6C17A2-1F8D-432A-97FE-CBDF133A66D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Presentation", "src\Bonder.Portfolio\Presentation\Presentation.csproj", "{DECD1F69-C253-4CBF-BDB4-179543F6D82D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Presentation", "src\Bonder.Portfolio\Presentation\Presentation.csproj", "{DECD1F69-C253-4CBF-BDB4-179543F6D82D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bonder.Shared", "Bonder.Shared", "{22E6AC2F-5FB5-481C-B910-A510A5A1EE94}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Domain", "src\Bonder.Shared\Domain\Shared.Domain.csproj", "{573CED88-6655-448F-86A7-B91D8BD18BB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Proto", "src\Bonder.Shared\Shared.Proto\Shared.Proto.csproj", "{A56E338F-363B-43C2-8E7F-5F061868D6AC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -115,6 +121,14 @@ Global
 		{DECD1F69-C253-4CBF-BDB4-179543F6D82D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DECD1F69-C253-4CBF-BDB4-179543F6D82D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DECD1F69-C253-4CBF-BDB4-179543F6D82D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{573CED88-6655-448F-86A7-B91D8BD18BB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{573CED88-6655-448F-86A7-B91D8BD18BB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{573CED88-6655-448F-86A7-B91D8BD18BB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{573CED88-6655-448F-86A7-B91D8BD18BB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A56E338F-363B-43C2-8E7F-5F061868D6AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A56E338F-363B-43C2-8E7F-5F061868D6AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A56E338F-363B-43C2-8E7F-5F061868D6AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A56E338F-363B-43C2-8E7F-5F061868D6AC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -139,6 +153,9 @@ Global
 		{62CAD28B-0098-4906-B346-D47455426665} = {4A7CC1D8-194B-41EC-904C-FE1A53708A0D}
 		{BA6C17A2-1F8D-432A-97FE-CBDF133A66D6} = {4A7CC1D8-194B-41EC-904C-FE1A53708A0D}
 		{DECD1F69-C253-4CBF-BDB4-179543F6D82D} = {4A7CC1D8-194B-41EC-904C-FE1A53708A0D}
+		{22E6AC2F-5FB5-481C-B910-A510A5A1EE94} = {44EA86F6-4D10-429E-9288-6073817B89D9}
+		{573CED88-6655-448F-86A7-B91D8BD18BB1} = {22E6AC2F-5FB5-481C-B910-A510A5A1EE94}
+		{A56E338F-363B-43C2-8E7F-5F061868D6AC} = {22E6AC2F-5FB5-481C-B910-A510A5A1EE94}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BDF9679E-5CC3-40C5-BDF7-AB6E41A1DEA9}

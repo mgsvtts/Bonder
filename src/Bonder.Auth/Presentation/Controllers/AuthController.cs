@@ -14,7 +14,7 @@ namespace Presentation.Controllers;
 [AllowAnonymous]
 [ExceptionFilter]
 [Route("api/auth")]
-public partial class AuthController : ControllerBase
+public sealed class AuthController : ControllerBase
 {
     private readonly ISender _sender;
     private readonly IMapper _mapper;

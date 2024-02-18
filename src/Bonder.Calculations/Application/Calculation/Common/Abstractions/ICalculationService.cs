@@ -1,6 +1,6 @@
 ﻿using Application.Calculation.Common.CalculationService.Dto;
 
-namespace Application.Calculation.Common.Interfaces;
+namespace Application.Calculation.Common.Abstractions;
 
 public interface ICalculationService
 {

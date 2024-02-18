@@ -1,6 +1,6 @@
 using Application.Calculation.CalculateAll.Services.Dto;
+using Application.Calculation.Common.Abstractions;
 using Application.Calculation.Common.CalculationService.Dto;
-using Application.Calculation.Common.Interfaces;
 using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.Abstractions.Dto;
 

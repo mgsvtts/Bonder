@@ -1,6 +1,6 @@
-﻿using Application.Calculation.Common.CalculationService.Dto;
+﻿using Application.Calculation.Common.Abstractions;
+using Application.Calculation.Common.CalculationService.Dto;
 using Application.Calculation.Common.CalculationService.Extensions;
-using Application.Calculation.Common.Interfaces;
 
 namespace Application.Calculation.Common.CalculationService;
 

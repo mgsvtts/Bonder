@@ -1,0 +1,85 @@
+﻿using Application.Common;
+using Domain.UserAggregate.Abstractions.Repositories;
+using Infrastructure;
+using Infrastructure.Common;
+using LinqToDB;
+using LinqToDB.AspNet;
+using LinqToDB.AspNet.Logging;
+using RateLimiter;
+using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
+using Web.Extensions;
+using Application.Common.Abstractions;
+using MapsterMapper;
+
+namespace Web;
+
+public static class ProgramExtensions
+{
+    public static WebApplicationBuilder AddInfrastructure(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddLinqToDBContext<DbConnection>((provider, options)
+         => options.UsePostgreSQL(builder.Configuration.GetConnectionString("Database"))
+                   .UseDefaultLogging(provider));
+
+        var rateLimiter = TimeLimiter.GetFromMaxCountByInterval(1, TimeSpan.FromMilliseconds(201));
+
+        builder.Services.AddHttpClient<ITinkoffHttpClient, TinkoffHttpClient>((httpClient, services) =>
+        {
+            return new TinkoffHttpClient(httpClient,
+                                         services.GetRequiredService<IMapper>(),
+                                         builder.Configuration.GetValue<string>("TinkoffServerUrl"));
+        }).AddHttpMessageHandler(rateLimiter.AsDelegate);
+
+        return builder;
+    }
+
+    public static WebApplicationBuilder AddApplication(this WebApplicationBuilder builder)
+    {
+        builder.Services.RegisterMapsterConfiguration();
+
+        builder.Services.AddMediatR(config =>
+        {
+            config.RegisterServicesFromAssemblies(typeof(AssemblyReference).Assembly);
+        });
+
+        return builder;
+    }
+
+    public static WebApplicationBuilder AddPresentation(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddControllers();
+
+        builder.Services.AddEndpointsApiExplorer();
+
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.AddEnumsWithValuesFixFilters();
+        });
+
+        return builder;
+    }
+
+    public static WebApplicationBuilder AddDomain(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddTransient<IPortfolioRepository, PortfolioRepository>();
+
+        return builder;
+    }
+
+    public static WebApplication AddMiddlewares(this WebApplication app)
+    {
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+
+        app.UseHttpsRedirection();
+
+        app.UseAuthorization();
+
+        app.MapControllers();
+
+        return app;
+    }
+}

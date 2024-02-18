@@ -13,7 +13,7 @@ namespace Presentation.Controllers;
 [Authorize]
 [ExceptionFilter]
 [Route("api/claims")]
-public class ClaimsController : ControllerBase
+public sealed class ClaimsController : ControllerBase
 {
     private readonly ISender _sender;
     private readonly IMapper _mapper;

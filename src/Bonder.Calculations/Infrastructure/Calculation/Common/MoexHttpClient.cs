@@ -1,4 +1,4 @@
-using Application.Calculation.Common.Interfaces;
+using Application.Calculation.Common.Abstractions;
 using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Calculation.Dto.GetAmortization;
 using MapsterMapper;

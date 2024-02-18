@@ -16,7 +16,7 @@ namespace Presentation.Controllers.BondController;
 
 [ExceptionFilter]
 [Route("api/calculate")]
-public class BondController : ControllerBase
+public sealed class BondController : ControllerBase
 {
     private readonly ISender _sender;
     private readonly IMapper _mapper;

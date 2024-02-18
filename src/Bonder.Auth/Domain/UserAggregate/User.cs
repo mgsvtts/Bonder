@@ -1,5 +1,5 @@
-using Domain.Common.Models;
 using Domain.UserAggregate.ValueObjects;
+using Shared.Domain.Common.Models;
 using System.Security.Claims;
 
 namespace Domain.UserAggregate;

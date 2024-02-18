@@ -1,6 +1,6 @@
 ﻿using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
-using Domain.Common.Models;
+using Shared.Domain.Common.Models;
 
 namespace Domain.BondAggreagte;
 
