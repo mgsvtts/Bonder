@@ -127,7 +127,7 @@ public static class ProgramExtensions
 
     public static WebApplication AddMiddlewares(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
+        if (!app.Environment.IsProduction())
         {
             app.UseSwagger();
             app.UseSwaggerUI();

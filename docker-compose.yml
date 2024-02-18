@@ -1,0 +1,35 @@
+version: '3.4'
+
+services:
+  bonder.calculation:
+    image: bonder.calculation
+    container_name: bonder.calculation
+    ports:
+    - "5101:8080"
+    build:
+      context: .
+      dockerfile: src/Bonder.Calculations/Web/Dockerfile
+    environment:
+    - ASPNETCORE_ENVIRONMENT=Docker
+
+  bonder.auth:
+    image: bonder.auth
+    container_name: bonder.auth
+    ports:
+    - "5102:8080"
+    build:
+      context: .
+      dockerfile: src/Bonder.Auth/Web/Dockerfile
+    environment:
+    - ASPNETCORE_ENVIRONMENT=Docker
+
+  bonder.portfolio:
+    image: bonder.portfolio
+    container_name: bonder.portfolio
+    ports:
+    - "5103:8080"
+    build:
+      context: .
+      dockerfile: src/Bonder.Portfolio/Web/Dockerfile
+    environment:
+    - ASPNETCORE_ENVIRONMENT=Docker
