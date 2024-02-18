@@ -1,15 +1,16 @@
 ﻿using Application.Common;
+using Application.Common.Abstractions;
+using Bonder.Auth;
 using Domain.UserAggregate.Abstractions.Repositories;
 using Infrastructure;
 using Infrastructure.Common;
 using LinqToDB;
 using LinqToDB.AspNet;
 using LinqToDB.AspNet.Logging;
+using MapsterMapper;
 using RateLimiter;
 using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 using Web.Extensions;
-using Application.Common.Abstractions;
-using MapsterMapper;
 
 namespace Web;
 
@@ -20,6 +21,11 @@ public static class ProgramExtensions
         builder.Services.AddLinqToDBContext<DbConnection>((provider, options)
          => options.UsePostgreSQL(builder.Configuration.GetConnectionString("Database"))
                    .UseDefaultLogging(provider));
+
+        builder.Services.AddGrpc();
+
+        var authServerUrl = new Uri(builder.Configuration.GetValue<string>("AuthServerUrl"));
+        builder.Services.AddGrpcClient<UserService.UserServiceClient>(options => options.Address = authServerUrl);
 
         var rateLimiter = TimeLimiter.GetFromMaxCountByInterval(1, TimeSpan.FromMilliseconds(201));
 

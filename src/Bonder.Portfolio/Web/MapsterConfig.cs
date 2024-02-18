@@ -4,6 +4,7 @@ using Domain.UserAggregate.ValueObjects.Portfolios;
 using Infrastructure.Dto.GetAccounts;
 using Mapster;
 using MapsterMapper;
+using Presentation.Controllers.Dto.AttachToken;
 using System.Reflection;
 
 namespace Web;
@@ -12,9 +13,13 @@ public static class MapsterConfig
 {
     public static void RegisterMapsterConfiguration(this IServiceCollection services)
     {
-        TypeAdapterConfig<(string UserName, string Token), AttachTinkoffTokenCommand>
+        TypeAdapterConfig<AttachTokenRequest, AttachTinkoffTokenCommand>
         .ForType()
         .MapWith(x => new AttachTinkoffTokenCommand(new UserName(x.UserName), x.Token));
+
+        TypeAdapterConfig<Infrastructure.Common.Models.User, Domain.UserAggregate.User>
+       .ForType()
+       .MapWith(x => new Domain.UserAggregate.User(new UserName(x.UserName), x.Token));
 
         TypeAdapterConfig<TinkoffAccount, Portfolio>
         .ForType()

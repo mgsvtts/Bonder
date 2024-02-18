@@ -1,14 +1,9 @@
 ﻿using Application.AttachTinkoffToken;
-using Domain.UserAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Controllers.Dto.AttachToken;
 using Presentation.Filters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Presentation.Controllers;
 
@@ -28,8 +23,6 @@ public sealed class PortfolioController : ControllerBase
     [HttpPost("attach-token")]
     public async Task AttachToken([FromBody] AttachTokenRequest request, CancellationToken cancellationToken)
     {
-        await _sender.Send(_mapper.Map<AttachTinkoffTokenCommand>((User.Identity.Name, request.Token)), cancellationToken);
+        await _sender.Send(_mapper.Map<AttachTinkoffTokenCommand>(request), cancellationToken);
     }
 }
-
-public sealed record AttachTokenRequest(string Token);

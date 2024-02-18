@@ -1,30 +1,39 @@
 ﻿using Application.Common.Abstractions;
-using Domain.UserAggregate;
+using Bonder.Auth;
 using Domain.UserAggregate.Abstractions.Repositories;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.AttachTinkoffToken;
-public class AttachTinkoffTokenCommandHandler : IRequestHandler<AttachTinkoffTokenCommand, User>
-{
-    private readonly IPortfolioRepository _portfolioRepository;
-    private readonly ITinkoffHttpClient _httpClient;
 
-    public AttachTinkoffTokenCommandHandler(IPortfolioRepository portfolioRepository, ITinkoffHttpClient httpClient)
+public class AttachTinkoffTokenCommandHandler : IRequestHandler<AttachTinkoffTokenCommand>
+{
+    private readonly ITinkoffHttpClient _httpClient;
+    private readonly IPortfolioRepository _portfolioRepository;
+    private readonly UserService.UserServiceClient _grpcClient;
+
+    public AttachTinkoffTokenCommandHandler(IPortfolioRepository portfolioRepository, ITinkoffHttpClient httpClient, UserService.UserServiceClient grpcClient)
     {
         _portfolioRepository = portfolioRepository;
         _httpClient = httpClient;
+        _grpcClient = grpcClient;
     }
 
-    public async Task<User> Handle(AttachTinkoffTokenCommand request, CancellationToken cancellationToken)
+    public async Task Handle(AttachTinkoffTokenCommand request, CancellationToken cancellationToken)
     {
-        var portfolios = await _httpClient.GetPortfoliosAsync(request.Token, cancellationToken);
+        await ValidateUserAndTokenAsync(request, cancellationToken);
 
+        await _portfolioRepository.AttachToken(request.UserName, request.Token, cancellationToken);
+    }
 
-        return await _portfolioRepository.AttachToken(request.UserName, request.Token, cancellationToken);
+    private Task ValidateUserAndTokenAsync(AttachTinkoffTokenCommand request, CancellationToken cancellationToken)
+    {
+        var portfoliosTask = _httpClient.GetPortfoliosAsync(request.Token, cancellationToken);
+
+        var userTask = _grpcClient.GetUserAsync(new GetUserRequest
+        {
+            UserName = request.UserName.Name
+        }, cancellationToken: cancellationToken);
+
+        return Task.WhenAll(portfoliosTask, userTask.ResponseAsync);
     }
 }

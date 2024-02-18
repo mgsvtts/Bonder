@@ -5,6 +5,7 @@ package bonder.auth;
 message User {
 	string id = 1;
 	string user_name = 2;
+	bool is_admin = 3;
 }
 
 service UserService {

@@ -41,9 +41,14 @@ public class UserRepository : IUserRepository
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<Domain.UserAggregate.User> GetByUserNameAsync(UserName userName, CancellationToken cancellationToken = default)
+    public async Task<Domain.UserAggregate.User?> GetByUserNameAsync(UserName userName, CancellationToken cancellationToken = default)
     {
-        var user = await GetByUserNameInternalAsync(userName, cancellationToken);
+        var user = await _db.Users.FirstOrDefaultAsync(x => x.UserName == userName.Name, cancellationToken: cancellationToken);
+
+        if (user is null)
+        {
+            return null;
+        }
 
         var claims = await _userManager.GetClaimsAsync(user);
 

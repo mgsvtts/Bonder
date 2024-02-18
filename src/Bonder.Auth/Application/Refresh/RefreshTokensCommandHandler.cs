@@ -20,11 +20,12 @@ public class RefreshTokensCommandHandler : IRequestHandler<RefreshTokensCommand,
     public async Task<Tokens> Handle(RefreshTokensCommand request, CancellationToken cancellationToken)
     {
         var principal = await _tokenGenerator.GetPrincipalFromTokenAsync(request.ExpiredTokens.AccessToken);
-        var username = new UserName(principal.Identity?.Name);
+        var userName = new UserName(principal.Identity?.Name);
 
-        var saved = await _userRepository.GetByUserNameAsync(username, cancellationToken);
+        var saved = await _userRepository.GetByUserNameAsync(userName, cancellationToken)
+        ?? throw new UserNotFoundException(userName.ToString());
 
-        var newTokens = _tokenGenerator.Generate(username);
+        var newTokens = _tokenGenerator.Generate(userName);
 
         if (saved?.Tokens.RefreshToken != request.ExpiredTokens.RefreshToken ||
             newTokens is null)
@@ -32,7 +33,7 @@ public class RefreshTokensCommandHandler : IRequestHandler<RefreshTokensCommand,
             throw new AuthorizationException("Invalid info");
         }
 
-        await _userRepository.SetRefreshTokenAsync(username, newTokens.Value.RefreshToken, cancellationToken);
+        await _userRepository.SetRefreshTokenAsync(userName, newTokens.Value.RefreshToken, cancellationToken);
 
         return newTokens.Value;
     }

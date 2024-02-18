@@ -16,7 +16,8 @@ public sealed class AddClaimsCommandHandler : IRequestHandler<AddClaimsCommand, 
 
     public async Task<User> Handle(AddClaimsCommand request, CancellationToken cancellationToken)
     {
-        var requestedBy = await _userRepository.GetByUserNameAsync(request.RequestedBy, cancellationToken);
+        var requestedBy = await _userRepository.GetByUserNameAsync(request.RequestedBy, cancellationToken)
+        ?? throw new UserNotFoundException(request.RequestedBy.ToString());
 
         if (!requestedBy.IsAdmin)
         {
@@ -25,7 +26,8 @@ public sealed class AddClaimsCommandHandler : IRequestHandler<AddClaimsCommand, 
 
         request = request with { Claims = request.Claims.DistinctBy(x => x.Type) };
 
-        var user = await _userRepository.GetByUserNameAsync(request.AddTo, cancellationToken);
+        var user = await _userRepository.GetByUserNameAsync(request.AddTo, cancellationToken)
+        ?? throw new UserNotFoundException(request.AddTo.ToString());
 
         var existingClaims = request.Claims.Where(x => user.Claims.Select(x => x.Type).Contains(x.Type));
         if (existingClaims.Any())

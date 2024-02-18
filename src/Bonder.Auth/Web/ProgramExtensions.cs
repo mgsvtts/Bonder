@@ -1,6 +1,8 @@
 using Application.Common;
+using Bonder.Auth;
 using Domain.UserAggregate.Repositories;
 using Infrastructure.Common;
+using Infrastructure.Grpc;
 using Infrastructure.Token;
 using Infrastructure.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -55,6 +57,8 @@ public static class ProgramExtensions
         builder.Services.AddIdentity<Infrastructure.Common.Models.User, IdentityRole>()
                         .AddEntityFrameworkStores<DatabaseContext>()
                         .AddDefaultTokenProviders();
+
+        builder.Services.AddGrpc();
 
         builder.Services.AddAuthentication(x =>
         {
@@ -111,6 +115,8 @@ public static class ProgramExtensions
         app.UseAuthentication();
 
         app.UseAuthorization();
+
+        app.MapGrpcService<UserServiceImpl>();
 
         app.MapControllers();
 

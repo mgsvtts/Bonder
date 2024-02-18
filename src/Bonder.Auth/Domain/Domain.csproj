@@ -7,7 +7,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\Bonder.Shared\Domain\Shared.Domain.csproj" />
+    <ProjectReference Include="..\..\Bonder.Shared\Shared.Domain\Shared.Domain.csproj" />
   </ItemGroup>
 
 </Project>
