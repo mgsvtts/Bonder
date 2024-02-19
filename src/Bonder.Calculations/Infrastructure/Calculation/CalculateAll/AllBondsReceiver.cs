@@ -21,13 +21,13 @@ public class AllBondsReceiver : IAllBondsReceiver
         _bondRepository = bondRepository;
     }
 
-    public async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> ReceiveAsync(Range takeRange, CancellationToken token)
+    public async Task<List<KeyValuePair<Ticker, StaticIncome>>> ReceiveAsync(Range takeRange, CancellationToken token)
     {
         var response = await GetFromCacheAsync(takeRange, token);
 
         var bonds = await _tinkoffHttpClient.GetBondPriceAsync(response, token);
 
-        return bonds.Where(x => x.Value.AbsolutePrice != 0);
+        return bonds.Where(x => x.Value.AbsolutePrice != 0).ToList();
     }
 
     public int GetMaxRange()

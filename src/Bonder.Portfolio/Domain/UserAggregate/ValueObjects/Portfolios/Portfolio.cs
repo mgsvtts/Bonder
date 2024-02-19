@@ -1,3 +1,7 @@
-﻿namespace Domain.UserAggregate.ValueObjects.Portfolios;
+﻿using System.Threading.Channels;
 
-public record Portfolio(string Id, string Name, PortfolioType Type, PortfolioStatus Status);
+namespace Domain.UserAggregate.ValueObjects.Portfolios;
+
+public readonly record struct Portfolio(string Id, decimal TotalBondPrice, string Name, PortfolioType Type, PortfolioStatus Status, IEnumerable<Ticker> Tickers);
+
+public readonly record struct Ticker(string Value);

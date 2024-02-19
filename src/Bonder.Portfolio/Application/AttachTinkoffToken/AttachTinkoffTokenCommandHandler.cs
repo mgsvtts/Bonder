@@ -25,7 +25,7 @@ public class AttachTinkoffTokenCommandHandler : IRequestHandler<AttachTinkoffTok
         await _portfolioRepository.AttachToken(request.UserName, request.Token, cancellationToken);
     }
 
-    private Task ValidateUserAndTokenAsync(AttachTinkoffTokenCommand request, CancellationToken cancellationToken)
+    private async Task ValidateUserAndTokenAsync(AttachTinkoffTokenCommand request, CancellationToken cancellationToken)
     {
         var portfoliosTask = _httpClient.GetPortfoliosAsync(request.Token, cancellationToken);
 
@@ -34,6 +34,13 @@ public class AttachTinkoffTokenCommandHandler : IRequestHandler<AttachTinkoffTok
             UserName = request.UserName.Name
         }, cancellationToken: cancellationToken);
 
-        return Task.WhenAll(portfoliosTask, userTask.ResponseAsync);
+        await Task.WhenAll(portfoliosTask, userTask.ResponseAsync);
+
+        var user = userTask.ResponseAsync.Result;
+
+        if (string.IsNullOrEmpty(user.Id))
+        {
+            throw new ArgumentException($"User {request.UserName.Name} not exist");
+        }
     }
 }

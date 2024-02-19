@@ -9,8 +9,8 @@ public record struct CalculationResults
 
     public readonly IReadOnlyList<CalculationResult> Results => _results.AsReadOnly();
     public IDictionary<Bond, FullIncome> Bonds { get; }
-    public IEnumerable<CalculationMoneyResult> PriceSortedBonds { get; }
-    public IEnumerable<CalculationMoneyResult> FullIncomeSortedBonds { get; }
+    public List<CalculationMoneyResult> PriceSortedBonds { get; }
+    public List<CalculationMoneyResult> FullIncomeSortedBonds { get; }
 
     public CalculationResults(IDictionary<Bond, FullIncome> bonds,
                               IEnumerable<Bond> priceSortedBonds)
@@ -18,8 +18,12 @@ public record struct CalculationResults
         _results = [];
 
         Bonds = bonds;
-        PriceSortedBonds = priceSortedBonds.Select(x => new CalculationMoneyResult(x, x.Income.StaticIncome.PricePercent));
-        FullIncomeSortedBonds = bonds.Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent));
+        PriceSortedBonds = priceSortedBonds
+        .Select(x => new CalculationMoneyResult(x, x.Income.StaticIncome.PricePercent))
+        .ToList();
+
+        FullIncomeSortedBonds = bonds.Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent))
+        .ToList();
     }
 
     public CalculationResults(CalculationRequest request)
@@ -30,11 +34,13 @@ public record struct CalculationResults
 
         PriceSortedBonds = Bonds
         .OrderBy(x => x.Key.Income.StaticIncome.PricePercent)
-        .Select(x => new CalculationMoneyResult(x.Key, x.Key.Income.StaticIncome.PricePercent));
+        .Select(x => new CalculationMoneyResult(x.Key, x.Key.Income.StaticIncome.PricePercent))
+        .ToList();
 
         FullIncomeSortedBonds = Bonds
         .OrderByDescending(x => x.Value.FullIncomePercent)
-        .Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent));
+        .Select(x => new CalculationMoneyResult(x.Key, x.Value.FullIncomePercent))
+        .ToList();
     }
 
     public readonly void Add(CalculationResult result)

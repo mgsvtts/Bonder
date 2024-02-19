@@ -5,7 +5,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Http.Extensions;
 using System.Net.Http.Json;
 
-namespace Infrastructure.Calculation.Common;
+namespace Infrastructure.Calculation.CalculateAll;
 
 public class MoexHttpClient : IMoexHttpClient
 {
@@ -67,7 +67,7 @@ public class MoexHttpClient : IMoexHttpClient
 
         var coupons = _mapper.Map<List<Coupon>>(moexItem.Coupons);
 
-        for (int i = 0; i < coupons.Count; i++)
+        for (var i = 0; i < coupons.Count; i++)
         {
             foreach (var amortization in moexItem.Amortizations)
             {

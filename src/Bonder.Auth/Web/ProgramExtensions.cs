@@ -2,7 +2,7 @@ using Application.Common;
 using Bonder.Auth;
 using Domain.UserAggregate.Repositories;
 using Infrastructure.Common;
-using Infrastructure.Grpc;
+using Infrastructure.GrpcServer;
 using Infrastructure.Token;
 using Infrastructure.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

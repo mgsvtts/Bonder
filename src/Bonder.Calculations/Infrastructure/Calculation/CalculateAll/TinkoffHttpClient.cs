@@ -8,7 +8,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
-namespace Infrastructure.Calculation.Common;
+namespace Infrastructure.Calculation.CalculateAll;
 
 public class TinkoffHttpClient : ITInkoffHttpClient
 {

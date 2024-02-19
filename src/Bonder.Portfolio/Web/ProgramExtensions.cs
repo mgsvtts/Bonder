@@ -33,7 +33,8 @@ public static class ProgramExtensions
         {
             return new TinkoffHttpClient(httpClient,
                                          services.GetRequiredService<IMapper>(),
-                                         builder.Configuration.GetValue<string>("TinkoffServerUrl"));
+                                         builder.Configuration.GetValue<string>("TinkoffUsersServerUrl"),
+                                         builder.Configuration.GetValue<string>("TinkoffOperatoinsServerUrl"));
         }).AddHttpMessageHandler(rateLimiter.AsDelegate);
 
         return builder;

@@ -5,7 +5,6 @@ using Application.Calculation.Common.CalculationService;
 using Application.Common;
 using Domain.BondAggreagte.Abstractions;
 using Infrastructure.Calculation.CalculateAll;
-using Infrastructure.Calculation.Common;
 using Infrastructure.Common;
 using LinqToDB;
 using LinqToDB.AspNet;

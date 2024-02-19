@@ -8,8 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Grpc;
-public sealed class UserServiceImpl  : UserService.UserServiceBase
+namespace Infrastructure.GrpcServer;
+public sealed class UserServiceImpl : UserService.UserServiceBase
 {
     private readonly IUserRepository _userRepository;
 
@@ -20,14 +20,13 @@ public sealed class UserServiceImpl  : UserService.UserServiceBase
 
     public override async Task<User> GetUser(GetUserRequest request, ServerCallContext context)
     {
-        var user = await _userRepository.GetByUserNameAsync(new UserName(request.UserName), context.CancellationToken)
-        ?? throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
+        var user = await _userRepository.GetByUserNameAsync(new UserName(request.UserName), context.CancellationToken);
 
         return new User
         {
-            Id = user.Identity.ToString(),
+            Id = user?.Identity.ToString() ?? "",
             UserName = request.UserName,
-            IsAdmin = user.IsAdmin
+            IsAdmin = user?.IsAdmin ?? false
         };
     }
 }

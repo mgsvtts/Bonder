@@ -3,7 +3,7 @@ using Domain.BondAggreagte;
 using Domain.BondAggreagte.ValueObjects;
 using MapsterMapper;
 
-namespace Infrastructure.Calculation.Common;
+namespace Infrastructure.Calculation.CalculateAll;
 
 public class BondBuilder : IBondBuilder
 {
@@ -47,12 +47,12 @@ public class BondBuilder : IBondBuilder
         return _mapper.Map<Bond>((bond, couponTask.Result, ratingTask.Result));
     }
 
-    public async Task<IEnumerable<Bond>> BuildAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
+    public async Task<List<Bond>> BuildAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
     {
         var tasks = tickers.Select(x => BuildAsync(x, token)).ToList();
 
         await Task.WhenAll(tasks);
 
-        return tasks.Select(x => x.Result);
+        return tasks.Select(x => x.Result).ToList();
     }
 }

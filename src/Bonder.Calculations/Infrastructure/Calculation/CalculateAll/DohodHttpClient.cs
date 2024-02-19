@@ -4,7 +4,7 @@ using Infrastructure.Calculation.Dto.GetRating;
 using Microsoft.AspNetCore.Http.Extensions;
 using System.Net.Http.Json;
 
-namespace Infrastructure.Calculation.Common;
+namespace Infrastructure.Calculation.CalculateAll;
 
 public sealed class DohodHttpClient : IDohodHttpClient
 {

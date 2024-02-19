@@ -19,7 +19,7 @@ public static class MapsterConfig
 
         TypeAdapterConfig<Infrastructure.Common.Models.User, Domain.UserAggregate.User>
        .ForType()
-       .MapWith(x => new Domain.UserAggregate.User(new UserName(x.UserName), x.Token));
+       .MapWith(x => new Domain.UserAggregate.User(new UserName(x.UserName), x.Token, null));
 
         TypeAdapterConfig<TinkoffAccount, Portfolio>
         .ForType()
@@ -47,6 +47,6 @@ public static class CustopMappings
             _ => PortfolioType.Unknown,
         };
 
-        return new Portfolio(account.Id, account.Name, type, status);
+        return new Portfolio(account.Id, 0, account.Name, type, status, null);
     }
 }
