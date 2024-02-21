@@ -19,7 +19,7 @@ public interface IBondRepository
 
     Task<List<Ticker>> UpdateIncomesAsync(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bonds, CancellationToken token = default);
 
-    Task<GetPriceSorterResponse> GetPriceSortedAsync(GetPriceSortedRequest filter, IEnumerable<Ticker>? tickers = null, CancellationToken token = default);
+    Task<GetPriceSorterResponse> GetPriceSortedAsync(GetPriceSortedRequest filter, IEnumerable<Ticker>? tickers = null, IEnumerable<Guid>? uids = null, CancellationToken token = default);
 
     Task<List<Bond>> GetPriceSortedAsync(CancellationToken token = default);
 

@@ -2,6 +2,7 @@
 using Domain.UserAggregate.ValueObjects;
 using Domain.UserAggregate.ValueObjects.Portfolios;
 using Infrastructure.Dto.GetAccounts;
+using Infrastructure.Dto.GetPortfolios;
 using Mapster;
 using MapsterMapper;
 using Presentation.Controllers.Dto.AttachToken;
@@ -21,9 +22,9 @@ public static class MapsterConfig
        .ForType()
        .MapWith(x => new Domain.UserAggregate.User(new UserName(x.UserName), x.Token, null));
 
-        TypeAdapterConfig<TinkoffAccount, Portfolio>
+        TypeAdapterConfig<(GetTinkoffPortfolioResponse Portfolio, TinkoffAccount Account), Portfolio>
         .ForType()
-        .MapWith(x => CustopMappings.FromTinkoffAccount(x));
+        .MapWith(x => CustopMappings.FromTinkoffAccount(x.Portfolio, x.Account));
 
         TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 
@@ -37,8 +38,9 @@ public static class MapsterConfig
 
 public static class CustopMappings
 {
-    public static Portfolio FromTinkoffAccount(TinkoffAccount account)
+    public static Portfolio FromTinkoffAccount(GetTinkoffPortfolioResponse portfolio, TinkoffAccount account)
     {
+        var totalBondPrice = portfolio.TotalBondPrice.ToDecimal();
         var status = account.Status == "ACCOUNT_STATUS_OPEN" ? PortfolioStatus.Open : PortfolioStatus.Closed;
         var type = account.Type switch
         {
@@ -47,6 +49,6 @@ public static class CustopMappings
             _ => PortfolioType.Unknown,
         };
 
-        return new Portfolio(account.Id, 0, account.Name, type, status, null);
+        return new Portfolio(totalBondPrice, account.Name, type, status, portfolio.Positions.Select(x => x.InstrumentId));
     }
 }

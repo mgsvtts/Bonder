@@ -49,6 +49,8 @@ public static class ProgramExtensions
             config.RegisterServicesFromAssemblies(typeof(AssemblyReference).Assembly);
         });
 
+        builder.Services.AddTransient<IUserBuilder, UserBuilder>();
+
         return builder;
     }
 

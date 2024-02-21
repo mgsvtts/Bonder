@@ -27,9 +27,9 @@ public sealed class BondController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<CalculateResponse> CalculateTickers([FromBody] CalculateRequest request, CancellationToken token)
+    public async Task<CalculateResponse> Calculate([FromBody] CalculateBondsRequest request, CancellationToken token)
     {
-        var result = await _sender.Send(_mapper.Map<CalculateTickersCommand>(request), token);
+        var result = await _sender.Send(_mapper.Map<CalculateBondsCommand>(request), token);
 
         return _mapper.Map<CalculateResponse>(result);
     }

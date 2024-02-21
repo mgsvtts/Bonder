@@ -1,3 +1,5 @@
-namespace Application.Common.Abstractions.Dto;
+using Infrastructure.Dto.GetAccounts;
 
-public readonly record struct GetPortfoliosRequest(string AccountId, string Token);
+namespace Infrastructure.Dto.GetPortfolios;
+
+public readonly record struct GetPortfoliosRequest(TinkoffAccount Account, string Token);

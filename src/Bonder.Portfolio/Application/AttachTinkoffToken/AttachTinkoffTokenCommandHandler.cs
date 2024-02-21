@@ -1,5 +1,4 @@
 ﻿using Application.Common.Abstractions;
-using Bonder.Auth;
 using Domain.UserAggregate.Abstractions.Repositories;
 using MediatR;
 
@@ -7,40 +6,19 @@ namespace Application.AttachTinkoffToken;
 
 public class AttachTinkoffTokenCommandHandler : IRequestHandler<AttachTinkoffTokenCommand>
 {
-    private readonly ITinkoffHttpClient _httpClient;
+    private readonly IUserBuilder _userBuilder;
     private readonly IPortfolioRepository _portfolioRepository;
-    private readonly UserService.UserServiceClient _grpcClient;
 
-    public AttachTinkoffTokenCommandHandler(IPortfolioRepository portfolioRepository, ITinkoffHttpClient httpClient, UserService.UserServiceClient grpcClient)
+    public AttachTinkoffTokenCommandHandler(IPortfolioRepository portfolioRepository, IUserBuilder userBuilder)
     {
         _portfolioRepository = portfolioRepository;
-        _httpClient = httpClient;
-        _grpcClient = grpcClient;
+        _userBuilder = userBuilder;
     }
 
     public async Task Handle(AttachTinkoffTokenCommand request, CancellationToken cancellationToken)
     {
-        await ValidateUserAndTokenAsync(request, cancellationToken);
+        var user = await _userBuilder.BuildAsync(request.UserName, request.Token, cancellationToken);
 
-        await _portfolioRepository.AttachToken(request.UserName, request.Token, cancellationToken);
-    }
-
-    private async Task ValidateUserAndTokenAsync(AttachTinkoffTokenCommand request, CancellationToken cancellationToken)
-    {
-        var portfoliosTask = _httpClient.GetPortfoliosAsync(request.Token, cancellationToken);
-
-        var userTask = _grpcClient.GetUserAsync(new GetUserRequest
-        {
-            UserName = request.UserName.Name
-        }, cancellationToken: cancellationToken);
-
-        await Task.WhenAll(portfoliosTask, userTask.ResponseAsync);
-
-        var user = userTask.ResponseAsync.Result;
-
-        if (string.IsNullOrEmpty(user.Id))
-        {
-            throw new ArgumentException($"User {request.UserName.Name} not exist");
-        }
+        await _portfolioRepository.AttachToken(user.Identity, user.TinkoffToken, cancellationToken);
     }
 }

@@ -25,4 +25,12 @@ public sealed class PortfolioRepository : IPortfolioRepository
             Token = token
         }, token: cancellationToken);
     }
+
+    public async Task<string> GetTokenAsync(UserName userName, CancellationToken cancellationToken = default)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(x => x.UserName == userName.Name, cancellationToken)
+        ?? throw new ArgumentException($"User {userName.Name} does not have authorized token");
+
+        return user.Token;
+    }
 }

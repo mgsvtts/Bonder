@@ -18,10 +18,11 @@ public static class MapsterConfig
 {
     public static void RegisterMapsterConfiguration(this IServiceCollection services)
     {
-        TypeAdapterConfig<CalculateRequest, CalculateTickersCommand>
+        TypeAdapterConfig<CalculateBondsRequest, CalculateBondsCommand>
         .ForType()
-        .MapWith(x => new CalculateTickersCommand(x.Options.Adapt<GetPriceSortedRequest>(),
-                                                  x.Tickers.Select(x => new Ticker(x))));
+        .MapWith(x => new CalculateBondsCommand(x.Options.Adapt<GetPriceSortedRequest>(),
+                                                x.IdType,
+                                                x.Ids));
 
         TypeAdapterConfig<CalculationOptions, GetPriceSortedRequest>
         .ForType()

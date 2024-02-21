@@ -1,4 +1,7 @@
 ﻿using Application.AttachTinkoffToken;
+using Application.GetPortfolios;
+using Domain.UserAggregate.ValueObjects;
+using Domain.UserAggregate.ValueObjects.Portfolios;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -21,8 +24,16 @@ public sealed class PortfolioController : ControllerBase
     }
 
     [HttpPost("attach-token")]
-    public async Task AttachToken([FromBody] AttachTokenRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> AttachToken([FromBody] AttachTokenRequest request, CancellationToken cancellationToken)
     {
         await _sender.Send(_mapper.Map<AttachTinkoffTokenCommand>(request), cancellationToken);
+
+        return NoContent();
+    }
+
+    [HttpGet]
+    public async Task<IEnumerable<Portfolio>> GetPortfolios(CancellationToken cancellationToken)
+    {
+        return await _sender.Send(new GetPortfoliosQuery(HttpContext.Request.Headers.Authorization), cancellationToken);
     }
 }

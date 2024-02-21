@@ -9,9 +9,18 @@ message User {
 }
 
 service UserService {
-  rpc GetUser(GetUserRequest) returns (User);
+  rpc GetUserByUserName(GetUserByUserNameRequest) returns (User);
+  rpc GetUserByToken(GetUserByTokenRequest) returns (GetUserByTokenResponse);
 }
 
-message GetUserRequest {
+message GetUserByUserNameRequest {
+	string user_name = 1;
+}
+
+message GetUserByTokenRequest{
+	string token = 1;
+}
+
+message GetUserByTokenResponse{
 	string user_name = 1;
 }

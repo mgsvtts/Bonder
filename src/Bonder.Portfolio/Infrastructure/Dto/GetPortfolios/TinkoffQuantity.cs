@@ -7,6 +7,11 @@ public sealed class TinkoffQuantity
     [JsonPropertyName("units")]
     public int Units { get; set; }
 
-    [JsonPropertyName("nanos")]
+    [JsonPropertyName("nano")]
     public int Nanos { get; set; }
+
+    public decimal ToDecimal()
+    {
+        return decimal.Parse(Units.ToString() + '.' + Nanos.ToString());
+    }
 }
