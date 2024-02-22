@@ -1,4 +1,6 @@
-﻿using Application.Calculation.CalculateAll.Services.Dto;
+﻿using Application.Analyze;
+using Application.Analyze.Dto;
+using Application.Calculation.CalculateAll.Services.Dto;
 using Application.Calculation.CalculateTickers;
 using Domain.BondAggreagte;
 using Domain.BondAggreagte.Abstractions.Dto;
@@ -8,6 +10,7 @@ using Infrastructure.Calculation.Dto.GetAmortization;
 using Infrastructure.Calculation.Dto.GetBonds.TInkoffApiData;
 using Mapster;
 using MapsterMapper;
+using Presentation.Controllers.AnalyzeController.Analyze;
 using Presentation.Controllers.BondController.Calculate.Request;
 using Presentation.Controllers.BondController.Calculate.Response;
 using System.Reflection;
@@ -29,7 +32,7 @@ public static class MapsterConfig
         .MapWith(x => new GetPriceSortedRequest
         (
             x.Type ?? DateIntervalType.TillOfferDate,
-            x.PageInfo != null ? new PageInfo(x.PageInfo.CurrentPage, x.PageInfo.ItemsOnPage) : new PageInfo(1, 20),
+            x.PageInfo != null ? new PageInfo(x.PageInfo.CurrentPage, x.PageInfo.ItemsOnPage) : PageInfo.Default,
             x.PriceFrom ?? 0,
             x.PriceTo ?? decimal.MaxValue,
             x.NominalFrom ?? 0,
@@ -47,6 +50,18 @@ public static class MapsterConfig
         TypeAdapterConfig<TinkoffValue, Bond>
         .ForType()
         .MapWith(x => CustomMappings.CreateBond(x));
+
+        TypeAdapterConfig<AnalyzeBondsRequest, AnalyzeBondsCommand>
+        .ForType()
+        .MapWith(x => new AnalyzeBondsCommand(x.DefaultOptions, x.Bonds.Select(x=> new Application.Analyze.BondToAnalyze(x.Option, new Ticker(x.Ticker)))));
+
+        TypeAdapterConfig<(Bond Bond, FullIncome Income), BondWithIncome>
+        .ForType()
+        .MapWith(x => new BondWithIncome(x.Bond.Identity.Ticker, x.Bond.Name, x.Bond.Income.StaticIncome.AbsolutePrice, x.Income.FullIncomePercent));
+
+        TypeAdapterConfig<Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>, IEnumerable<AnalyzeBondsResponse>>
+        .ForType()
+        .MapWith(x => CustomMappings.MapAnalyze(x));
 
         TypeAdapterConfig<(Bond Bond, List<Coupon> Coupons, int? Rating), Bond>
         .ForType()
@@ -85,7 +100,6 @@ public static class MapsterConfig
             AbsoluteNominal = x.Income.StaticIncome.AbsoluteNominal,
             AbsolutePrice = x.Income.StaticIncome.AbsolutePrice,
             IsAmortized = x.IsAmortized,
-            CreatedAt = DateTime.Now
         });
 
         TypeAdapterConfig<CalculateAllResponse, CalculateResponse>
@@ -156,5 +170,17 @@ public static class CustomMappings
                                                                                               .OrderBy(x => x.Key)
                                                                                               .Select(x => new CreditRatingBondResponse(x.Key, x.Select(x => new CreditRatingBond(x.Bond.Identity.Ticker.ToString(), x.Bond.Name)))),
                                      results.PageInfo);
+    }
+
+    public static IEnumerable<AnalyzeBondsResponse> MapAnalyze(Dictionary<BondWithIncome, IEnumerable<BondWithIncome>> dict)
+    {
+        return dict.Select(a => new AnalyzeBondsResponse
+        (
+            a.Key.Id.ToString(),
+            a.Key.Income,
+            a.Value.Select(x => new AnalyzeBondsResponseBond(x.Id.ToString(),
+                                                             x.Name,
+                                                             x.Price,
+                                                             x.Income))));
     }
 }

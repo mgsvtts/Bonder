@@ -1,5 +1,4 @@
-﻿using Domain.UserAggregate.ValueObjects;
-using Domain.UserAggregate.ValueObjects.Portfolios;
+﻿using Domain.UserAggregate.ValueObjects.Portfolios;
 using MediatR;
 
 namespace Application.GetPortfolios;

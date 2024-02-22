@@ -6,7 +6,7 @@ namespace Domain.BondAggreagte;
 
 public sealed class Bond : AggregateRoot<BondId>
 {
-    private readonly List<Coupon> _coupons = [];
+    private List<Coupon> _coupons = [];
 
     public string Name { get; private set; }
     public FullIncome Income { get; private set; }
@@ -30,6 +30,27 @@ public sealed class Bond : AggregateRoot<BondId>
         IsAmortized = isAmortized;
         Income = new FullIncome(income, CouponIncome.None);
         Income = Income with { CouponIncome = GetCouponOnlyIncome(new GetIncomeRequest(DateIntervalType.TillOfferDate)) };
+    }
+
+    public Bond UpdateRating(int? rating)
+    {
+        if (rating < 0)
+        {
+            throw new ArgumentException("Rating cannot be less than 0", nameof(rating));
+        }
+
+        Rating = rating;
+
+        return this;
+    }
+
+    public Bond UpdateCoupons(IEnumerable<Coupon> coupons)
+    {
+        coupons ??= Array.Empty<Coupon>();
+
+        _coupons = coupons.ToList();
+
+        return this;
     }
 
     public FullIncome GetIncomeOnDate(GetIncomeRequest request)

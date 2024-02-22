@@ -6,9 +6,9 @@ public static class ItemsOnPageGuard
 {
     public static int MoreThanMaxItemsOnPage(this IGuardClause clause, int itemsOnPage, int maxItemsOnPage)
     {
-        if (itemsOnPage <= 0)
+        if (itemsOnPage < 0)
         {
-            throw new ArgumentException($"{nameof(itemsOnPage)} cannot be less or equal to 0", nameof(itemsOnPage));
+            throw new ArgumentException($"{nameof(itemsOnPage)} cannot be less than 0", nameof(itemsOnPage));
         }
         if (itemsOnPage > maxItemsOnPage)
         {

@@ -3,6 +3,7 @@ using Bonder.Auth;
 using Domain.UserAggregate.Abstractions.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using Domain.UserAggregate.ValueObjects.Portfolios;
+using Grpc.Core;
 using MediatR;
 
 namespace Application.GetPortfolios;
@@ -32,7 +33,7 @@ public sealed class GetPortfoliosQueryHandler : IRequestHandler<GetPortfoliosQue
 
             userName = new UserName(response.UserName);
         }
-        catch
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.Unauthenticated)
         {
             throw new ArgumentException("You does not have access to this call");
         }

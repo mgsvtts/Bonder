@@ -19,7 +19,7 @@ public class RefreshTokensCommandHandler : IRequestHandler<RefreshTokensCommand,
 
     public async Task<Tokens> Handle(RefreshTokensCommand request, CancellationToken cancellationToken)
     {
-        var principal = await _tokenGenerator.GetPrincipalFromTokenAsync(request.ExpiredTokens.AccessToken);
+        var principal = await _tokenGenerator.ValidateTokenAsync(request.ExpiredTokens.AccessToken);
         var userName = new UserName(principal.Identity?.Name);
 
         var saved = await _userRepository.GetByUserNameAsync(userName, cancellationToken)

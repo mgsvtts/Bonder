@@ -1,5 +1,6 @@
 using Application.Claims.Add;
 using Application.Claims.Remove;
+using Mapster;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -16,27 +17,25 @@ namespace Presentation.Controllers;
 public sealed class ClaimsController : ControllerBase
 {
     private readonly ISender _sender;
-    private readonly IMapper _mapper;
 
-    public ClaimsController(ISender sender, IMapper mapper)
+    public ClaimsController(ISender sender)
     {
         _sender = sender;
-        _mapper = mapper;
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddClaims([FromBody] AddClaimRequest request, CancellationToken token)
+    public async Task<AddClaimResponse> AddClaims([FromBody] AddClaimRequest request, CancellationToken token)
     {
-        var response = await _sender.Send(_mapper.Map<AddClaimsCommand>((User.Identity.Name, request)), token);
+        var response = await _sender.Send((User.Identity.Name, request).Adapt<AddClaimsCommand>(), token);
 
-        return Ok(_mapper.Map<AddClaimResponse>(response));
+        return response.Adapt<AddClaimResponse>();
     }
 
     [HttpDelete]
-    public async Task<IActionResult> RemoveClaims([FromBody] RemoveClaimRequest request, CancellationToken token)
+    public async Task<AddClaimResponse> RemoveClaims([FromBody] RemoveClaimRequest request, CancellationToken token)
     {
-        var response = await _sender.Send(_mapper.Map<RemoveClaimsCommand>((User.Identity.Name, request)), token);
+        var response = await _sender.Send((User.Identity.Name, request).Adapt<RemoveClaimsCommand>(), token);
 
-        return Ok(_mapper.Map<AddClaimResponse>(response));
+        return response.Adapt<AddClaimResponse>();
     }
 }

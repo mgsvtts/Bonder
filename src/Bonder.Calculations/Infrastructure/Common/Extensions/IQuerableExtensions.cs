@@ -13,4 +13,24 @@ public static class IQuerableExtensions
 
         return query;
     }
+
+    public static IQueryable<T> SkipIf<T>(this IQueryable<T> query, bool condition, int result)
+    {
+        if (condition)
+        {
+            return query.Skip(result);
+        }
+
+        return query;
+    }
+
+    public static IQueryable<T> TakeIf<T>(this IQueryable<T> query, bool condition, int result)
+    {
+        if (condition)
+        {
+            return query.Take(result);
+        }
+
+        return query;
+    }
 }

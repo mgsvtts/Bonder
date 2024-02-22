@@ -44,7 +44,7 @@ public class JwtTokenGenerator : IJWTTokenGenerator
         return new Tokens(GenerateRefreshToken(), tokenHandler.WriteToken(token));
     }
 
-    public async Task<ClaimsPrincipal> GetPrincipalFromTokenAsync(string? token)
+    public async Task<ClaimsPrincipal> ValidateTokenAsync(string? token, bool validateLifetime = false)
     {
         if (string.IsNullOrEmpty(token))
         {
@@ -55,7 +55,7 @@ public class JwtTokenGenerator : IJWTTokenGenerator
         {
             ValidateIssuer = false,
             ValidateAudience = false,
-            ValidateLifetime = false,
+            ValidateLifetime = validateLifetime,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(_key),
             ClockSkew = TimeSpan.Zero

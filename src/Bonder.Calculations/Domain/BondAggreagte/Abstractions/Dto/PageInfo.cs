@@ -12,12 +12,14 @@ public readonly record struct PageInfo
     public int ItemsOnPage { get; }
     public int Total { get; }
 
+    public static readonly PageInfo Default = new PageInfo(1, 20);
+
     public PageInfo(int currentPage,
                     int lastPage,
                     int itemsOnPage,
                     int total) : this(currentPage, itemsOnPage)
     {
-        LastPage = Guard.Against.NegativeOrZero(lastPage);
+        LastPage = Guard.Against.Negative(lastPage);
         Total = Guard.Against.Negative(total);
     }
 

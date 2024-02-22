@@ -3,9 +3,13 @@ using Application.Calculation.CalculateAll.Stream;
 using Application.Calculation.CalculateTickers;
 using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.Dto;
+using Mapster;
 using MapsterMapper;
 using MediatR;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Presentation.Controllers.BondController.Calculate.Request;
 using Presentation.Controllers.BondController.Calculate.Response;
 using Presentation.Filters;
@@ -18,20 +22,18 @@ namespace Presentation.Controllers.BondController;
 public sealed class BondController : ControllerBase
 {
     private readonly ISender _sender;
-    private readonly IMapper _mapper;
 
-    public BondController(ISender sender, IMapper mapper)
+    public BondController(ISender sender)
     {
         _sender = sender;
-        _mapper = mapper;
     }
 
     [HttpPost]
     public async Task<CalculateResponse> Calculate([FromBody] CalculateBondsRequest request, CancellationToken token)
     {
-        var result = await _sender.Send(_mapper.Map<CalculateBondsCommand>(request), token);
+        var result = await _sender.Send(request.Adapt<CalculateBondsCommand>(), token);
 
-        return _mapper.Map<CalculateResponse>(result);
+        return result.Adapt<CalculateResponse>();
     }
 
     [HttpGet]
@@ -41,17 +43,17 @@ public sealed class BondController : ControllerBase
         await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetPriceSortedRequest(DateIntervalType.TillOfferDate,
                                                                                         new PageInfo(pageInfo.CurrentPage, pageInfo.ItemsOnPage))), token))
         {
-            yield return _mapper.Map<CalculateResponse>(result);
+            yield return result.Adapt<CalculateResponse>();
 
             await Task.Delay(waitSeconds, token);
         }
     }
 
     [HttpGet("current-state")]
-    public async Task<IActionResult> GetCurrentState(CalculationOptions request, CancellationToken token)
+    public async Task<CalculateResponse> GetCurrentState(CalculationOptions request, CancellationToken token)
     {
-        var result = await _sender.Send(new CalculateAllCommand(_mapper.Map<GetPriceSortedRequest>(request)), token);
+        var result = await _sender.Send(new CalculateAllCommand(request.Adapt<GetPriceSortedRequest>()), token);
 
-        return Ok(_mapper.Map<CalculateResponse>(result));
+        return result.Adapt<CalculateResponse>();
     }
 }

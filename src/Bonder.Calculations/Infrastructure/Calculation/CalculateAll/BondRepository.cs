@@ -28,13 +28,32 @@ public sealed class BondRepository : IBondRepository
         return await _db.Bonds.CountAsync(token);
     }
 
-    public async Task UpdateRating(BondId id, int? rating, CancellationToken token = default)
+    public async Task UpdateAsync(Bond bond, CancellationToken token = default)
     {
-        await _db.Bonds
-        .Where(x => x.Id == id.InstrumentId)
-        .Set(x => x.Rating, rating)
-        .Set(x => x.UpdatedAt, DateTime.Now)
-        .UpdateAsync(token: token);
+        var dbCoupons = _mapper.Map<List<Common.Models.Coupon>>(bond.Coupons);
+        SetCouponValues(dbCoupons, bond.Identity);
+
+        var dbBond = _mapper.Map<Common.Models.Bond>(bond);
+        dbBond.UpdatedAt = DateTime.Now;
+
+        try
+        {
+            await _db.BeginTransactionAsync(token);
+
+            await _db.Coupons
+            .Where(x => x.BondId == bond.Identity.InstrumentId)
+            .DeleteAsync(token);
+
+            await _db.BulkCopyAsync(dbCoupons, cancellationToken: token);
+
+            await _db.UpdateAsync(dbBond, token: token);
+
+            await _db.CommitTransactionAsync(token);
+        }
+        catch
+        {
+            await _db.RollbackTransactionAsync(token);
+        }
     }
 
     public async Task<List<Bond>> TakeRangeAsync(Range range, CancellationToken token = default)
@@ -48,24 +67,21 @@ public sealed class BondRepository : IBondRepository
         return _mapper.Map<List<Bond>>(dbBonds);
     }
 
-    public async Task UpdateCoupons(IEnumerable<Coupon> coupons, BondId id, CancellationToken token = default)
-    {
-        await _db.Coupons
-        .Where(x => x.BondId == id.InstrumentId)
-        .DeleteAsync(token);
-
-        var dbCoupons = _mapper.Map<List<Infrastructure.Common.Models.Coupon>>(coupons);
-
-        SetCouponValues(dbCoupons, id);
-
-        await _db.BulkCopyAsync(dbCoupons, cancellationToken: token);
-    }
-
     public async Task<List<Bond>> GetAllFloatingAsync(CancellationToken token = default)
     {
         var dbBonds = await _db.Bonds
         .LoadWith(x => x.Coupons)
         .Where(x => x.Coupons.Any(x => x.IsFloating))
+        .ToListAsync(token: token);
+
+        return _mapper.Map<List<Bond>>(dbBonds);
+    }
+
+    public async Task<List<Bond>> GetByTickersAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
+    {
+        var dbBonds = await _db.Bonds
+        .LoadWith(x => x.Coupons)
+        .Where(x => tickers.Select(x => x.Value).Contains(x.Ticker))
         .ToListAsync(token: token);
 
         return _mapper.Map<List<Bond>>(dbBonds);
@@ -102,9 +118,10 @@ public sealed class BondRepository : IBondRepository
         return notFoundTickers;
     }
 
-    public async Task<GetPriceSorterResponse> GetPriceSortedAsync(GetPriceSortedRequest filter,
+    public async Task<GetPriceSortedResponse> GetPriceSortedAsync(GetPriceSortedRequest filter,
                                                                   IEnumerable<Ticker>? tickers = null,
                                                                   IEnumerable<Guid>? uids = null,
+                                                                  bool takeAll = false,
                                                                   CancellationToken token = default)
     {
         var query = _db.Bonds
@@ -121,22 +138,32 @@ public sealed class BondRepository : IBondRepository
 
         var bonds = await query
         .OrderByDescending(x => x.PricePercent)
-        .Skip((filter.PageInfo.CurrentPage - 1) * filter.PageInfo.ItemsOnPage)
-        .Take(filter.PageInfo.ItemsOnPage)
+        .SkipIf(!takeAll, (filter.PageInfo.CurrentPage - 1) * filter.PageInfo.ItemsOnPage)
+        .TakeIf(!takeAll, filter.PageInfo.ItemsOnPage)
         .LoadWith(x => x.Coupons.Where(x => x.PaymentDate >= filter.DateFrom)
                                 .Where(x => x.PaymentDate <= filter.DateTo))
         .ToListAsync(token: token);
 
-        var total = await query.CountAsync(token: token);
+        if (takeAll)
+        {
+            return new GetPriceSortedResponse(null, _mapper.Map<List<Bond>>(bonds));
+        }
 
+        var pageInfo = CreatePageInfo(filter, bonds, await query.CountAsync(token: token));
+
+        return new GetPriceSortedResponse(pageInfo, _mapper.Map<List<Bond>>(bonds));
+    }
+
+    private static PageInfo CreatePageInfo(GetPriceSortedRequest filter, List<Common.Models.Bond> bonds, int total)
+    {
         var itemsOnPage = bonds.Count < filter.PageInfo.ItemsOnPage ? bonds.Count : filter.PageInfo.ItemsOnPage;
+        var lastPage = total == itemsOnPage ? filter.PageInfo.CurrentPage : (total / filter.PageInfo.ItemsOnPage) + 1;
 
         var pageInfo = new PageInfo(filter.PageInfo.CurrentPage,
-                                   (total / filter.PageInfo.ItemsOnPage) + 1,
+                                    lastPage,
                                     itemsOnPage,
                                     total);
-
-        return new GetPriceSorterResponse(pageInfo, _mapper.Map<List<Bond>>(bonds));
+        return pageInfo;
     }
 
     public async Task<List<Bond>> GetPriceSortedAsync(CancellationToken token = default)
@@ -151,7 +178,7 @@ public sealed class BondRepository : IBondRepository
 
     public async Task AddAsync(IEnumerable<Bond> bonds, CancellationToken token = default)
     {
-        var dbBonds = _mapper.Map<List<Infrastructure.Common.Models.Bond>>(bonds);
+        var dbBonds = _mapper.Map<List<Common.Models.Bond>>(bonds);
 
         var tasks = dbBonds.Select(x => Task.Run(() => SetBondValues(x)));
 
@@ -173,7 +200,7 @@ public sealed class BondRepository : IBondRepository
         await _db.CommitTransactionAsync(token);
     }
 
-    private static void SetBondValues(Infrastructure.Common.Models.Bond bond)
+    private static void SetBondValues(Common.Models.Bond bond)
     {
         bond.CreatedAt = DateTime.Now;
         foreach (var coupon in bond.Coupons)
@@ -182,7 +209,7 @@ public sealed class BondRepository : IBondRepository
         }
     }
 
-    private static async void SetCouponValues(List<Infrastructure.Common.Models.Coupon> coupons, BondId id)
+    private static async void SetCouponValues(List<Common.Models.Coupon> coupons, BondId id)
     {
         var tasks = coupons.Select(x => Task.Run(() =>
         {

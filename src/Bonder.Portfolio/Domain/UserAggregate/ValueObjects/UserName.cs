@@ -10,6 +10,6 @@ public readonly record struct UserName
             throw new ArgumentNullException(nameof(name), "User name cannot be empty");
         }
 
-        Name = name;    
+        Name = name;
     }
 }

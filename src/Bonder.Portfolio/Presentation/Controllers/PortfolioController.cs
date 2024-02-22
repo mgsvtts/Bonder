@@ -1,7 +1,7 @@
 ﻿using Application.AttachTinkoffToken;
 using Application.GetPortfolios;
-using Domain.UserAggregate.ValueObjects;
 using Domain.UserAggregate.ValueObjects.Portfolios;
+using Mapster;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -15,18 +15,16 @@ namespace Presentation.Controllers;
 public sealed class PortfolioController : ControllerBase
 {
     private readonly ISender _sender;
-    private readonly IMapper _mapper;
 
-    public PortfolioController(ISender sender, IMapper mapper)
+    public PortfolioController(ISender sender)
     {
         _sender = sender;
-        _mapper = mapper;
     }
 
     [HttpPost("attach-token")]
     public async Task<IActionResult> AttachToken([FromBody] AttachTokenRequest request, CancellationToken cancellationToken)
     {
-        await _sender.Send(_mapper.Map<AttachTinkoffTokenCommand>(request), cancellationToken);
+        await _sender.Send(request.Adapt<AttachTinkoffTokenCommand>(), cancellationToken);
 
         return NoContent();
     }

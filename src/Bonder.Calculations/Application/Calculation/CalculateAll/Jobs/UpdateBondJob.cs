@@ -53,7 +53,10 @@ public class BackgroundBondUpdater : IJob
         foreach (var bond in bonds)
         {
             var rating = await _dohodHttpClient.GetBondRatingAsync(bond.Identity.Isin, token);
-            await _bondRepository.UpdateRating(bond.Identity, rating, token);
+
+            bond.UpdateRating(rating);
+
+            await _bondRepository.UpdateAsync(bond, token);
         }
     }
 
@@ -64,7 +67,9 @@ public class BackgroundBondUpdater : IJob
         {
             var coupons = await _grpcClient.GetCouponsAsync(bond.Identity.InstrumentId, token);
 
-            await _bondRepository.UpdateCoupons(coupons, bond.Identity, token);
+            bond.UpdateCoupons(coupons);
+
+            await _bondRepository.UpdateAsync(bond, token);
         }
     }
 }

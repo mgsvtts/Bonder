@@ -26,6 +26,6 @@ public class CalculateAllService : ICalculateAllService
         .ToList();
 
         return new CalculateAllResponse(_calculator.Calculate(new SortedCalculationRequest(request, paginatedBonds.Bonds, fullIncomeSorted)),
-                                        paginatedBonds.PageInfo);
+                                        paginatedBonds.PageInfo.Value);
     }
 }

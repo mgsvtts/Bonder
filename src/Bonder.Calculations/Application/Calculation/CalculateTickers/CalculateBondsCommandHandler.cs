@@ -21,7 +21,7 @@ public sealed class CalculateBondsCommandHandler : IRequestHandler<CalculateBond
 
     public async Task<CalculateAllResponse> Handle(CalculateBondsCommand request, CancellationToken cancellationToken)
     {
-        GetPriceSorterResponse bonds;
+        GetPriceSortedResponse bonds;
         if (request.IdType == IdType.Ticker)
         {
             bonds = await _repository.GetPriceSortedAsync(request.Options, tickers: request.Ids.Select(x => new Ticker(x)), token: cancellationToken);
@@ -31,6 +31,6 @@ public sealed class CalculateBondsCommandHandler : IRequestHandler<CalculateBond
             bonds = await _repository.GetPriceSortedAsync(request.Options, uids: request.Ids.Select(Guid.Parse), token: cancellationToken);
         }
 
-        return new CalculateAllResponse(_calculator.Calculate(new CalculationRequest(request.Options, bonds.Bonds)), bonds.PageInfo);
+        return new CalculateAllResponse(_calculator.Calculate(new CalculationRequest(request.Options, bonds.Bonds)), bonds.PageInfo.Value);
     }
 }

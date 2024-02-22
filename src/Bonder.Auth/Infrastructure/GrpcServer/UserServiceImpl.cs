@@ -31,11 +31,18 @@ public sealed class UserServiceImpl : UserService.UserServiceBase
 
     public override async Task<GetUserByTokenResponse> GetUserByToken(GetUserByTokenRequest request, ServerCallContext context)
     {
-        var principal = await _tokenGenerator.GetPrincipalFromTokenAsync(request.Token);
-
-        return new GetUserByTokenResponse
+        try
         {
-            UserName = principal?.Identity?.Name ?? ""
-        };
+            var principal = await _tokenGenerator.ValidateTokenAsync(request.Token, true);
+
+            return new GetUserByTokenResponse
+            {
+                UserName = principal?.Identity?.Name ?? ""
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, ex.Message, ex));
+        }
     }
 }
