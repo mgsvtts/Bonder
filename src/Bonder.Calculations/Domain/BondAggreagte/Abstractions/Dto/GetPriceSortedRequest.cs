@@ -2,7 +2,7 @@
 
 namespace Domain.BondAggreagte.Abstractions.Dto;
 
-public class GetPriceSortedRequest : GetIncomeRequest
+public sealed class GetPriceSortedRequest : GetIncomeRequest
 {
     public PageInfo PageInfo { get; init; }
 

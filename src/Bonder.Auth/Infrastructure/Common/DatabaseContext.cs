@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Common;
 
-public class DatabaseContext : IdentityDbContext<User>
+public sealed class DatabaseContext : IdentityDbContext<User>
 {
     public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
     { }

@@ -3,7 +3,7 @@ using Domain.Common.Exceptions;
 
 namespace Domain.BondAggreagte.Exceptions;
 
-public class IsinLengthException : DomainLogicException
+public sealed class IsinLengthException : DomainLogicException
 {
     public IsinLengthException(string isin) : base($"Isin lenght must be equal to {Isin.Length}, you gave {isin.Length}")
     {

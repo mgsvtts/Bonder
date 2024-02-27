@@ -8,7 +8,7 @@ using Presentation.Controllers.AnalyzeController.Analyze;
 namespace Presentation.Controllers.AnalyzeController;
 
 [Route("api/analyze")]
-public class AnalyzeController : ControllerBase
+public sealed class AnalyzeController : ControllerBase
 {
     private readonly ISender _sender;
 

@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Infrastructure.Token;
 
-public class JwtTokenGenerator : IJWTTokenGenerator
+public sealed class JwtTokenGenerator : IJWTTokenGenerator
 {
     private readonly byte[] _key;
     private readonly string _issuer;

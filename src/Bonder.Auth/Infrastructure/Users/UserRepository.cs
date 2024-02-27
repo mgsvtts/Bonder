@@ -2,6 +2,7 @@ using Domain.Exceptions;
 using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using Infrastructure.Common;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,22 +10,20 @@ using System.Security.Claims;
 
 namespace Infrastructure.Users;
 
-public class UserRepository : IUserRepository
+public sealed class UserRepository : IUserRepository
 {
-    private readonly IMapper _mapper;
     private readonly DatabaseContext _db;
     private readonly UserManager<Common.Models.User> _userManager;
 
-    public UserRepository(UserManager<Common.Models.User> userManager, DatabaseContext db, IMapper mapper)
+    public UserRepository(UserManager<Common.Models.User> userManager, DatabaseContext db)
     {
         _userManager = userManager;
         _db = db;
-        _mapper = mapper;
     }
 
     public async Task RegisterAsync(Domain.UserAggregate.User user, string password)
     {
-        var result = await _userManager.CreateAsync(_mapper.Map<Common.Models.User>(user), password);
+        var result = await _userManager.CreateAsync(user.Adapt<Common.Models.User>(), password);
 
         if (!result.Succeeded)
         {
@@ -52,7 +51,7 @@ public class UserRepository : IUserRepository
 
         var claims = await _userManager.GetClaimsAsync(user);
 
-        return _mapper.Map<Domain.UserAggregate.User>((user, claims));
+        return (user, claims).Adapt<Domain.UserAggregate.User>();
     }
 
     public async Task<bool> IsValidUserAsync(UserName userName, string password, CancellationToken cancellationToken = default)
@@ -75,7 +74,7 @@ public class UserRepository : IUserRepository
 
         var actualClaims = await _userManager.GetClaimsAsync(user);
 
-        return _mapper.Map<Domain.UserAggregate.User>((user, actualClaims));
+        return (user, actualClaims).Adapt<Domain.UserAggregate.User>();
     }
 
     public async Task<Domain.UserAggregate.User> RemoveClaimsAsync(UserName userName, IEnumerable<string> claims, CancellationToken cancellationToken = default)
@@ -88,7 +87,7 @@ public class UserRepository : IUserRepository
 
         var actualClaims = await _userManager.GetClaimsAsync(user);
 
-        return _mapper.Map<Domain.UserAggregate.User>((user, actualClaims));
+        return (user, actualClaims).Adapt<Domain.UserAggregate.User>();
     }
 
     private async Task<Common.Models.User> GetByUserNameInternalAsync(UserName userName, CancellationToken cancellationToken = default)

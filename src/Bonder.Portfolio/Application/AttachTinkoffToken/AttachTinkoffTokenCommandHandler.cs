@@ -4,12 +4,12 @@ using MediatR;
 
 namespace Application.AttachTinkoffToken;
 
-public class AttachTinkoffTokenCommandHandler : IRequestHandler<AttachTinkoffTokenCommand>
+public sealed class AttachTinkoffTokenCommandHandler : IRequestHandler<AttachTinkoffTokenCommand>
 {
     private readonly IUserBuilder _userBuilder;
-    private readonly IPortfolioRepository _portfolioRepository;
+    private readonly IUserRepository _portfolioRepository;
 
-    public AttachTinkoffTokenCommandHandler(IPortfolioRepository portfolioRepository, IUserBuilder userBuilder)
+    public AttachTinkoffTokenCommandHandler(IUserRepository portfolioRepository, IUserBuilder userBuilder)
     {
         _portfolioRepository = portfolioRepository;
         _userBuilder = userBuilder;
@@ -19,6 +19,6 @@ public class AttachTinkoffTokenCommandHandler : IRequestHandler<AttachTinkoffTok
     {
         var user = await _userBuilder.BuildAsync(request.UserName, request.Token, cancellationToken);
 
-        await _portfolioRepository.AttachToken(user.Identity, user.TinkoffToken, cancellationToken);
+        await _portfolioRepository.AddAsync(user, cancellationToken);
     }
 }

@@ -7,7 +7,7 @@ using Quartz;
 namespace Application.Calculation.CalculateAll.Jobs;
 
 [DisallowConcurrentExecution]
-public class UpdateBondPriceJob : IJob
+public sealed class UpdateBondPriceJob : IJob
 {
     private readonly IAllBondsReceiver _bondReceiver;
     private readonly IBondRepository _bondRepository;

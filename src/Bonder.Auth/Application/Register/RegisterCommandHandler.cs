@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Application.Register;
 
-public class RegisterCommandHandler : IRequestHandler<RegisterCommand>
+public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand>
 {
     private readonly IUserRepository _userRepository;
 

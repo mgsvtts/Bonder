@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Application.Calculation.CalculateAll.Command;
 
-public class CalculateAllCommandHandler : IRequestHandler<CalculateAllCommand, CalculateAllResponse>
+public sealed class CalculateAllCommandHandler : IRequestHandler<CalculateAllCommand, CalculateAllResponse>
 {
     private readonly ICalculateAllService _service;
 

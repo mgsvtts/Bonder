@@ -4,7 +4,7 @@ using System.Security.Claims;
 
 namespace Domain.UserAggregate;
 
-public class User : AggregateRoot<UserId>
+public sealed class User : AggregateRoot<UserId>
 {
     private static readonly Claim _adminClaim = new("isAdmin", "true");
 

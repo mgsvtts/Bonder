@@ -6,7 +6,7 @@ using MediatR;
 
 namespace Application.Refresh;
 
-public class RefreshTokensCommandHandler : IRequestHandler<RefreshTokensCommand, Tokens>
+public sealed class RefreshTokensCommandHandler : IRequestHandler<RefreshTokensCommand, Tokens>
 {
     private readonly IJWTTokenGenerator _tokenGenerator;
     private readonly IUserRepository _userRepository;

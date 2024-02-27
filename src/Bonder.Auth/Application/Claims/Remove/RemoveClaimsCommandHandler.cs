@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Application.Claims.Remove;
 
-public class RemoveClaimsCommandHandler : IRequestHandler<RemoveClaimsCommand, User>
+public sealed class RemoveClaimsCommandHandler : IRequestHandler<RemoveClaimsCommand, User>
 {
     private readonly IUserRepository _userRepository;
 

@@ -5,7 +5,7 @@ using Shared.Domain.Common.Models;
 
 namespace Domain.UserAggregate;
 
-public class User : AggregateRoot<UserName>
+public sealed class User : AggregateRoot<UserName>
 {
     private readonly List<Portfolio> _portfolios = [];
 
@@ -15,9 +15,6 @@ public class User : AggregateRoot<UserName>
     public User(UserName userName, string tinkoffToken, IEnumerable<Portfolio>? portfolios = null) : base(userName)
     {
         TinkoffToken = Guard.Against.NullOrEmpty(tinkoffToken);
-        if (portfolios is not null)
-        {
-            _portfolios = portfolios.ToList();
-        }
+        _portfolios = portfolios is not null ? portfolios.ToList() : _portfolios;
     }
 }

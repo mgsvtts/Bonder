@@ -1,3 +1,3 @@
 namespace Domain.Exceptions;
 
-public class AuthorizationException(string message) : Exception(message);
+public sealed class AuthorizationException(string message) : Exception(message);

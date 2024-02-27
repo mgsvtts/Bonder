@@ -6,7 +6,7 @@ using MediatR;
 
 namespace Application.Login;
 
-public class LoginCommandHandler : IRequestHandler<LoginCommand, Tokens>
+public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Tokens>
 {
     private readonly IUserRepository _userRepository;
     private readonly IJWTTokenGenerator _tokenGenerator;

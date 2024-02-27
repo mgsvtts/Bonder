@@ -4,7 +4,7 @@ using Application.Calculation.Common.CalculationService.Extensions;
 
 namespace Application.Calculation.Common.CalculationService;
 
-public class CalculationService : ICalculationService
+public sealed class CalculationService : ICalculationService
 {
     private const int _mixRating = 10;
 

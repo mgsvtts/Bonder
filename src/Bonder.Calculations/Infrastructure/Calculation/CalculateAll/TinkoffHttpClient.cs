@@ -3,6 +3,7 @@ using Domain.BondAggreagte;
 using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Calculation.Dto.GetBonds;
 using Infrastructure.Calculation.Dto.GetBonds.TInkoffApiData;
+using Mapster;
 using MapsterMapper;
 using System.Net.Http.Json;
 using System.Text;
@@ -10,20 +11,17 @@ using System.Text.Json;
 
 namespace Infrastructure.Calculation.CalculateAll;
 
-public class TinkoffHttpClient : ITInkoffHttpClient
+public sealed class TinkoffHttpClient : ITInkoffHttpClient
 {
     private readonly HttpClient _client;
     private readonly string _tinkoffUrl;
-    private readonly IMapper _mapper;
 
     public TinkoffHttpClient(HttpClient client,
-                             IMapper mapper,
                              string token,
                              string tinkoffUrl)
     {
         _client = client;
         _tinkoffUrl = tinkoffUrl;
-        _mapper = mapper;
 
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
     }
@@ -32,14 +30,14 @@ public class TinkoffHttpClient : ITInkoffHttpClient
     {
         var response = await GetTinkoffResponseAsync(tickers, token);
 
-        return _mapper.Map<List<Bond>>(response.Payload.Values);
+        return response.Payload.Values.Adapt<List<Bond>>();
     }
 
     public async Task<Bond> GetBondByTickerAsync(Ticker ticker, CancellationToken token = default)
     {
         var response = await GetTinkoffResponseAsync([ticker], token);
 
-        return _mapper.Map<Bond>(response.Payload.Values.First());
+        return response.Payload.Values.First().Adapt<Bond>();
     }
 
     public async Task<Dictionary<Ticker, StaticIncome>> GetBondPriceAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)

@@ -1,5 +1,5 @@
 ﻿namespace Bonder.Tests.Domain.AggregateTests;
 
-public class BondTests
+public sealed class BondTests
 {
 }

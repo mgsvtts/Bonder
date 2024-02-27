@@ -1,5 +1,5 @@
 ﻿namespace Application.Common;
 
-public class AssemblyReference
+public sealed class AssemblyReference
 {
 }

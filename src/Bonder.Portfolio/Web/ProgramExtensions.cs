@@ -32,7 +32,6 @@ public static class ProgramExtensions
         builder.Services.AddHttpClient<ITinkoffHttpClient, TinkoffHttpClient>((httpClient, services) =>
         {
             return new TinkoffHttpClient(httpClient,
-                                         services.GetRequiredService<IMapper>(),
                                          builder.Configuration.GetValue<string>("TinkoffUsersServerUrl"),
                                          builder.Configuration.GetValue<string>("TinkoffOperatoinsServerUrl"));
         }).AddHttpMessageHandler(rateLimiter.AsDelegate);
@@ -70,7 +69,7 @@ public static class ProgramExtensions
 
     public static WebApplicationBuilder AddDomain(this WebApplicationBuilder builder)
     {
-        builder.Services.AddTransient<IPortfolioRepository, PortfolioRepository>();
+        builder.Services.AddTransient<IUserRepository, UserRepository>();
 
         return builder;
     }

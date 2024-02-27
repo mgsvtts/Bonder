@@ -11,10 +11,10 @@ namespace Application.GetPortfolios;
 public sealed class GetPortfoliosQueryHandler : IRequestHandler<GetPortfoliosQuery, IEnumerable<Portfolio>>
 {
     private readonly IUserBuilder _userBuilder;
-    private readonly IPortfolioRepository _portfolioRepository;
+    private readonly IUserRepository _portfolioRepository;
     private readonly UserService.UserServiceClient _grpcClient;
 
-    public GetPortfoliosQueryHandler(IPortfolioRepository portfolioRepository, IUserBuilder userBuilder, UserService.UserServiceClient grpcClient)
+    public GetPortfoliosQueryHandler(IUserRepository portfolioRepository, IUserBuilder userBuilder, UserService.UserServiceClient grpcClient)
     {
         _portfolioRepository = portfolioRepository;
         _userBuilder = userBuilder;
@@ -38,9 +38,7 @@ public sealed class GetPortfoliosQueryHandler : IRequestHandler<GetPortfoliosQue
             throw new ArgumentException("You does not have access to this call");
         }
 
-        var token = await _portfolioRepository.GetTokenAsync(userName, cancellationToken);
-
-        var user = await _userBuilder.BuildAsync(userName, token, cancellationToken);
+        var user = await _portfolioRepository.GetByUserNameAsync(userName, cancellationToken);
 
         return user.Portfolios;
     }

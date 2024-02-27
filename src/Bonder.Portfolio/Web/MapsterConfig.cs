@@ -1,4 +1,5 @@
 ﻿using Application.AttachTinkoffToken;
+using Domain.UserAggregate;
 using Domain.UserAggregate.ValueObjects;
 using Domain.UserAggregate.ValueObjects.Portfolios;
 using Infrastructure.Dto.GetAccounts;
@@ -18,9 +19,37 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new AttachTinkoffTokenCommand(new UserName(x.UserName), x.Token));
 
-        TypeAdapterConfig<Infrastructure.Common.Models.User, Domain.UserAggregate.User>
-       .ForType()
-       .MapWith(x => new Domain.UserAggregate.User(new UserName(x.UserName), x.Token, null));
+        TypeAdapterConfig<Infrastructure.Common.Models.User, User>
+        .ForType()
+        .MapWith(x => new User(new UserName(x.UserName), x.Token, null));
+
+        TypeAdapterConfig<Infrastructure.Common.Models.Portfolio, Portfolio>
+        .ForType()
+        .MapWith(x => new Portfolio(x.TotalBondPrice, x.Name, x.Type, x.Status, x.Bonds.Select(x => new Bond(x.BondId, x.Count))));
+
+        TypeAdapterConfig<Infrastructure.Common.Models.User, User>
+        .ForType()
+        .MapWith(x => new User(new UserName(x.UserName), x.Token, x.Portfolios.Adapt<IEnumerable<Portfolio>>()));
+
+        TypeAdapterConfig<User, Infrastructure.Common.Models.User>
+        .ForType()
+        .MapWith(x => new Infrastructure.Common.Models.User
+        {
+            UserName = x.Identity.Name,
+            Token = x.TinkoffToken,
+            Portfolios = x.Portfolios.Adapt<List<Infrastructure.Common.Models.Portfolio>>()
+        });
+
+        TypeAdapterConfig<Portfolio, Infrastructure.Common.Models.Portfolio>
+        .ForType()
+        .MapWith(x => new Infrastructure.Common.Models.Portfolio
+        {
+            Id = Guid.NewGuid(),
+            Name = x.Name,
+            TotalBondPrice = x.TotalBondPrice,
+            Type = x.Type,
+            Status = x.Status,
+        });
 
         TypeAdapterConfig<(GetTinkoffPortfolioResponse Portfolio, TinkoffAccount Account), Portfolio>
         .ForType()
@@ -49,6 +78,6 @@ public static class CustopMappings
             _ => PortfolioType.Unknown,
         };
 
-        return new Portfolio(totalBondPrice, account.Name, type, status, portfolio.Positions.Select(x => x.InstrumentId));
+        return new Portfolio(totalBondPrice, account.Name, type, status, portfolio.Positions.Select(x => new Bond(Guid.Parse(x.InstrumentId), x.Quantity.ToDecimal())));
     }
 }

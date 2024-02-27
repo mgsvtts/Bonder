@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Infrastructure.Calculation.Dto.GetAmortization;
 
-public class MoexAmortizationItem
+public sealed class MoexAmortizationItem
 {
     [JsonPropertyName("amortdate")]
     public DateOnly Date { get; set; }

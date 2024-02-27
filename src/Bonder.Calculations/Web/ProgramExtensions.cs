@@ -42,7 +42,6 @@ public static class ProgramExtensions
         builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((httpClient, services) =>
         {
             return new TinkoffHttpClient(httpClient,
-                                         services.GetRequiredService<IMapper>(),
                                          builder.Configuration.GetValue<string>("TinkoffToken"),
                                          builder.Configuration.GetValue<string>("TinkoffServerUrl"));
         }).AddHttpMessageHandler(rateLimiter.AsDelegate);
@@ -56,7 +55,6 @@ public static class ProgramExtensions
         builder.Services.AddHttpClient<IMoexHttpClient, MoexHttpClient>((httpClient, services) =>
         {
             return new MoexHttpClient(httpClient,
-                                      services.GetRequiredService<IMapper>(),
                                       builder.Configuration.GetValue<string>("MoexServerUrl"));
         }).AddHttpMessageHandler(rateLimiter.AsDelegate);
 

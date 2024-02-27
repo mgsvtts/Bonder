@@ -6,7 +6,7 @@ using Domain.BondAggreagte.Abstractions.Dto;
 
 namespace Application.Calculation.CalculateAll.Services;
 
-public class CalculateAllService : ICalculateAllService
+public sealed class CalculateAllService : ICalculateAllService
 {
     private readonly IBondRepository _bondRepository;
     private readonly ICalculationService _calculator;

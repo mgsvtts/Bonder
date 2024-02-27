@@ -9,7 +9,7 @@ using Mapster;
 
 namespace Application.Analyze;
 
-public class AnalyzeBondsCommandHandler : IRequestHandler<AnalyzeBondsCommand, Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>>
+public sealed class AnalyzeBondsCommandHandler : IRequestHandler<AnalyzeBondsCommand, Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>>
 {
     private const int _topFive = 5;
 
@@ -87,7 +87,7 @@ public class AnalyzeBondsCommandHandler : IRequestHandler<AnalyzeBondsCommand, D
 
     private async Task<List<BondWithIncome>> GetBetterBondsAsync(AnalyzeBondsCommand request, BondToAnalyze? bondToAnalyze, GetIncomeRequest incomeRequest, CancellationToken cancellationToken)
     {
-        var filteredBonds =  await _bondRepository.GetPriceSortedAsync
+        var filteredBonds = await _bondRepository.GetPriceSortedAsync
         (
             new GetPriceSortedRequest
             (

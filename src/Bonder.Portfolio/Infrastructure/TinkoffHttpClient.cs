@@ -3,6 +3,7 @@ using Domain.UserAggregate.Exceptions;
 using Domain.UserAggregate.ValueObjects.Portfolios;
 using Infrastructure.Dto.GetAccounts;
 using Infrastructure.Dto.GetPortfolios;
+using Mapster;
 using MapsterMapper;
 using System.Net;
 using System.Net.Http.Json;
@@ -11,21 +12,18 @@ using System.Text.Json;
 
 namespace Infrastructure;
 
-public class TinkoffHttpClient : ITinkoffHttpClient
+public sealed class TinkoffHttpClient : ITinkoffHttpClient
 {
     private readonly HttpClient _client;
     private readonly string _tinkoffUserServiceUrl;
     private readonly string _tinkoffOperationsServiceUrl;
-    private readonly IMapper _mapper;
 
     public TinkoffHttpClient(HttpClient client,
-                             IMapper mapper,
                              string tinkoffUrl,
                              string tinkoffOperationsServiceUrl)
     {
         _client = client;
         _tinkoffUserServiceUrl = tinkoffUrl;
-        _mapper = mapper;
         _tinkoffOperationsServiceUrl = tinkoffOperationsServiceUrl;
     }
 
@@ -75,10 +73,10 @@ public class TinkoffHttpClient : ITinkoffHttpClient
         var response = await _client.SendAsync(content, cancellationToken);
 
         response.EnsureSuccessStatusCode();
-
+        var a = await response.Content.ReadAsStringAsync();
         var serializedResponse = await response.Content.ReadFromJsonAsync<GetTinkoffPortfolioResponse>(cancellationToken: cancellationToken);
         serializedResponse.Positions = serializedResponse.Positions.Where(x => x.Type == "bond");
 
-        return _mapper.Map<Portfolio>((serializedResponse, request.Account));
+        return (serializedResponse, request.Account).Adapt<Portfolio>();
     }
 }

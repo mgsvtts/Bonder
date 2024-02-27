@@ -5,7 +5,7 @@ using Quartz;
 namespace Application.Calculation.CalculateAll.Jobs;
 
 [DisallowConcurrentExecution]
-public class BackgroundBondUpdater : IJob
+public sealed class BackgroundBondUpdater : IJob
 {
     private readonly IDohodHttpClient _dohodHttpClient;
     private readonly IBondRepository _bondRepository;

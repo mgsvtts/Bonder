@@ -4,7 +4,7 @@ using Domain.UserAggregate.ValueObjects;
 
 namespace Infrastructure;
 
-public class UserBuilder : IUserBuilder
+public sealed class UserBuilder : IUserBuilder
 {
     private readonly ITinkoffHttpClient _httpClient;
     private readonly UserService.UserServiceClient _grpcClient;

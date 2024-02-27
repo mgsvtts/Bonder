@@ -1,29 +1,27 @@
 using Application.Calculation.Common.Abstractions;
 using Domain.BondAggreagte;
 using Domain.BondAggreagte.ValueObjects;
+using Mapster;
 using MapsterMapper;
 
 namespace Infrastructure.Calculation.CalculateAll;
 
-public class BondBuilder : IBondBuilder
+public sealed class BondBuilder : IBondBuilder
 {
     private readonly ITInkoffHttpClient _tinkoffHttpClient;
     private readonly ITinkoffGrpcClient _tinkoffGrpcClient;
     private readonly IDohodHttpClient _dohodHttpClient;
     private readonly IMoexHttpClient _moexHttpClient;
-    private readonly IMapper _mapper;
 
     public BondBuilder(ITInkoffHttpClient tinkoffHttpClient,
                        ITinkoffGrpcClient tinkoffGrpcClient,
                        IDohodHttpClient dohodHttpClient,
-                       IMoexHttpClient moexHttpClient,
-                       IMapper mapper)
+                       IMoexHttpClient moexHttpClient)
     {
         _tinkoffHttpClient = tinkoffHttpClient;
         _tinkoffGrpcClient = tinkoffGrpcClient;
         _dohodHttpClient = dohodHttpClient;
         _moexHttpClient = moexHttpClient;
-        _mapper = mapper;
     }
 
     public async Task<Bond> BuildAsync(Ticker ticker, CancellationToken token = default)
@@ -44,7 +42,7 @@ public class BondBuilder : IBondBuilder
 
         await Task.WhenAll(ratingTask, couponTask);
 
-        return _mapper.Map<Bond>((bond, couponTask.Result, ratingTask.Result));
+        return (bond, couponTask.Result, ratingTask.Result).Adapt<Bond>();
     }
 
     public async Task<List<Bond>> BuildAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)

@@ -1,20 +1,19 @@
 ﻿using Application.Calculation.Common.Abstractions;
 using Google.Protobuf.WellKnownTypes;
+using Mapster;
 using MapsterMapper;
 using Tinkoff.InvestApi;
 using Tinkoff.InvestApi.V1;
 
 namespace Infrastructure.Calculation.CalculateAll;
 
-public class TinkoffGrpcClient : ITinkoffGrpcClient
+public sealed class TinkoffGrpcClient : ITinkoffGrpcClient
 {
     private readonly InvestApiClient _tinkoffApiClient;
-    private readonly IMapper _mapper;
 
-    public TinkoffGrpcClient(InvestApiClient client, IMapper mapper)
+    public TinkoffGrpcClient(InvestApiClient client)
     {
         _tinkoffApiClient = client;
-        _mapper = mapper;
     }
 
     public async Task<List<Domain.BondAggreagte.ValueObjects.Coupon>> GetCouponsAsync(Guid instrumentId, CancellationToken token = default)
@@ -26,6 +25,6 @@ public class TinkoffGrpcClient : ITinkoffGrpcClient
             To = Timestamp.FromDateTime(DateTime.MaxValue.ToUniversalTime())
         }, cancellationToken: token);
 
-        return _mapper.Map<List<Domain.BondAggreagte.ValueObjects.Coupon>>(coupons.Events);
+        return coupons.Events.Adapt<List<Domain.BondAggreagte.ValueObjects.Coupon>>();
     }
 }

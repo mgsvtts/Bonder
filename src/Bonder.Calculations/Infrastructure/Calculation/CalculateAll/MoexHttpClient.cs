@@ -1,25 +1,23 @@
 using Application.Calculation.Common.Abstractions;
 using Domain.BondAggreagte.ValueObjects;
 using Infrastructure.Calculation.Dto.GetAmortization;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http.Extensions;
 using System.Net.Http.Json;
 
 namespace Infrastructure.Calculation.CalculateAll;
 
-public class MoexHttpClient : IMoexHttpClient
+public sealed class MoexHttpClient : IMoexHttpClient
 {
     private static readonly Dictionary<string, string> _query = GetQueryParams();
 
     private readonly HttpClient _client;
     private readonly string _serverUrl;
-    private readonly IMapper _mapper;
 
     public MoexHttpClient(HttpClient client,
-                          IMapper mapper,
                           string serverUrl)
     {
-        _mapper = mapper;
         _client = client;
         _serverUrl = serverUrl;
     }
@@ -65,7 +63,7 @@ public class MoexHttpClient : IMoexHttpClient
         var moexItem = moexItems?.FirstOrDefault(x => x.Coupons != null)
                                  ?? throw new InvalidOperationException("Ошибка получения ответа от moex.com");
 
-        var coupons = _mapper.Map<List<Coupon>>(moexItem.Coupons);
+        var coupons = moexItem.Coupons.Adapt<List<Coupon>>();
 
         for (var i = 0; i < coupons.Count; i++)
         {

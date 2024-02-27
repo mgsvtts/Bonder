@@ -5,7 +5,7 @@ using Tinkoff.InvestApi;
 
 namespace Infrastructure.Calculation.CalculateAll;
 
-public class AllBondsReceiver : IAllBondsReceiver
+public sealed class AllBondsReceiver : IAllBondsReceiver
 {
     private static int _maxRange;
     private readonly ITInkoffHttpClient _tinkoffHttpClient;

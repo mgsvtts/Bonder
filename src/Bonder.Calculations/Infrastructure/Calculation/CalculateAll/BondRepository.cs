@@ -6,6 +6,7 @@ using Infrastructure.Common;
 using Infrastructure.Common.Extensions;
 using LinqToDB;
 using LinqToDB.Data;
+using Mapster;
 using MapsterMapper;
 using System.Data;
 
@@ -15,12 +16,9 @@ public sealed class BondRepository : IBondRepository
 {
     private readonly DbConnection _db;
 
-    private readonly IMapper _mapper;
-
-    public BondRepository(DbConnection db, IMapper mapper)
+    public BondRepository(DbConnection db)
     {
         _db = db;
-        _mapper = mapper;
     }
 
     public async Task<int> CountAsync(CancellationToken token = default)
@@ -30,10 +28,10 @@ public sealed class BondRepository : IBondRepository
 
     public async Task UpdateAsync(Bond bond, CancellationToken token = default)
     {
-        var dbCoupons = _mapper.Map<List<Common.Models.Coupon>>(bond.Coupons);
+        var dbCoupons = bond.Coupons.Adapt<List<Common.Models.Coupon>>();
         SetCouponValues(dbCoupons, bond.Identity);
 
-        var dbBond = _mapper.Map<Common.Models.Bond>(bond);
+        var dbBond = bond.Adapt<Common.Models.Bond>();
         dbBond.UpdatedAt = DateTime.Now;
 
         try
@@ -64,7 +62,7 @@ public sealed class BondRepository : IBondRepository
         .Take(range.End.Value - range.Start.Value)
         .ToListAsync(token: token);
 
-        return _mapper.Map<List<Bond>>(dbBonds);
+        return dbBonds.Adapt<List<Bond>>();
     }
 
     public async Task<List<Bond>> GetAllFloatingAsync(CancellationToken token = default)
@@ -74,7 +72,7 @@ public sealed class BondRepository : IBondRepository
         .Where(x => x.Coupons.Any(x => x.IsFloating))
         .ToListAsync(token: token);
 
-        return _mapper.Map<List<Bond>>(dbBonds);
+        return dbBonds.Adapt<List<Bond>>();
     }
 
     public async Task<List<Bond>> GetByTickersAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
@@ -84,7 +82,7 @@ public sealed class BondRepository : IBondRepository
         .Where(x => tickers.Select(x => x.Value).Contains(x.Ticker))
         .ToListAsync(token: token);
 
-        return _mapper.Map<List<Bond>>(dbBonds);
+        return dbBonds.Adapt<List<Bond>>();
     }
 
     public async Task RefreshAsync(IEnumerable<Ticker> newBondTickers, CancellationToken token = default)
@@ -146,12 +144,12 @@ public sealed class BondRepository : IBondRepository
 
         if (takeAll)
         {
-            return new GetPriceSortedResponse(null, _mapper.Map<List<Bond>>(bonds));
+            return new GetPriceSortedResponse(null, bonds.Adapt<List<Bond>>());
         }
 
         var pageInfo = CreatePageInfo(filter, bonds, await query.CountAsync(token: token));
 
-        return new GetPriceSortedResponse(pageInfo, _mapper.Map<List<Bond>>(bonds));
+        return new GetPriceSortedResponse(pageInfo, bonds.Adapt<List<Bond>>());
     }
 
     private static PageInfo CreatePageInfo(GetPriceSortedRequest filter, List<Common.Models.Bond> bonds, int total)
@@ -173,12 +171,12 @@ public sealed class BondRepository : IBondRepository
         .OrderBy(x => x.AbsolutePrice)
         .ToListAsync(token);
 
-        return _mapper.Map<List<Bond>>(bonds);
+        return bonds.Adapt<List<Bond>>();
     }
 
     public async Task AddAsync(IEnumerable<Bond> bonds, CancellationToken token = default)
     {
-        var dbBonds = _mapper.Map<List<Common.Models.Bond>>(bonds);
+        var dbBonds = bonds.Adapt<List<Common.Models.Bond>>();
 
         var tasks = dbBonds.Select(x => Task.Run(() => SetBondValues(x)));
 

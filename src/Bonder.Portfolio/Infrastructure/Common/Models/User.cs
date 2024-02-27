@@ -7,8 +7,11 @@ public sealed class User
 {
     [PrimaryKey]
     [Column("user_name")]
-    public string UserName { get; set; }
+    public required string UserName { get; set; }
 
     [Column("token")]
-    public string Token { get; set; }
+    public required string Token { get; set; }
+
+    [Association(ThisKey = nameof(UserName), OtherKey = nameof(Portfolio.UserName))]
+    public required List<Portfolio> Portfolios { get; set; }
 }
