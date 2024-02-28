@@ -1,5 +1,5 @@
 using Application.Common.Abstractions;
-using Bonder.Auth;
+using Bonder.Auth.Grpc;
 using Domain.UserAggregate.ValueObjects;
 
 namespace Infrastructure;

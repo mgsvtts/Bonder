@@ -3,7 +3,7 @@ using Domain.UserAggregate;
 using Domain.UserAggregate.Repositories;
 using MediatR;
 
-namespace Application.Claims.Remove;
+namespace Application.Commands.Claims.Remove;
 
 public sealed class RemoveClaimsCommandHandler : IRequestHandler<RemoveClaimsCommand, User>
 {

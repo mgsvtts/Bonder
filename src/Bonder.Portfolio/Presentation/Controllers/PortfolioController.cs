@@ -37,27 +37,4 @@ public sealed class PortfolioController : ControllerBase
     {
         return await _sender.Send(new GetPortfoliosQuery(HttpContext.Request.Headers.Authorization), cancellationToken);
     }
-
-    [HttpPost("export")]
-    public async Task ExportAsync([FromForm]IFormFile file)
-    {
-        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-        using var package = new ExcelPackage(file.OpenReadStream());
-        var currentSheet = package.Workbook.Worksheets;
-        var workSheet = currentSheet.First();
-        workSheet.Cells[1, 1].Value = "Text in first row and first column"; // EPPlus index of columns and rows are from 1 not 0
-
-        using var memStream = new MemoryStream();
-        package.SaveAs(memStream);
-
-        using var fileStream = System.IO.File.Create("path");
-        byte[] buffer = new byte[1024];
-        int bytesRead;
-        do
-        {
-            bytesRead = memStream.Read(buffer, 0, buffer.Length);
-            fileStream.Write(buffer, 0, bytesRead);
-        } while (bytesRead > 0);
-    }
 }

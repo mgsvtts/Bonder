@@ -3,7 +3,7 @@ using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using MediatR;
 
-namespace Application.Register;
+namespace Application.Commands.Register;
 
 public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand>
 {

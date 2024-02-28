@@ -4,7 +4,7 @@ using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using MediatR;
 
-namespace Application.Refresh;
+namespace Application.Commands.Refresh;
 
 public sealed class RefreshTokensCommandHandler : IRequestHandler<RefreshTokensCommand, Tokens>
 {

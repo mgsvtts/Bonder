@@ -3,7 +3,7 @@ using Domain.UserAggregate;
 using Domain.UserAggregate.Repositories;
 using MediatR;
 
-namespace Application.Claims.Add;
+namespace Application.Commands.Claims.Add;
 
 public sealed class AddClaimsCommandHandler : IRequestHandler<AddClaimsCommand, User>
 {

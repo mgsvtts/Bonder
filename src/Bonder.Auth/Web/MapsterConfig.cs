@@ -1,6 +1,6 @@
-using Application.Claims.Add;
-using Application.Claims.Remove;
-using Application.Login;
+using Application.Commands.Claims.Add;
+using Application.Commands.Claims.Remove;
+using Application.Commands.Login;
 using Domain.UserAggregate;
 using Domain.UserAggregate.ValueObjects;
 using Mapster;

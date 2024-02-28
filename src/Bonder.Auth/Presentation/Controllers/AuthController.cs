@@ -1,6 +1,6 @@
-using Application.Login;
-using Application.Refresh;
-using Application.Register;
+using Application.Commands.Login;
+using Application.Commands.Refresh;
+using Application.Commands.Register;
 using Domain.UserAggregate.ValueObjects;
 using Mapster;
 using MapsterMapper;

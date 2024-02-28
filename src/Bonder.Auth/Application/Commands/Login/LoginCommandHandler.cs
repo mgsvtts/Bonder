@@ -4,7 +4,7 @@ using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using MediatR;
 
-namespace Application.Login;
+namespace Application.Commands.Login;
 
 public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Tokens>
 {

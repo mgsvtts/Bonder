@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package bonder.auth;
+package bonder.auth.grpc;
 
 message User {
 	string id = 1;

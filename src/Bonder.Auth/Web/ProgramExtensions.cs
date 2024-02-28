@@ -1,13 +1,13 @@
 using Application.Common;
 using Domain.UserAggregate.Repositories;
 using Infrastructure.Common;
-using Infrastructure.GrpcServer;
 using Infrastructure.Token;
 using Infrastructure.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Presentation.Grpc;
 using System.Text;
 using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 

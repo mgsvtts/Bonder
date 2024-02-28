@@ -1,5 +1,5 @@
-using Application.Claims.Add;
-using Application.Claims.Remove;
+using Application.Commands.Claims.Add;
+using Application.Commands.Claims.Remove;
 using Mapster;
 using MapsterMapper;
 using MediatR;

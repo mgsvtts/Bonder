@@ -1,25 +1,27 @@
 ﻿using Application.Common;
+using Application.Queries;
+using Application.Queries.GetPrincipalFromToken;
+using Application.Queries.GetUserByUserName;
 using Bonder.Auth;
+using Bonder.Auth.Grpc;
 using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using Grpc.Core;
+using MediatR;
 
-namespace Infrastructure.GrpcServer;
+namespace Presentation.Grpc;
 
 public sealed class UserServiceImpl : UserService.UserServiceBase
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IJWTTokenGenerator _tokenGenerator;
-
-    public UserServiceImpl(IUserRepository userRepository, IJWTTokenGenerator tokenGenerator)
+    private readonly ISender _sender;
+    public UserServiceImpl(ISender sender)
     {
-        _userRepository = userRepository;
-        _tokenGenerator = tokenGenerator;
+        _sender = sender;
     }
 
     public override async Task<User> GetUserByUserName(GetUserByUserNameRequest request, ServerCallContext context)
     {
-        var user = await _userRepository.GetByUserNameAsync(new UserName(request.UserName), context.CancellationToken);
+        var user = await _sender.Send(new GetUserByUserNameQuery(new UserName(request.UserName)), context.CancellationToken);
 
         return new User
         {
@@ -33,7 +35,7 @@ public sealed class UserServiceImpl : UserService.UserServiceBase
     {
         try
         {
-            var principal = await _tokenGenerator.ValidateTokenAsync(request.Token, true);
+            var principal = await _sender.Send(new GetPrincipalFromTokenQuery(request.Token), context.CancellationToken);
 
             return new GetUserByTokenResponse
             {

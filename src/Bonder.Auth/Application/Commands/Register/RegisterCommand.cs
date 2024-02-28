@@ -1,5 +1,5 @@
 using MediatR;
 
-namespace Application.Register;
+namespace Application.Commands.Register;
 
 public sealed record RegisterCommand(string UserName, string Password) : IRequest;

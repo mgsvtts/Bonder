@@ -1,6 +1,6 @@
 ﻿using Application.Common;
 using Application.Common.Abstractions;
-using Bonder.Auth;
+using Bonder.Auth.Grpc;
 using Domain.UserAggregate.Abstractions.Repositories;
 using Infrastructure;
 using Infrastructure.Common;
