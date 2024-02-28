@@ -8,7 +8,7 @@ message User {
 	bool is_admin = 3;
 }
 
-service UserService {
+service AuthService {
   rpc GetUserByUserName(GetUserByUserNameRequest) returns (User);
   rpc GetUserByToken(GetUserByTokenRequest) returns (GetUserByTokenResponse);
 }

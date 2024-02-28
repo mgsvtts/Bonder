@@ -1,6 +1,7 @@
 ﻿using Application.Common;
 using Application.Common.Abstractions;
 using Bonder.Auth.Grpc;
+using Bonder.Portfolio.Grpc;
 using Domain.UserAggregate.Abstractions.Repositories;
 using Infrastructure;
 using Infrastructure.Common;
@@ -8,6 +9,8 @@ using LinqToDB;
 using LinqToDB.AspNet;
 using LinqToDB.AspNet.Logging;
 using MapsterMapper;
+using Presentation.Controllers;
+using Presentation.Grpc;
 using RateLimiter;
 using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 using Web.Extensions;
@@ -25,7 +28,7 @@ public static class ProgramExtensions
         builder.Services.AddGrpc();
 
         var authServerUrl = new Uri(builder.Configuration.GetValue<string>("AuthServerUrl"));
-        builder.Services.AddGrpcClient<UserService.UserServiceClient>(options => options.Address = authServerUrl);
+        builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(options => options.Address = authServerUrl);
 
         var rateLimiter = TimeLimiter.GetFromMaxCountByInterval(1, TimeSpan.FromMilliseconds(201));
 
@@ -85,6 +88,8 @@ public static class ProgramExtensions
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
+
+        app.MapGrpcService<PortfolioServiceImpl>();
 
         app.MapControllers();
 

@@ -53,6 +53,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Domain", "src\Bonder
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{A8378049-18A5-49DC-B958-DA1A6695E689}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Contracts", "src\Bonder.Shared\Shared.Contracts\Shared.Contracts.csproj", "{853B06C0-3E0D-46FE-ABB6-917F413C956F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -135,6 +137,10 @@ Global
 		{A8378049-18A5-49DC-B958-DA1A6695E689}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8378049-18A5-49DC-B958-DA1A6695E689}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8378049-18A5-49DC-B958-DA1A6695E689}.Release|Any CPU.Build.0 = Release|Any CPU
+		{853B06C0-3E0D-46FE-ABB6-917F413C956F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{853B06C0-3E0D-46FE-ABB6-917F413C956F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{853B06C0-3E0D-46FE-ABB6-917F413C956F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{853B06C0-3E0D-46FE-ABB6-917F413C956F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -162,6 +168,7 @@ Global
 		{22E6AC2F-5FB5-481C-B910-A510A5A1EE94} = {44EA86F6-4D10-429E-9288-6073817B89D9}
 		{A56E338F-363B-43C2-8E7F-5F061868D6AC} = {22E6AC2F-5FB5-481C-B910-A510A5A1EE94}
 		{7EE04D16-5C1A-4420-B35A-49B52C4F0BE3} = {22E6AC2F-5FB5-481C-B910-A510A5A1EE94}
+		{853B06C0-3E0D-46FE-ABB6-917F413C956F} = {22E6AC2F-5FB5-481C-B910-A510A5A1EE94}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BDF9679E-5CC3-40C5-BDF7-AB6E41A1DEA9}

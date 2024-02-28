@@ -7,9 +7,9 @@ namespace Infrastructure;
 public sealed class UserBuilder : IUserBuilder
 {
     private readonly ITinkoffHttpClient _httpClient;
-    private readonly UserService.UserServiceClient _grpcClient;
+    private readonly AuthService.AuthServiceClient _grpcClient;
 
-    public UserBuilder(ITinkoffHttpClient httpClient, UserService.UserServiceClient grpcClient)
+    public UserBuilder(ITinkoffHttpClient httpClient, AuthService.AuthServiceClient grpcClient)
     {
         _httpClient = httpClient;
         _grpcClient = grpcClient;

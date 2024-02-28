@@ -15,6 +15,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+	  <ProjectReference Include="..\..\Bonder.Shared\Shared.Contracts\Shared.Contracts.csproj" />
 	  <ProjectReference Include="..\..\Bonder.Shared\Shared.Proto\Shared.Proto.csproj" />
 	  <ProjectReference Include="..\Application\Application.csproj" />
 	</ItemGroup>

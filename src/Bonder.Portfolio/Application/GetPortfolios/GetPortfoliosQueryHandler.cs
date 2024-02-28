@@ -10,14 +10,12 @@ namespace Application.GetPortfolios;
 
 public sealed class GetPortfoliosQueryHandler : IRequestHandler<GetPortfoliosQuery, IEnumerable<Portfolio>>
 {
-    private readonly IUserBuilder _userBuilder;
     private readonly IUserRepository _portfolioRepository;
-    private readonly UserService.UserServiceClient _grpcClient;
+    private readonly AuthService.AuthServiceClient _grpcClient;
 
-    public GetPortfoliosQueryHandler(IUserRepository portfolioRepository, IUserBuilder userBuilder, UserService.UserServiceClient grpcClient)
+    public GetPortfoliosQueryHandler(IUserRepository portfolioRepository, AuthService.AuthServiceClient grpcClient)
     {
         _portfolioRepository = portfolioRepository;
-        _userBuilder = userBuilder;
         _grpcClient = grpcClient;
     }
 

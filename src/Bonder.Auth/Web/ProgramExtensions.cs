@@ -1,4 +1,6 @@
 using Application.Common;
+using Bonder.Auth.Grpc;
+using Bonder.Portfolio.Grpc;
 using Domain.UserAggregate.Repositories;
 using Infrastructure.Common;
 using Infrastructure.Token;
@@ -59,6 +61,9 @@ public static class ProgramExtensions
 
         builder.Services.AddGrpc();
 
+        var portfolioServerUrl = new Uri(builder.Configuration.GetValue<string>("PortfolioServerUrl"));
+        builder.Services.AddGrpcClient<PortfolioService.PortfolioServiceClient>(options => options.Address = portfolioServerUrl);
+
         builder.Services.AddAuthentication(x =>
         {
             x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -115,7 +120,7 @@ public static class ProgramExtensions
 
         app.UseAuthorization();
 
-        app.MapGrpcService<UserServiceImpl>();
+        app.MapGrpcService<AuthServiceImpl>();
 
         app.MapControllers();
 

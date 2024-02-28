@@ -11,10 +11,10 @@ using MediatR;
 
 namespace Presentation.Grpc;
 
-public sealed class UserServiceImpl : UserService.UserServiceBase
+public sealed class AuthServiceImpl : AuthService.AuthServiceBase
 {
     private readonly ISender _sender;
-    public UserServiceImpl(ISender sender)
+    public AuthServiceImpl(ISender sender)
     {
         _sender = sender;
     }

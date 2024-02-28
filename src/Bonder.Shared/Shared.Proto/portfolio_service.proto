@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package bonder.portfolio.grpc;
+
+service PortfolioService {
+	rpc DeleteUser(DeleteUserRequest) returns (Void);
+}
+
+message DeleteUserRequest {
+	string user_name = 1;
+}
+
+message Void{}

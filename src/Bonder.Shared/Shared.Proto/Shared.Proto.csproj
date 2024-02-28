@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="user_service.proto" />
+    <None Remove="auth_service.proto" />
+    <None Remove="portfolio_service.proto" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,7 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="user_service.proto" GrpcServices="Both" />
+    <Protobuf Include="auth_service.proto" GrpcServices="Both" />
+    <Protobuf Include="portfolio_service.proto" />
   </ItemGroup>
 
 </Project>

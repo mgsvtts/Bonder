@@ -19,30 +19,37 @@ public sealed class UserRepository : IUserRepository
         _db = db;
     }
 
-    public async Task AddAsync(Domain.UserAggregate.User user, CancellationToken cancellationToken = default)
+    public async Task AddAsync(Domain.UserAggregate.User user, CancellationToken token = default)
     {
         var dbUser = user.Adapt<Common.Models.User>();
         var portfolioBonds = SetPortfolioValues(dbUser, user);
 
         try
         {
-            await _db.BeginTransactionAsync(cancellationToken);
+            await _db.BeginTransactionAsync(token);
 
             await _db.Portfolios.Where(x => x.UserName == dbUser.UserName)
-            .DeleteAsync(token: cancellationToken);
+            .DeleteAsync(token: token);
 
-            await _db.InsertOrReplaceAsync(dbUser, token: cancellationToken);
-            await _db.BulkCopyAsync(dbUser.Portfolios, cancellationToken: cancellationToken);
-            await _db.BulkCopyAsync(portfolioBonds, cancellationToken: cancellationToken);
+            await _db.InsertOrReplaceAsync(dbUser, token: token);
+            await _db.BulkCopyAsync(dbUser.Portfolios, cancellationToken: token);
+            await _db.BulkCopyAsync(portfolioBonds, cancellationToken: token);
 
-            await _db.CommitTransactionAsync(cancellationToken);
+            await _db.CommitTransactionAsync(token);
         }
         catch
         {
-            await _db.RollbackTransactionAsync(cancellationToken);
+            await _db.RollbackTransactionAsync(token);
 
             throw;
         }
+    }
+
+    public async Task DeleteAsync(UserName userName, CancellationToken token = default)
+    {
+        await _db.Users
+        .Where(x => x.UserName == userName.Name)
+        .DeleteAsync(token: token);
     }
 
     public async Task<Domain.UserAggregate.User> GetByUserNameAsync(UserName userName, CancellationToken token = default)

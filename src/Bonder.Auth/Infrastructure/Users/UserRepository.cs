@@ -31,6 +31,19 @@ public sealed class UserRepository : IUserRepository
         }
     }
 
+    public async Task<Domain.UserAggregate.User> DeleteAsync(UserId id, CancellationToken token = default)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == id.Identity.ToString(), cancellationToken: token)
+        ?? throw new UserNotFoundException(id.Identity.ToString());
+
+        await _db.Users.Where(x => x.Id == id.Identity.ToString())
+        .ExecuteDeleteAsync(cancellationToken: token);
+
+        var claims = await _userManager.GetClaimsAsync(user);
+
+        return (user, claims).Adapt<Domain.UserAggregate.User>();
+    }
+
     public async Task SetRefreshTokenAsync(UserName userName, string refreshToken, CancellationToken cancellationToken = default)
     {
         await _db.Users
