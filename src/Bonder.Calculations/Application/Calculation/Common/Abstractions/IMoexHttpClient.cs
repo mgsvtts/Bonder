@@ -1,8 +1,9 @@
-using Domain.BondAggreagte.ValueObjects;
+using Application.Calculation.Common.Abstractions.Dto;
+using Domain.BondAggreagte.ValueObjects.Identities;
 
 namespace Application.Calculation.Common.Abstractions;
 
 public interface IMoexHttpClient
 {
-    public Task<List<Coupon>> GetAmortizedCouponsAsync(Ticker ticker, CancellationToken token = default);
+    public Task<MoexResponse> GetMoexResponseAsync(Ticker ticker, CancellationToken token = default);
 }

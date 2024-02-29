@@ -1,5 +1,7 @@
 ﻿using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
+using Domain.BondAggreagte.ValueObjects.Identities;
+using Domain.BondAggreagte.ValueObjects.Incomes;
 using Shared.Domain.Common.Models;
 
 namespace Domain.BondAggreagte;
@@ -7,29 +9,32 @@ namespace Domain.BondAggreagte;
 public sealed class Bond : AggregateRoot<BondId>
 {
     private List<Coupon> _coupons = [];
+    private readonly List<Amortization> _amortizations = [];
 
     public string Name { get; private set; }
     public FullIncome Income { get; private set; }
     public Dates Dates { get; private set; }
     public int? Rating { get; private set; }
-    public bool IsAmortized { get; private set; }
+    public bool IsAmortized => _amortizations.Count != 0;
     public IReadOnlyList<Coupon> Coupons => _coupons.AsReadOnly();
+    public IReadOnlyList<Amortization> Amortizations => _amortizations.AsReadOnly();
 
     public Bond(BondId id,
                 string name,
                 StaticIncome income,
                 Dates dates,
                 int? rating,
-                bool isAmortized,
-                IEnumerable<Coupon> coupons) : base(id)
+                IEnumerable<Coupon> coupons,
+                IEnumerable<Amortization>? amortizations = null) : base(id)
     {
-        Name = name;
         _coupons = coupons.ToList();
+        _amortizations = amortizations is not null ? amortizations.ToList() : _amortizations;
+
+        Name = name;
         Dates = dates;
         Rating = rating;
-        IsAmortized = isAmortized;
-        Income = new FullIncome(income, CouponIncome.None);
-        Income = Income with { CouponIncome = GetCouponOnlyIncome(new GetIncomeRequest(DateIntervalType.TillOfferDate)) };
+        Income = new FullIncome(income, CouponIncome.None, AmortizationIncome.None);
+        Income = Income with { CouponIncome = GetCouponIncome(new GetIncomeRequest(DateIntervalType.TillOfferDate)) };
     }
 
     public Bond UpdateRating(int? rating)
@@ -55,17 +60,18 @@ public sealed class Bond : AggregateRoot<BondId>
 
     public FullIncome GetIncomeOnDate(GetIncomeRequest request)
     {
-        var couponIncome = GetCouponOnlyIncome(request);
+        var couponIncome = GetCouponIncome(request);
+        var amortizationIncome = GetAmortizationIncome(request.DateFrom, request.DateTo);
 
         if (IsFullIncomeDate(request))
         {
-            return new FullIncome(Income.StaticIncome, couponIncome);
+            return new FullIncome(Income.StaticIncome, couponIncome, amortizationIncome);
         }
 
-        return new FullIncome(StaticIncome.None, couponIncome);
+        return new FullIncome(StaticIncome.None, couponIncome, amortizationIncome);
     }
 
-    private CouponIncome GetCouponOnlyIncome(GetIncomeRequest request)
+    private CouponIncome GetCouponIncome(GetIncomeRequest request)
     {
         var dateTo = GetTillDate(request);
 
@@ -86,6 +92,20 @@ public sealed class Bond : AggregateRoot<BondId>
         }
 
         return CouponIncome.None;
+    }
+
+    private AmortizationIncome GetAmortizationIncome(DateOnly dateFrom, DateOnly dateTo)
+    {
+        if (Amortizations.Count == 0)
+        {
+            return AmortizationIncome.None;
+        }
+
+        var absoluteAmortization = Amortizations
+        .Where(x => x.PaymentDate >= dateFrom && x.PaymentDate <= dateTo)
+        .Sum(x => x.Payout);
+
+        return new AmortizationIncome(absoluteAmortization, absoluteAmortization / Income.StaticIncome.AbsoluteNominal);
     }
 
     private CouponIncome GetOrdinaryCouponsIncome(IEnumerable<Coupon> futureCoupons)

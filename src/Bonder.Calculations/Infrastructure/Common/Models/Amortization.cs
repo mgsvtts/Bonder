@@ -2,8 +2,8 @@
 
 namespace Infrastructure.Common.Models;
 
-[Table("coupons")]
-public sealed class Coupon
+[Table("amortizations")]
+public sealed class Amortization
 {
     [PrimaryKey]
     [Column("id")]
@@ -20,12 +20,6 @@ public sealed class Coupon
 
     [Column("payout")]
     public decimal Payout { get; set; }
-
-    [Column("dividend_cut_off_date")]
-    public DateOnly? DividendCutOffDate { get; set; }
-
-    [Column("is_floating")]
-    public bool IsFloating { get; set; }
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }

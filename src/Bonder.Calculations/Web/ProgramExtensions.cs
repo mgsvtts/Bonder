@@ -9,7 +9,6 @@ using Infrastructure.Common;
 using LinqToDB;
 using LinqToDB.AspNet;
 using LinqToDB.AspNet.Logging;
-using MapsterMapper;
 using Microsoft.AspNetCore.RateLimiting;
 using Presentation.Filters;
 using Quartz;

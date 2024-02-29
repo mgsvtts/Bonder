@@ -2,12 +2,12 @@
 using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.ValueObjects;
+using Domain.BondAggreagte.ValueObjects.Identities;
 using Infrastructure.Common;
 using Infrastructure.Common.Extensions;
 using LinqToDB;
 using LinqToDB.Data;
 using Mapster;
-using MapsterMapper;
 using System.Data;
 
 namespace Infrastructure.Calculation.CalculateAll;
@@ -21,15 +21,36 @@ public sealed class BondRepository : IBondRepository
         _db = db;
     }
 
-    public async Task<int> CountAsync(CancellationToken token = default)
+    public async Task AddAsync(IEnumerable<Bond> bonds, CancellationToken token = default)
     {
-        return await _db.Bonds.CountAsync(token);
+        var dbBonds = bonds.Adapt<List<Common.Models.Bond>>();
+
+        var tasks = dbBonds.Select(x => Task.Run(() => SetBondValues(x)));
+
+        await Task.WhenAll(tasks);
+
+        await _db.BeginTransactionAsync(token);
+
+        try
+        {
+            await _db.BulkCopyAsync(dbBonds, cancellationToken: token);
+            await _db.BulkCopyAsync(dbBonds.SelectMany(x => x.Coupons), cancellationToken: token);
+            await _db.BulkCopyAsync(dbBonds.SelectMany(x => x.Amortizations), cancellationToken: token);
+        }
+        catch
+        {
+            await _db.RollbackTransactionAsync(token);
+            throw;
+        }
+
+        await _db.CommitTransactionAsync(token);
     }
 
     public async Task UpdateAsync(Bond bond, CancellationToken token = default)
     {
         var dbCoupons = bond.Coupons.Adapt<List<Common.Models.Coupon>>();
-        SetCouponValues(dbCoupons, bond.Identity);
+        var dbAmortizations = bond.Amortizations.Adapt<List<Common.Models.Amortization>>();
+        SetValues(dbCoupons, dbAmortizations, bond.Identity);
 
         var dbBond = bond.Adapt<Common.Models.Bond>();
         dbBond.UpdatedAt = DateTime.Now;
@@ -42,7 +63,12 @@ public sealed class BondRepository : IBondRepository
             .Where(x => x.BondId == bond.Identity.InstrumentId)
             .DeleteAsync(token);
 
+            await _db.Amortizations
+            .Where(x => x.BondId == bond.Identity.InstrumentId)
+            .DeleteAsync(token);
+
             await _db.BulkCopyAsync(dbCoupons, cancellationToken: token);
+            await _db.BulkCopyAsync(dbAmortizations, cancellationToken: token);
 
             await _db.UpdateAsync(dbBond, token: token);
 
@@ -52,6 +78,11 @@ public sealed class BondRepository : IBondRepository
         {
             await _db.RollbackTransactionAsync(token);
         }
+    }
+
+    public async Task<int> CountAsync(CancellationToken token = default)
+    {
+        return await _db.Bonds.CountAsync(token);
     }
 
     public async Task<List<Bond>> TakeRangeAsync(Range range, CancellationToken token = default)
@@ -125,8 +156,6 @@ public sealed class BondRepository : IBondRepository
         var query = _db.Bonds
         .WhereIf(tickers != null, x => tickers!.Select(x => x.Value).Contains(x.Ticker))
         .WhereIf(uids != null, x => uids!.Contains(x.Id))
-        .Where(x => x.MaturityDate >= filter.DateFrom || x.OfferDate >= filter.DateFrom)
-        .Where(x => x.MaturityDate <= filter.DateTo || x.OfferDate <= filter.DateTo)
         .Where(x => x.AbsolutePrice >= filter.PriceFrom)
         .Where(x => x.AbsolutePrice <= filter.PriceTo)
         .Where(x => x.Rating == null || (x.Rating >= filter.RatingFrom && x.Rating <= filter.RatingTo))
@@ -140,6 +169,8 @@ public sealed class BondRepository : IBondRepository
         .TakeIf(!takeAll, filter.PageInfo.ItemsOnPage)
         .LoadWith(x => x.Coupons.Where(x => x.PaymentDate >= filter.DateFrom)
                                 .Where(x => x.PaymentDate <= filter.DateTo))
+        .LoadWith(x => x.Amortizations.Where(x => x.PaymentDate >= filter.DateFrom)
+                                      .Where(x => x.PaymentDate <= filter.DateTo))
         .ToListAsync(token: token);
 
         if (takeAll)
@@ -164,56 +195,36 @@ public sealed class BondRepository : IBondRepository
         return pageInfo;
     }
 
-    public async Task<List<Bond>> GetPriceSortedAsync(CancellationToken token = default)
-    {
-        var bonds = await _db.Bonds
-        .LoadWith(x => x.Coupons)
-        .OrderBy(x => x.AbsolutePrice)
-        .ToListAsync(token);
-
-        return bonds.Adapt<List<Bond>>();
-    }
-
-    public async Task AddAsync(IEnumerable<Bond> bonds, CancellationToken token = default)
-    {
-        var dbBonds = bonds.Adapt<List<Common.Models.Bond>>();
-
-        var tasks = dbBonds.Select(x => Task.Run(() => SetBondValues(x)));
-
-        await Task.WhenAll(tasks);
-
-        await _db.BeginTransactionAsync(token);
-
-        try
-        {
-            await _db.BulkCopyAsync(dbBonds, cancellationToken: token);
-            await _db.BulkCopyAsync(dbBonds.SelectMany(x => x.Coupons), cancellationToken: token);
-        }
-        catch
-        {
-            await _db.RollbackTransactionAsync(token);
-            throw;
-        }
-
-        await _db.CommitTransactionAsync(token);
-    }
-
     private static void SetBondValues(Common.Models.Bond bond)
     {
         bond.CreatedAt = DateTime.Now;
+        bond.UpdatedAt = DateTime.Now;
         foreach (var coupon in bond.Coupons)
         {
+            coupon.CreatedAt = DateTime.Now;
             coupon.BondId = bond.Id;
+        }
+
+        foreach (var amortization in bond.Amortizations)
+        {
+            amortization.CreatedAt = DateTime.Now;
+            amortization.BondId = bond.Id;
         }
     }
 
-    private static async void SetCouponValues(List<Common.Models.Coupon> coupons, BondId id)
+    private static async void SetValues(List<Common.Models.Coupon> coupons, List<Common.Models.Amortization> amortizations, BondId id)
     {
         var tasks = coupons.Select(x => Task.Run(() =>
         {
             x.CreatedAt = DateTime.Now;
             x.BondId = id.InstrumentId;
         })).ToList();
+
+        tasks.AddRange(amortizations.Select(x => Task.Run(() =>
+        {
+            x.CreatedAt = DateTime.Now;
+            x.BondId = id.InstrumentId;
+        })));
 
         await Task.WhenAll(tasks);
     }

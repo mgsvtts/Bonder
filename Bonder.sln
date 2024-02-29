@@ -53,7 +53,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Domain", "src\Bonder
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{A8378049-18A5-49DC-B958-DA1A6695E689}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Contracts", "src\Bonder.Shared\Shared.Contracts\Shared.Contracts.csproj", "{853B06C0-3E0D-46FE-ABB6-917F413C956F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Contracts", "src\Bonder.Shared\Shared.Contracts\Shared.Contracts.csproj", "{853B06C0-3E0D-46FE-ABB6-917F413C956F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

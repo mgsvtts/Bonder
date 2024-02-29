@@ -1,5 +1,5 @@
 ﻿using Application.Calculation.Common.Abstractions;
-using Domain.BondAggreagte.ValueObjects;
+using Domain.BondAggreagte.ValueObjects.Identities;
 using Infrastructure.Calculation.Dto.GetRating;
 using Microsoft.AspNetCore.Http.Extensions;
 using System.Net.Http.Json;

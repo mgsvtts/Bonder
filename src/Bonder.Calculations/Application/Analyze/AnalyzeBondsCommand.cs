@@ -1,6 +1,5 @@
 using Application.Analyze.Dto;
-using Domain.BondAggreagte;
-using Domain.BondAggreagte.ValueObjects;
+using Domain.BondAggreagte.ValueObjects.Identities;
 using MediatR;
 
 namespace Application.Analyze;

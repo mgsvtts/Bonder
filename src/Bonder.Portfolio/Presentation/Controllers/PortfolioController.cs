@@ -2,15 +2,11 @@
 using Application.GetPortfolios;
 using Domain.UserAggregate.ValueObjects.Portfolios;
 using Mapster;
-using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Controllers.Dto.AttachToken;
 using Presentation.Filters;
-using Shared.Contracts;
-using System.IO;
-using System.Text.Json;
 
 namespace Presentation.Controllers;
 

@@ -1,16 +1,11 @@
 ﻿using Application.DeleteUser;
-using Bonder.Auth.Grpc;
 using Bonder.Portfolio.Grpc;
 using Domain.UserAggregate.ValueObjects;
 using Grpc.Core;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Presentation.Grpc;
+
 public sealed class PortfolioServiceImpl : PortfolioService.PortfolioServiceBase
 {
     private readonly ISender _sender;

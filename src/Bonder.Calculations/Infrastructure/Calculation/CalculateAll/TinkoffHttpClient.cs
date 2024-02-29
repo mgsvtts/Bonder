@@ -1,10 +1,10 @@
 ﻿using Application.Calculation.Common.Abstractions;
-using Domain.BondAggreagte;
+using Application.Calculation.Common.Abstractions.Dto;
 using Domain.BondAggreagte.ValueObjects;
+using Domain.BondAggreagte.ValueObjects.Identities;
 using Infrastructure.Calculation.Dto.GetBonds;
 using Infrastructure.Calculation.Dto.GetBonds.TInkoffApiData;
 using Mapster;
-using MapsterMapper;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -26,18 +26,11 @@ public sealed class TinkoffHttpClient : ITInkoffHttpClient
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
     }
 
-    public async Task<List<Bond>> GetBondsByTickersAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
-    {
-        var response = await GetTinkoffResponseAsync(tickers, token);
-
-        return response.Payload.Values.Adapt<List<Bond>>();
-    }
-
-    public async Task<Bond> GetBondByTickerAsync(Ticker ticker, CancellationToken token = default)
+    public async Task<GetBondResponse> GetBondByTickerAsync(Ticker ticker, CancellationToken token = default)
     {
         var response = await GetTinkoffResponseAsync([ticker], token);
 
-        return response.Payload.Values.First().Adapt<Bond>();
+        return response.Payload.Values.First().Adapt<GetBondResponse>();
     }
 
     public async Task<Dictionary<Ticker, StaticIncome>> GetBondPriceAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)

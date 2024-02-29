@@ -3,7 +3,6 @@ using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using Infrastructure.Common;
 using Mapster;
-using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;

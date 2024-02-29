@@ -1,4 +1,4 @@
-﻿namespace Domain.BondAggreagte.ValueObjects;
+﻿namespace Domain.BondAggreagte.ValueObjects.Incomes;
 
 public readonly record struct Coupon(DateOnly PaymentDate, decimal Payout, DateOnly? DividendCutOffDate, bool IsFloating)
 {

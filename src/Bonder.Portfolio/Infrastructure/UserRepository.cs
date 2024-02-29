@@ -1,12 +1,10 @@
-﻿
-using Domain.UserAggregate.Abstractions.Repositories;
+﻿using Domain.UserAggregate.Abstractions.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using Infrastructure.Common;
 using Infrastructure.Common.Models;
 using LinqToDB;
 using LinqToDB.Data;
 using Mapster;
-using MapsterMapper;
 
 namespace Infrastructure;
 
@@ -55,8 +53,8 @@ public sealed class UserRepository : IUserRepository
     public async Task<Domain.UserAggregate.User> GetByUserNameAsync(UserName userName, CancellationToken token = default)
     {
         var user = await _db.Users
-        .LoadWith(x=>x.Portfolios)
-        .ThenLoad(x=>x.Bonds)
+        .LoadWith(x => x.Portfolios)
+        .ThenLoad(x => x.Bonds)
         .FirstOrDefaultAsync(x => x.UserName == userName.Name, token: token)
         ?? throw new ArgumentException($"User {userName.Name} does not have authorized token");
 

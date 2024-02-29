@@ -1,10 +1,6 @@
-﻿using Application.Common;
-using Application.Queries;
-using Application.Queries.GetPrincipalFromToken;
+﻿using Application.Queries.GetPrincipalFromToken;
 using Application.Queries.GetUserByUserName;
-using Bonder.Auth;
 using Bonder.Auth.Grpc;
-using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using Grpc.Core;
 using MediatR;
@@ -14,6 +10,7 @@ namespace Presentation.Grpc;
 public sealed class AuthServiceImpl : AuthService.AuthServiceBase
 {
     private readonly ISender _sender;
+
     public AuthServiceImpl(ISender sender)
     {
         _sender = sender;

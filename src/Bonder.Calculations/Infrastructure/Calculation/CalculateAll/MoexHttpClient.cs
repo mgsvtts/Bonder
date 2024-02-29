@@ -1,8 +1,8 @@
 using Application.Calculation.Common.Abstractions;
-using Domain.BondAggreagte.ValueObjects;
+using Application.Calculation.Common.Abstractions.Dto;
+using Domain.BondAggreagte.ValueObjects.Identities;
 using Infrastructure.Calculation.Dto.GetAmortization;
 using Mapster;
-using MapsterMapper;
 using Microsoft.AspNetCore.Http.Extensions;
 using System.Net.Http.Json;
 
@@ -22,7 +22,7 @@ public sealed class MoexHttpClient : IMoexHttpClient
         _serverUrl = serverUrl;
     }
 
-    public async Task<List<Coupon>> GetAmortizedCouponsAsync(Ticker ticker, CancellationToken token = default)
+    public async Task<MoexResponse> GetMoexResponseAsync(Ticker ticker, CancellationToken token = default)
     {
         var content = new HttpRequestMessage
         {
@@ -36,7 +36,10 @@ public sealed class MoexHttpClient : IMoexHttpClient
 
         var serializedResponse = await response.Content.ReadFromJsonAsync<IEnumerable<MoexItem>>(cancellationToken: token);
 
-        return MapToCoupons(serializedResponse);
+        var moexItem = serializedResponse?.FirstOrDefault(x => x.Coupons != null)
+                       ?? throw new InvalidOperationException("Ошибка получения ответа от moex.com");
+
+        return moexItem.Adapt<MoexResponse>();
     }
 
     private string BuildQuery(Ticker ticker)
@@ -56,26 +59,5 @@ public sealed class MoexHttpClient : IMoexHttpClient
             ["iss.json"] = "extended",
             ["iss.meta"] = "off",
         };
-    }
-
-    private List<Coupon> MapToCoupons(IEnumerable<MoexItem>? moexItems)
-    {
-        var moexItem = moexItems?.FirstOrDefault(x => x.Coupons != null)
-                                 ?? throw new InvalidOperationException("РћС€РёР±РєР° РїРѕР»СѓС‡РµРЅРёСЏ РѕС‚РІРµС‚Р° РѕС‚ moex.com");
-
-        var coupons = moexItem.Coupons.Adapt<List<Coupon>>();
-
-        for (var i = 0; i < coupons.Count; i++)
-        {
-            foreach (var amortization in moexItem.Amortizations)
-            {
-                if (coupons[i].PaymentDate == amortization.Date && amortization.Payment != null)
-                {
-                    coupons[i] = coupons[i] with { Payout = coupons[i].Payout + amortization.Payment.Value };
-                }
-            }
-        }
-
-        return coupons;
     }
 }

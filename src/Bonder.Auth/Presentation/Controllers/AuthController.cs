@@ -4,13 +4,11 @@ using Application.Commands.Refresh;
 using Application.Commands.Register;
 using Domain.UserAggregate.ValueObjects;
 using Mapster;
-using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Controllers.Dto.Register;
 using Presentation.Filters;
-using Shared.Contracts;
 
 namespace Presentation.Controllers;
 
@@ -47,7 +45,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpDelete("{userId}")]
-    public async Task<IActionResult> DeleteAsync([FromRoute]Guid userId, CancellationToken token)
+    public async Task<IActionResult> DeleteAsync([FromRoute] Guid userId, CancellationToken token)
     {
         await _sender.Send(new DeleteUserCommand(new UserId(userId)), token);
 

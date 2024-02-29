@@ -1,6 +1,5 @@
 using Application.Analyze;
 using Mapster;
-using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Controllers.AnalyzeController.Analyze;

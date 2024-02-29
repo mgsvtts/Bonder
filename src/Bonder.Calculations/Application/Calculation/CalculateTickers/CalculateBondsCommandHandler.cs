@@ -3,7 +3,7 @@ using Application.Calculation.Common.Abstractions;
 using Application.Calculation.Common.CalculationService.Dto;
 using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.Abstractions.Dto;
-using Domain.BondAggreagte.ValueObjects;
+using Domain.BondAggreagte.ValueObjects.Identities;
 using MediatR;
 
 namespace Application.Calculation.CalculateTickers;

@@ -1,13 +1,9 @@
 ﻿using Bonder.Portfolio.Grpc;
 using Domain.UserAggregate.Repositories;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Commands.DeleteUser;
+
 public sealed class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand>
 {
     private readonly IUserRepository _userRepository;
@@ -24,7 +20,7 @@ public sealed class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand
         var deletedUser = await _userRepository.DeleteAsync(request.UserId, cancellationToken);
         await _grpcClient.DeleteUserAsync(new DeleteUserRequest
         {
-           UserName = deletedUser.UserName.Name 
+            UserName = deletedUser.UserName.Name
         }, cancellationToken: cancellationToken);
     }
 }

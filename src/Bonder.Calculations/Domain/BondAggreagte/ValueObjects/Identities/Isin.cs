@@ -1,6 +1,6 @@
 ﻿using Domain.BondAggreagte.Exceptions;
 
-namespace Domain.BondAggreagte.ValueObjects;
+namespace Domain.BondAggreagte.ValueObjects.Identities;
 public readonly record struct Isin
 {
     public const int Length = 12;

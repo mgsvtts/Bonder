@@ -1,11 +1,9 @@
 using Application.Analyze.Dto;
-using Domain.BondAggreagte;
 using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.Dto;
-using Domain.BondAggreagte.Exceptions;
-using MediatR;
 using Mapster;
+using MediatR;
 
 namespace Application.Analyze;
 

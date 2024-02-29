@@ -42,9 +42,9 @@ public sealed class Bond
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
 
-    [Column("is_amortized")]
-    public bool IsAmortized { get; set; }
-
     [Association(ThisKey = nameof(Id), OtherKey = nameof(Coupon.BondId))]
     public List<Coupon> Coupons { get; set; }
+
+    [Association(ThisKey = nameof(Id), OtherKey = nameof(Amortization.BondId))]
+    public List<Amortization> Amortizations { get; set; }
 }

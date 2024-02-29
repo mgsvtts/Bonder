@@ -1,5 +1,6 @@
 ﻿using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.ValueObjects;
+using Domain.BondAggreagte.ValueObjects.Identities;
 
 namespace Domain.BondAggreagte.Abstractions;
 
@@ -18,8 +19,6 @@ public interface IBondRepository
     Task<List<Ticker>> UpdateIncomesAsync(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bonds, CancellationToken token = default);
 
     Task<GetPriceSortedResponse> GetPriceSortedAsync(GetPriceSortedRequest filter, IEnumerable<Ticker>? tickers = null, IEnumerable<Guid>? uids = null, bool takeAll = false, CancellationToken token = default);
-
-    Task<List<Bond>> GetPriceSortedAsync(CancellationToken token = default);
 
     Task AddAsync(IEnumerable<Bond> bonds, CancellationToken token = default);
 

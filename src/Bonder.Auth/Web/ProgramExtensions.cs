@@ -1,5 +1,4 @@
 using Application.Common;
-using Bonder.Auth.Grpc;
 using Bonder.Portfolio.Grpc;
 using Domain.UserAggregate.Repositories;
 using Infrastructure.Common;

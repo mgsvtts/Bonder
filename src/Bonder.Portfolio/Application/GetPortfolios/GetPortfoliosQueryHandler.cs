@@ -1,5 +1,4 @@
-﻿using Application.Common.Abstractions;
-using Bonder.Auth.Grpc;
+﻿using Bonder.Auth.Grpc;
 using Domain.UserAggregate.Abstractions.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using Domain.UserAggregate.ValueObjects.Portfolios;

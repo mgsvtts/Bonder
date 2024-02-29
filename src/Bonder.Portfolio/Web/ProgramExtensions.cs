@@ -1,15 +1,12 @@
 ﻿using Application.Common;
 using Application.Common.Abstractions;
 using Bonder.Auth.Grpc;
-using Bonder.Portfolio.Grpc;
 using Domain.UserAggregate.Abstractions.Repositories;
 using Infrastructure;
 using Infrastructure.Common;
 using LinqToDB;
 using LinqToDB.AspNet;
 using LinqToDB.AspNet.Logging;
-using MapsterMapper;
-using Presentation.Controllers;
 using Presentation.Grpc;
 using RateLimiter;
 using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;

@@ -1,4 +1,4 @@
-﻿namespace Domain.BondAggreagte.ValueObjects;
+﻿namespace Domain.BondAggreagte.ValueObjects.Identities;
 public readonly record struct Ticker
 {
     public readonly string Value { get; }

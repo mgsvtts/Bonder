@@ -8,6 +8,7 @@ public sealed class DbConnection : DataConnection
 {
     public ITable<Bond> Bonds => this.GetTable<Bond>();
     public ITable<Coupon> Coupons => this.GetTable<Coupon>();
+    public ITable<Amortization> Amortizations => this.GetTable<Amortization>();
 
     public DbConnection(DataOptions<DbConnection> options) : base(options.Options)
     {

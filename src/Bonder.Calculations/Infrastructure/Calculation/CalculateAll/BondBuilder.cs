@@ -1,8 +1,9 @@
 using Application.Calculation.Common.Abstractions;
+using Application.Calculation.Common.Abstractions.Dto;
 using Domain.BondAggreagte;
-using Domain.BondAggreagte.ValueObjects;
+using Domain.BondAggreagte.ValueObjects.Identities;
+using Domain.BondAggreagte.ValueObjects.Incomes;
 using Mapster;
-using MapsterMapper;
 
 namespace Infrastructure.Calculation.CalculateAll;
 
@@ -26,23 +27,24 @@ public sealed class BondBuilder : IBondBuilder
 
     public async Task<Bond> BuildAsync(Ticker ticker, CancellationToken token = default)
     {
-        var bond = await _tinkoffHttpClient.GetBondByTickerAsync(ticker, token);
+        var bondResponse = await _tinkoffHttpClient.GetBondByTickerAsync(ticker, token);
 
-        var ratingTask = _dohodHttpClient.GetBondRatingAsync(bond.Identity.Isin, token);
+        var ratingTask = _dohodHttpClient.GetBondRatingAsync(bondResponse.BondId.Isin, token);
 
-        Task<List<Coupon>> couponTask;
-        if (bond.IsAmortized)
+        Task<List<Coupon>?> couponTask = Task.FromResult<List<Coupon>?>(null);
+        Task<MoexResponse> moexResponse = Task.FromResult<MoexResponse>(default);
+        if (bondResponse.IsAmortized)
         {
-            couponTask = _moexHttpClient.GetAmortizedCouponsAsync(bond.Identity.Ticker, token);
+            moexResponse = _moexHttpClient.GetMoexResponseAsync(bondResponse.BondId.Ticker, token);
         }
         else
         {
-            couponTask = _tinkoffGrpcClient.GetCouponsAsync(bond.Identity.InstrumentId, token);
+            couponTask = _tinkoffGrpcClient.GetCouponsAsync(bondResponse.BondId.InstrumentId, token);
         }
 
-        await Task.WhenAll(ratingTask, couponTask);
+        await Task.WhenAll(ratingTask, couponTask, moexResponse);
 
-        return (bond, couponTask.Result, ratingTask.Result).Adapt<Bond>();
+        return (bondResponse, couponTask.Result, ratingTask.Result, moexResponse.Result).Adapt<Bond>();
     }
 
     public async Task<List<Bond>> BuildAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
