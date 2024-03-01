@@ -3,12 +3,12 @@ using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
+using Infrastructure.Calculation.Dto.BondRepository;
 using Infrastructure.Common;
 using Infrastructure.Common.Extensions;
 using LinqToDB;
 using LinqToDB.Data;
 using Mapster;
-using System.Data;
 
 namespace Infrastructure.Calculation.CalculateAll;
 
@@ -125,26 +125,48 @@ public sealed class BondRepository : IBondRepository
 
     public async Task<List<Ticker>> UpdateIncomesAsync(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bonds, CancellationToken token = default)
     {
-        var notFoundTickers = new List<Ticker>();
-        foreach (var (key, value) in bonds)
+        var notFoundTickers = await _db.Bonds
+        .Where(x => !bonds.Select(x => x.Key.ToString()).Contains(x.Ticker))
+        .Select(x => x.Ticker)
+        .ToListAsync(token: token);
+
+        var updateParams = CreateUpdateParams(bonds, notFoundTickers);
+
+        await _db.ExecuteAsync
+        (
+            """
+                UPDATE public.bonds AS b
+                SET price_percent = t.price_percent,
+                    absolute_nominal = t.absolute_nominal,
+                    absolute_price = t.absolute_price,
+                    updated_at = CURRENT_TIMESTAMP
+                FROM UNNEST(@ticker_array, @price_percent, @absolute_nominal, @absolute_price)
+                AS t(ticker, price_percent, absolute_nominal, absolute_price)
+                WHERE b.ticker = t.ticker;
+            """,
+            [
+                new DataParameter("@ticker_array",  updateParams.Tickers),
+                new DataParameter("@price_percent", updateParams.PricePercents),
+                new DataParameter("@absolute_nominal",updateParams.AbsoluteNominals),
+                new DataParameter("@absolute_price", updateParams.AbsolutePrices)
+             ]
+        );
+
+        return notFoundTickers.Select(x => new Ticker(x)).ToList();
+    }
+
+    private static UpdatePricesParams CreateUpdateParams(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bonds, List<string> notFoundTickers)
+    {
+        var updateParams = new UpdatePricesParams();
+        foreach (var bond in bonds)
         {
-            var dbBond = await _db.Bonds.FirstOrDefaultAsync(x => x.Ticker == key.ToString(), token: token);
-
-            if (dbBond is null)
+            if (!notFoundTickers.Contains(bond.Key.ToString()))
             {
-                notFoundTickers.Add(key);
-                continue;
+                updateParams.Add(bond);
             }
-
-            await _db.Bonds
-            .Where(x => x.Ticker == key.ToString())
-            .Set(x => x.PricePercent, value.PricePercent)
-            .Set(x => x.AbsoluteNominal, value.AbsoluteNominal)
-            .Set(x => x.AbsolutePrice, value.AbsolutePrice)
-            .Set(x => x.UpdatedAt, DateTime.Now)
-            .UpdateAsync(token);
         }
-        return notFoundTickers;
+
+        return updateParams;
     }
 
     public async Task<GetPriceSortedResponse> GetPriceSortedAsync(GetPriceSortedRequest filter,

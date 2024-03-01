@@ -8,12 +8,10 @@ namespace Infrastructure.Calculation.CalculateAll;
 
 public sealed class AllBondsReceiver : IAllBondsReceiver
 {
-    private static int _maxRange;
     private readonly ITInkoffHttpClient _tinkoffHttpClient;
     private readonly InvestApiClient _tinkoffApiClient;
     private readonly IBondRepository _bondRepository;
 
-    private static IEnumerable<Ticker>? _cache;
 
     public AllBondsReceiver(InvestApiClient tinkoffApiClient, ITInkoffHttpClient tinkoffHttpClient, IBondRepository bondRepository)
     {
@@ -22,42 +20,23 @@ public sealed class AllBondsReceiver : IAllBondsReceiver
         _bondRepository = bondRepository;
     }
 
-    public async Task<List<KeyValuePair<Ticker, StaticIncome>>> ReceiveAsync(Range takeRange, CancellationToken token)
+    public async Task<List<KeyValuePair<Ticker, StaticIncome>>> ReceiveAsync(CancellationToken token)
     {
-        var response = await GetFromCacheAsync(takeRange, token);
+        var bonds = await _tinkoffHttpClient.GetBondPriceAsync(await GetAllTickersAsync(token), token);
 
-        var bonds = await _tinkoffHttpClient.GetBondPriceAsync(response, token);
-
-        return bonds.Where(x => x.Value.AbsolutePrice != 0).ToList();
+        return bonds
+        .Where(x => x.Value.AbsolutePrice != 0)
+        .ToList();
     }
 
-    public int GetMaxRange()
+    private async Task<IEnumerable<Ticker>> GetAllTickersAsync(CancellationToken token)
     {
-        return _maxRange;
-    }
+        var tickers = (await _tinkoffApiClient.Instruments.BondsAsync(token))
+        .Instruments
+        .Select(x => new Ticker(x.Ticker));
 
-    private async Task<IEnumerable<Ticker>> GetFromCacheAsync(Range range, CancellationToken token)
-    {
-        if (range.Start.Value > GetMaxRange())
-        {
-            _cache = null;
-        }
+        await _bondRepository.RefreshAsync(tickers, token);
 
-        if (_cache == null)
-        {
-            await InitCacheAsync(token);
-        }
-
-        return _cache.Take(range);
-    }
-
-    private async Task InitCacheAsync(CancellationToken token)
-    {
-        var instruments = (await _tinkoffApiClient.Instruments.BondsAsync(token)).Instruments;
-        _maxRange = instruments.Count;
-
-        _cache = instruments.Select(x => new Ticker(x.Ticker));
-
-        await _bondRepository.RefreshAsync(_cache, token);
+        return tickers;
     }
 }

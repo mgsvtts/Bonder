@@ -59,9 +59,17 @@ public static class ProgramExtensions
 
         builder.Services.AddSingleton(rateLimiter);
 
-        builder.Services.AddLinqToDBContext<DbConnection>((provider, options)
-         => options.UsePostgreSQL(builder.Configuration.GetConnectionString("Database"))
-                   .UseDefaultLogging(provider));
+        builder.Services.AddLinqToDBContext<DbConnection>((provider, options) =>
+        {
+            options = options.UsePostgreSQL(builder.Configuration.GetConnectionString("Database"));
+
+            if (!builder.Environment.IsProduction())
+            {
+                options = options.UseDefaultLogging(provider);
+            }
+
+            return options;
+        });
 
         return builder;
     }

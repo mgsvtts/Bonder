@@ -15,8 +15,8 @@ public sealed class UpdateBondPriceJob : IJob
     private readonly IBondBuilder _bondBuilder;
 
     public UpdateBondPriceJob(IAllBondsReceiver bondReceiver,
-                                      IBondRepository bondRepository,
-                                      IBondBuilder bondBuilder)
+                              IBondRepository bondRepository,
+                              IBondBuilder bondBuilder)
     {
         _bondReceiver = bondReceiver;
         _bondRepository = bondRepository;
@@ -27,37 +27,23 @@ public sealed class UpdateBondPriceJob : IJob
     {
         try
         {
-            await ExecuteAsync(context);
+            var bondsToUpdate = await TryReceiveAsync(context.CancellationToken);
+
+            await ProcessBondsAsync(bondsToUpdate, context.CancellationToken);
         }
         catch
         { }
     }
 
-    private async Task ExecuteAsync(IJobExecutionContext context)
-    {
-        const int step = 10;
-        var startRange = new Range(0, step);
-
-        while (startRange.Start.Value - step <= _bondReceiver.GetMaxRange())
-        {
-            var bondsToUpdate = await TryReceiveAsync(startRange, context.CancellationToken);
-
-            RecreateRange(step, ref startRange);
-
-            await ProcessBondsAsync(bondsToUpdate, context.CancellationToken);
-        }
-    }
-
-    private async Task<List<KeyValuePair<Ticker, StaticIncome>>> TryReceiveAsync(Range startRange,
-                                                                                 CancellationToken token)
+    private async Task<List<KeyValuePair<Ticker, StaticIncome>>> TryReceiveAsync(CancellationToken token)
     {
         try
         {
-            return await _bondReceiver.ReceiveAsync(startRange, token);
+            return await _bondReceiver.ReceiveAsync(token);
         }
         catch (RpcException)
         {
-            return await TryRetryAsync(startRange, token);
+            return await TryRetryAsync(token);
         }
     }
 
@@ -74,26 +60,14 @@ public sealed class UpdateBondPriceJob : IJob
         await _bondRepository.AddAsync(notFoundBonds, token);
     }
 
-    private void RecreateRange(int step, ref Range startRange)
-    {
-        if (startRange.Start.Value >= _bondReceiver.GetMaxRange())
-        {
-            startRange = new Range(0, step);
-        }
-        else
-        {
-            startRange = new Range(startRange.End, startRange.End.Value + step);
-        }
-    }
-
-    private async Task<List<KeyValuePair<Ticker, StaticIncome>>> TryRetryAsync(Range start, CancellationToken token)
+    private async Task<List<KeyValuePair<Ticker, StaticIncome>>> TryRetryAsync(CancellationToken token)
     {
         var retries = 5;
         while (retries > 0)
         {
             try
             {
-                return await _bondReceiver.ReceiveAsync(start, token);
+                return await _bondReceiver.ReceiveAsync(token);
             }
             catch
             { }

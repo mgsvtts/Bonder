@@ -46,7 +46,7 @@ public sealed class BondController : ControllerBase
         }
     }
 
-    [HttpGet("current-state")]
+    [HttpGet("current")]
     public async Task<CalculateResponse> GetCurrentState(CalculationOptions request, CancellationToken token)
     {
         var result = await _sender.Send(new CalculateAllCommand(request.Adapt<GetPriceSortedRequest>()), token);
