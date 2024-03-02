@@ -19,13 +19,13 @@ public sealed class Bond : AggregateRoot<BondId>
     public IReadOnlyList<Coupon> Coupons => _coupons.AsReadOnly();
     public IReadOnlyList<Amortization> Amortizations => _amortizations.AsReadOnly();
 
-    public Bond(BondId id,
-                string name,
-                StaticIncome income,
-                Dates dates,
-                int? rating,
-                IEnumerable<Coupon> coupons,
-                IEnumerable<Amortization>? amortizations = null) : base(id)
+    private Bond(BondId id,
+                 string name,
+                 Dates dates,
+                 int? rating,
+                 IEnumerable<Coupon> coupons,
+                 IEnumerable<Amortization>? amortizations,
+                 FullIncome fullIncome = default) : base(id)
     {
         _coupons = coupons.ToList();
         _amortizations = amortizations is not null ? amortizations.ToList() : _amortizations;
@@ -33,8 +33,20 @@ public sealed class Bond : AggregateRoot<BondId>
         Name = name;
         Dates = dates;
         Rating = rating;
-        Income = new FullIncome(income, CouponIncome.None, AmortizationIncome.None);
-        Income = Income with { CouponIncome = GetCouponIncome(new GetIncomeRequest(DateIntervalType.TillOfferDate)) };
+        Income = fullIncome;
+    }
+
+    public static Bond Create(BondId id,
+                              string name,
+                              StaticIncome income,
+                              Dates dates,
+                              int? rating,
+                              IEnumerable<Coupon> coupons,
+                              IEnumerable<Amortization>? amortizations = null)
+    {
+        var bond = new Bond(id, name, dates, rating, coupons, amortizations);
+
+        return bond.WithIncome(income);
     }
 
     public Bond UpdateRating(int? rating)
@@ -73,6 +85,11 @@ public sealed class Bond : AggregateRoot<BondId>
 
     private CouponIncome GetCouponIncome(GetIncomeRequest request)
     {
+        if (Coupons.Count == 0)
+        {
+            return CouponIncome.None;
+        }
+
         var dateTo = GetTillDate(request);
 
         return CalculateCouponIncome(request.DateFrom, dateTo, request.ConsiderDividendCutOffDate);
@@ -94,13 +111,20 @@ public sealed class Bond : AggregateRoot<BondId>
         return CouponIncome.None;
     }
 
-    private AmortizationIncome GetAmortizationIncome(DateOnly dateFrom, DateOnly dateTo)
+    private AmortizationIncome GetAmortizationIncome(GetIncomeRequest request)
     {
         if (Amortizations.Count == 0)
         {
             return AmortizationIncome.None;
         }
 
+        var dateTo = GetTillDate(request);
+
+        return GetAmortizationIncome(request.DateFrom, dateTo);
+    }
+
+    private AmortizationIncome GetAmortizationIncome(DateOnly dateFrom, DateOnly dateTo)
+    {
         var absoluteAmortization = Amortizations
         .Where(x => x.PaymentDate >= dateFrom && x.PaymentDate <= dateTo)
         .Sum(x => x.Payout);
@@ -144,7 +168,7 @@ public sealed class Bond : AggregateRoot<BondId>
         var maturityDate = Dates.MaturityDate != null ? Dates.MaturityDate : Coupons.OrderByDescending(x => x.PaymentDate).First().PaymentDate;
         var offerDate = Dates.OfferDate != null ? Dates.OfferDate : maturityDate;
 
-        return request.Type switch
+        return request.IntervalType switch
         {
             DateIntervalType.TillMaturityDate => maturityDate.Value,
             DateIntervalType.TillOfferDate => offerDate.Value,
@@ -166,6 +190,20 @@ public sealed class Bond : AggregateRoot<BondId>
                request.DateTo >= Dates.OfferDate ||
                request.DateFrom >= Dates.MaturityDate ||
                request.DateFrom >= Dates.OfferDate;
+    }
+
+    private Bond WithIncome(StaticIncome income)
+    {
+        var incomeRequest = new GetIncomeRequest(DateIntervalType.TillOfferDate);
+
+        Income = new FullIncome(income, CouponIncome.None, AmortizationIncome.None);
+        Income = Income with
+        { 
+            CouponIncome = GetCouponIncome(incomeRequest),
+            AmortizationIncome = GetAmortizationIncome(incomeRequest)
+        };
+
+        return this;
     }
 
     public override string ToString()

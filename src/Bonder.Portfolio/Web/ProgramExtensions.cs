@@ -62,6 +62,11 @@ public static class ProgramExtensions
         builder.Services.AddSwaggerGen(options =>
         {
             options.AddEnumsWithValuesFixFilters();
+        }); 
+        
+        builder.Services.AddStackExchangeRedisOutputCache(x =>
+        {
+            x.Configuration = builder.Configuration.GetConnectionString("Redis");
         });
 
         return builder;

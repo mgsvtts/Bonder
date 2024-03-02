@@ -5,7 +5,7 @@ namespace Domain.BondAggreagte.Dto;
 
 public class GetIncomeRequest
 {
-    public DateIntervalType Type { get; }
+    public DateIntervalType IntervalType { get; }
     public bool ConsiderDividendCutOffDate { get; }
     public decimal PriceFrom { get; }
     public decimal PriceTo { get; }
@@ -48,13 +48,13 @@ public class GetIncomeRequest
         YearCouponTo = Guard.Against.Negative(yearCouponTo);
         RatingFrom = Guard.Against.Negative(ratingFrom);
         RatingTo = Guard.Against.Negative(ratingTo);
-        Type = type;
+        IntervalType = type;
         ConsiderDividendCutOffDate = considerDividendCutOffDate;
         IncludeUnknownRatings = includeUnknownRatings;
     }
 
     public bool IsPaymentType()
     {
-        return Type is DateIntervalType.TillMaturityDate or DateIntervalType.TillOfferDate;
+        return IntervalType is DateIntervalType.TillMaturityDate or DateIntervalType.TillOfferDate;
     }
 }

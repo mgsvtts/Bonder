@@ -23,6 +23,11 @@ public static class ProgramExtensions
 {
     public static WebApplicationBuilder AddInfrastructure(this WebApplicationBuilder builder)
     {
+        builder.Services.AddScoped<BondRepository>();
+        builder.Services.AddScoped<IBondRepository, CachedBondRepository>();
+        builder.Services.AddScoped<ITinkoffGrpcClient, TinkoffGrpcClient>();
+        builder.Services.AddScoped<IAllBondsReceiver, AllBondsReceiver>();
+
         builder.Services.AddInvestApiClient((_, settings) => settings.AccessToken = builder.Configuration.GetValue<string>("TinkoffToken"))
                         .AddRateLimiter(x => x.AddSlidingWindowLimiter("limiting", options =>
                         {
@@ -32,11 +37,8 @@ public static class ProgramExtensions
                             options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                         }));
 
-        builder.Services.AddTransient<ITinkoffGrpcClient, TinkoffGrpcClient>();
-
-        builder.Services.AddTransient<IAllBondsReceiver, AllBondsReceiver>();
-
         var rateLimiter = TimeLimiter.GetFromMaxCountByInterval(1, TimeSpan.FromMilliseconds(201));
+        builder.Services.AddSingleton(rateLimiter);
 
         builder.Services.AddHttpClient<ITInkoffHttpClient, TinkoffHttpClient>((httpClient, services) =>
         {
@@ -57,8 +59,6 @@ public static class ProgramExtensions
                                       builder.Configuration.GetValue<string>("MoexServerUrl"));
         }).AddHttpMessageHandler(rateLimiter.AsDelegate);
 
-        builder.Services.AddSingleton(rateLimiter);
-
         builder.Services.AddLinqToDBContext<DbConnection>((provider, options) =>
         {
             options = options.UsePostgreSQL(builder.Configuration.GetConnectionString("Database"));
@@ -69,6 +69,11 @@ public static class ProgramExtensions
             }
 
             return options;
+        });
+
+        builder.Services.AddStackExchangeRedisCache(x =>
+        {
+            x.Configuration = builder.Configuration.GetConnectionString("Redis");
         });
 
         return builder;
@@ -100,7 +105,7 @@ public static class ProgramExtensions
         builder.Services.RegisterMapsterConfiguration();
 
         builder.Services.AddSingleton<ICalculationService, CalculationService>();
-        builder.Services.AddTransient<ICalculateAllService, CalculateAllService>();
+        builder.Services.AddScoped<ICalculateAllService, CalculateAllService>();
 
         return builder;
     }
@@ -118,13 +123,17 @@ public static class ProgramExtensions
             options.AddEnumsWithValuesFixFilters();
         });
 
+        builder.Services.AddStackExchangeRedisOutputCache(x =>
+        {
+            x.Configuration = builder.Configuration.GetConnectionString("Redis");
+        });
+
         return builder;
     }
 
     public static WebApplicationBuilder AddDomain(this WebApplicationBuilder builder)
     {
-        builder.Services.AddTransient<IBondRepository, BondRepository>();
-        builder.Services.AddTransient<IBondBuilder, BondBuilder>();
+        builder.Services.AddScoped<IBondBuilder, BondBuilder>();
 
         return builder;
     }
@@ -138,6 +147,8 @@ public static class ProgramExtensions
         }
 
         app.UseHttpsRedirection();
+
+        app.UseOutputCache();
 
         app.UseAuthorization();
 

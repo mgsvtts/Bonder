@@ -6,7 +6,9 @@ using Domain.BondAggreagte.Dto;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Presentation.Controllers.BondController.Calculate.Request;
 using Presentation.Controllers.BondController.Calculate.Response;
 using Presentation.Filters;
@@ -18,6 +20,7 @@ namespace Presentation.Controllers.BondController;
 [Route("api/calculate")]
 public sealed class BondController : ControllerBase
 {
+    private const int _cacheTime = 10;
     private readonly ISender _sender;
 
     public BondController(ISender sender)
@@ -26,6 +29,7 @@ public sealed class BondController : ControllerBase
     }
 
     [HttpPost]
+    [OutputCache(Duration = _cacheTime)]
     public async Task<CalculateResponse> Calculate([FromBody] CalculateBondsRequest request, CancellationToken token)
     {
         var result = await _sender.Send(request.Adapt<CalculateBondsCommand>(), token);
@@ -38,7 +42,7 @@ public sealed class BondController : ControllerBase
     {
         var waitSeconds = TimeSpan.FromSeconds(5);
         await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetPriceSortedRequest(DateIntervalType.TillOfferDate,
-                                                                                        new PageInfo(pageInfo.CurrentPage, pageInfo.ItemsOnPage))), token))
+                                                                                        new PageInfo(pageInfo.CurrentPage))), token))
         {
             yield return result.Adapt<CalculateResponse>();
 
@@ -47,6 +51,7 @@ public sealed class BondController : ControllerBase
     }
 
     [HttpGet("current")]
+    [OutputCache(Duration = _cacheTime)]
     public async Task<CalculateResponse> GetCurrentState(CalculationOptions request, CancellationToken token)
     {
         var result = await _sender.Send(new CalculateAllCommand(request.Adapt<GetPriceSortedRequest>()), token);

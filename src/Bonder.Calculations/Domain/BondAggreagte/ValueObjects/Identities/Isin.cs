@@ -5,7 +5,7 @@ public readonly record struct Isin
 {
     public const int Length = 12;
 
-    public string Value { get; }
+    public string Value { get; init; }
 
     public Isin(string value)
     {
@@ -15,5 +15,10 @@ public readonly record struct Isin
         }
 
         Value = value.Trim().ToUpper();
+    }
+
+    public override string ToString()
+    {
+        return Value;
     }
 }

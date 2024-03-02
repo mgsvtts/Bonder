@@ -1,8 +1,8 @@
 ﻿namespace Domain.BondAggreagte.ValueObjects;
 public readonly record struct Dates
 {
-    public DateOnly? MaturityDate { get; }
-    public DateOnly? OfferDate { get; }
+    public DateOnly? MaturityDate { get; init; }
+    public DateOnly? OfferDate { get; init; }
 
     public Dates(DateOnly? maturityDate, DateOnly? offerDate = null)
     {

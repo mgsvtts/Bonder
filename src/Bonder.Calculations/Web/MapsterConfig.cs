@@ -35,7 +35,7 @@ public static class MapsterConfig
         .MapWith(x => new GetPriceSortedRequest
         (
             x.Type ?? DateIntervalType.TillOfferDate,
-            x.PageInfo != null ? new PageInfo(x.PageInfo.CurrentPage, x.PageInfo.ItemsOnPage) : PageInfo.Default,
+            x.PageInfo != null ? new PageInfo(x.PageInfo.CurrentPage) : PageInfo.Default,
             x.PriceFrom ?? 0,
             x.PriceTo ?? decimal.MaxValue,
             x.NominalFrom ?? 0,
@@ -77,7 +77,7 @@ public static class MapsterConfig
 
         TypeAdapterConfig<(GetBondResponse BondResponse, List<Coupon>? Coupons, int? Rating, MoexResponse MoexResponse), Bond>
         .ForType()
-        .MapWith(x => CustomMappings.CreateBond(x.BondResponse, x.Coupons, x.Rating, x.MoexResponse));
+        .MapWith(x => CustomMappings.CreateBuilderBond(x.BondResponse, x.Coupons, x.Rating, x.MoexResponse));
 
         TypeAdapterConfig<Tinkoff.InvestApi.V1.Coupon, Coupon>
         .ForType()
@@ -114,7 +114,7 @@ public static class MapsterConfig
 
         TypeAdapterConfig<Infrastructure.Common.Models.Bond, Bond>
         .ForType()
-        .MapWith(x => new Bond(new BondId(x.Id, new Ticker(x.Ticker), new Isin(x.Isin)),
+        .MapWith(x => Bond.Create(new BondId(x.Id, new Ticker(x.Ticker), new Isin(x.Isin)),
                                                     x.Name,
                                                     StaticIncome.FromPercents(x.PricePercent, x.AbsolutePrice, x.AbsoluteNominal),
                                                     new Dates(x.MaturityDate, x.OfferDate),
@@ -178,7 +178,7 @@ public static class CustomMappings
                                    value.IsAmortized);
     }
 
-    public static Bond CreateBond(GetBondResponse bond, List<Coupon>? coupons, int? rating, MoexResponse moexResponse)
+    public static Bond CreateBuilderBond(GetBondResponse bond, List<Coupon>? coupons, int? rating, MoexResponse moexResponse)
     {
         List<Coupon> couponsToAdd;
         List<Amortization>? amortizationsToAdd = null;
@@ -192,13 +192,13 @@ public static class CustomMappings
             amortizationsToAdd = moexResponse.Amortizations;
         }
 
-        return new Bond(bond.BondId,
-                        bond.Name,
-                        bond.Income,
-                        bond.Dates,
-                        rating,
-                        couponsToAdd,
-                        amortizationsToAdd);
+        return Bond.Create(bond.BondId,
+                           bond.Name,
+                           bond.Income,
+                           bond.Dates,
+                           rating,
+                           couponsToAdd,
+                           amortizationsToAdd);
     }
 
     public static CalculateResponse MapToCalculateResponse(CalculateAllResponse results)

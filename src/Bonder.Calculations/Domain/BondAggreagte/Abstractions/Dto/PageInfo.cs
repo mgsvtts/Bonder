@@ -5,27 +5,28 @@ namespace Domain.BondAggreagte.Abstractions.Dto;
 
 public readonly record struct PageInfo
 {
-    public const int MaxItemsOnPage = 25;
+    public const int MaxItemsOnPage = 20;
 
     public int CurrentPage { get; }
     public int LastPage { get; }
     public int ItemsOnPage { get; }
     public int Total { get; }
 
-    public static readonly PageInfo Default = new PageInfo(1, 20);
+    public static readonly PageInfo Default = new PageInfo(1);
 
     public PageInfo(int currentPage,
                     int lastPage,
                     int itemsOnPage,
-                    int total) : this(currentPage, itemsOnPage)
+                    int total) : this(currentPage)
     {
-        LastPage = Guard.Against.Negative(lastPage);
         Total = Guard.Against.Negative(total);
+        LastPage = Guard.Against.Negative(lastPage);
+        ItemsOnPage = Guard.Against.MoreThanMaxItemsOnPage(itemsOnPage, MaxItemsOnPage);
     }
 
-    public PageInfo(int currentPage, int itemsOnPage)
+    public PageInfo(int currentPage)
     {
+        ItemsOnPage = MaxItemsOnPage;
         CurrentPage = Guard.Against.NegativeOrZero(currentPage);
-        ItemsOnPage = Guard.Against.MoreThanMaxItemsOnPage(itemsOnPage, MaxItemsOnPage);
     }
 }

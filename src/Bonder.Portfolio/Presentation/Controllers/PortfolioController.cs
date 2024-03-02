@@ -5,6 +5,7 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Presentation.Controllers.Dto.AttachToken;
 using Presentation.Filters;
 
@@ -14,6 +15,7 @@ namespace Presentation.Controllers;
 [Route("api/portfolio")]
 public sealed class PortfolioController : ControllerBase
 {
+    private const int _cacheTime = 10;
     private readonly ISender _sender;
 
     public PortfolioController(ISender sender)
@@ -30,6 +32,7 @@ public sealed class PortfolioController : ControllerBase
     }
 
     [HttpGet]
+    [OutputCache(Duration = _cacheTime)]
     public async Task<IEnumerable<Portfolio>> GetPortfolios(CancellationToken cancellationToken)
     {
         return await _sender.Send(new GetPortfoliosQuery(HttpContext.Request.Headers.Authorization), cancellationToken);

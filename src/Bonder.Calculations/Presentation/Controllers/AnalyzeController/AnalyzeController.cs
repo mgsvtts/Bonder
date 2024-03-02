@@ -2,6 +2,7 @@ using Application.Analyze;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Presentation.Controllers.AnalyzeController.Analyze;
 
 namespace Presentation.Controllers.AnalyzeController;
@@ -17,6 +18,7 @@ public sealed class AnalyzeController : ControllerBase
     }
 
     [HttpPost]
+    [OutputCache(Duration = 10)]
     public async Task<IEnumerable<AnalyzeBondsResponse>> Analyze([FromBody] AnalyzeBondsRequest request, CancellationToken token)
     {
         var result = await _sender.Send(request.Adapt<AnalyzeBondsCommand>(), token);
