@@ -4,7 +4,7 @@ using Application.Commands.Refresh;
 using Application.Commands.Register;
 using Domain.UserAggregate.ValueObjects;
 using Mapster;
-using MediatR;
+using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Controllers.Dto.Register;

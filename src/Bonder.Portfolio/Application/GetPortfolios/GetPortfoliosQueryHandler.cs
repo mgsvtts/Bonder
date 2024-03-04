@@ -3,11 +3,11 @@ using Domain.UserAggregate.Abstractions.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using Domain.UserAggregate.ValueObjects.Portfolios;
 using Grpc.Core;
-using MediatR;
+using Mediator;
 
 namespace Application.GetPortfolios;
 
-public sealed class GetPortfoliosQueryHandler : IRequestHandler<GetPortfoliosQuery, IEnumerable<Portfolio>>
+public sealed class GetPortfoliosQueryHandler : IQueryHandler<GetPortfoliosQuery, IEnumerable<Portfolio>>
 {
     private readonly IUserRepository _portfolioRepository;
     private readonly AuthService.AuthServiceClient _grpcClient;
@@ -18,7 +18,7 @@ public sealed class GetPortfoliosQueryHandler : IRequestHandler<GetPortfoliosQue
         _grpcClient = grpcClient;
     }
 
-    public async Task<IEnumerable<Portfolio>> Handle(GetPortfoliosQuery request, CancellationToken cancellationToken)
+    public async ValueTask<IEnumerable<Portfolio>> Handle(GetPortfoliosQuery request, CancellationToken cancellationToken)
     {
         UserName userName;
         try

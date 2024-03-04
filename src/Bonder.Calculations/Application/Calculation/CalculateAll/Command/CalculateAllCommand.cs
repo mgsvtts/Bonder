@@ -1,7 +1,7 @@
 using Application.Calculation.CalculateAll.Services.Dto;
 using Domain.BondAggreagte.Abstractions.Dto;
-using MediatR;
+using Mediator;
 
 namespace Application.Calculation.CalculateAll.Command;
 
-public sealed record CalculateAllCommand(GetPriceSortedRequest Request) : IRequest<CalculateAllResponse>;
+public sealed record CalculateAllCommand(GetPriceSortedRequest Request) : ICommand<CalculateAllResponse>;

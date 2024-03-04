@@ -1,7 +1,7 @@
 using Application.Commands.Claims.Add;
 using Application.Commands.Claims.Remove;
 using Mapster;
-using MediatR;
+using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Controllers.Dto.AddClaims;

@@ -1,6 +1,6 @@
 using Domain.UserAggregate.ValueObjects;
-using MediatR;
+using Mediator;
 
 namespace Application.Commands.Login;
 
-public sealed record LoginCommand(UserName UserName, string Password) : IRequest<Tokens>;
+public sealed record LoginCommand(UserName UserName, string Password) : ICommand<Tokens>;

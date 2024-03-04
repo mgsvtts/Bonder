@@ -4,11 +4,11 @@ using Application.Calculation.Common.CalculationService.Dto;
 using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.ValueObjects.Identities;
-using MediatR;
+using Mediator;
 
 namespace Application.Calculation.CalculateTickers;
 
-public sealed class CalculateBondsCommandHandler : IRequestHandler<CalculateBondsCommand, CalculateAllResponse>
+public sealed class CalculateBondsCommandHandler : ICommandHandler<CalculateBondsCommand, CalculateAllResponse>
 {
     private readonly IBondRepository _repository;
     private readonly ICalculationService _calculator;
@@ -19,7 +19,7 @@ public sealed class CalculateBondsCommandHandler : IRequestHandler<CalculateBond
         _repository = repository;
     }
 
-    public async Task<CalculateAllResponse> Handle(CalculateBondsCommand request, CancellationToken cancellationToken)
+    public async ValueTask<CalculateAllResponse> Handle(CalculateBondsCommand request, CancellationToken cancellationToken)
     {
         GetPriceSortedResponse bonds;
         if (request.IdType == IdType.Ticker)

@@ -1,10 +1,10 @@
 ﻿using Bonder.Portfolio.Grpc;
 using Domain.UserAggregate.Repositories;
-using MediatR;
+using Mediator;
 
 namespace Application.Commands.DeleteUser;
 
-public sealed class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand>
+public sealed class DeleteUserCommandHandler : ICommandHandler<DeleteUserCommand>
 {
     private readonly IUserRepository _userRepository;
     private readonly PortfolioService.PortfolioServiceClient _grpcClient;
@@ -15,12 +15,14 @@ public sealed class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand
         _grpcClient = grpcClient;
     }
 
-    public async Task Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
         var deletedUser = await _userRepository.DeleteAsync(request.UserId, cancellationToken);
         await _grpcClient.DeleteUserAsync(new DeleteUserRequest
         {
             UserName = deletedUser.UserName.Name
         }, cancellationToken: cancellationToken);
+
+        return Unit.Value;
     }
 }

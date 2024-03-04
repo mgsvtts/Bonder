@@ -3,11 +3,11 @@ using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.Dto;
 using Mapster;
-using MediatR;
+using Mediator;
 
 namespace Application.Analyze;
 
-public sealed class AnalyzeBondsCommandHandler : IRequestHandler<AnalyzeBondsCommand, Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>>
+public sealed class AnalyzeBondsCommandHandler : ICommandHandler<AnalyzeBondsCommand, Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>>
 {
     private const int _topFive = 5;
 
@@ -18,7 +18,7 @@ public sealed class AnalyzeBondsCommandHandler : IRequestHandler<AnalyzeBondsCom
         _bondRepository = bondRepository;
     }
 
-    public async Task<Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>> Handle(AnalyzeBondsCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>> Handle(AnalyzeBondsCommand request, CancellationToken cancellationToken)
     {
         var results = new Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>();
 

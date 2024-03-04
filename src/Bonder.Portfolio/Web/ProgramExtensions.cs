@@ -18,9 +18,17 @@ public static class ProgramExtensions
 {
     public static WebApplicationBuilder AddInfrastructure(this WebApplicationBuilder builder)
     {
-        builder.Services.AddLinqToDBContext<DbConnection>((provider, options)
-         => options.UsePostgreSQL(builder.Configuration.GetConnectionString("Database"))
-                   .UseDefaultLogging(provider));
+        builder.Services.AddLinqToDBContext<DbConnection>((provider, options) =>
+        {
+            options = options.UsePostgreSQL(builder.Configuration.GetConnectionString("Database"));
+
+            if (!builder.Environment.IsProduction())
+            {
+                options = options.UseDefaultLogging(provider);
+            }
+
+            return options;
+        });
 
         builder.Services.AddGrpc();
 
@@ -43,9 +51,9 @@ public static class ProgramExtensions
     {
         builder.Services.RegisterMapsterConfiguration();
 
-        builder.Services.AddMediatR(config =>
+        builder.Services.AddMediator(config =>
         {
-            config.RegisterServicesFromAssemblies(typeof(AssemblyReference).Assembly);
+            config.ServiceLifetime = ServiceLifetime.Scoped;
         });
 
         builder.Services.AddTransient<IUserBuilder, UserBuilder>();

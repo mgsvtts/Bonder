@@ -4,7 +4,7 @@ using Application.Calculation.CalculateTickers;
 using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.Dto;
 using Mapster;
-using MediatR;
+using Mediator;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.Routing;
@@ -41,7 +41,7 @@ public sealed class BondController : ControllerBase
     public async IAsyncEnumerable<CalculateResponse> GetState([FromQuery] PageInfoRequest pageInfo, [EnumeratorCancellation] CancellationToken token)
     {
         var waitSeconds = TimeSpan.FromSeconds(5);
-        await foreach (var result in _sender.CreateStream(new CalculateAllStreamRequest(new GetPriceSortedRequest(DateIntervalType.TillOfferDate,
+        await foreach (var result in _sender.CreateStream(new CalculateAllStreamCommand(new GetPriceSortedRequest(DateIntervalType.TillOfferDate,
                                                                                         new PageInfo(pageInfo.CurrentPage))), token))
         {
             yield return result.Adapt<CalculateResponse>();

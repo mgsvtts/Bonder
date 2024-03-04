@@ -1,11 +1,11 @@
 ﻿using Domain.Exceptions;
 using Domain.UserAggregate;
 using Domain.UserAggregate.Repositories;
-using MediatR;
+using Mediator;
 
 namespace Application.Commands.Claims.Remove;
 
-public sealed class RemoveClaimsCommandHandler : IRequestHandler<RemoveClaimsCommand, User>
+public sealed class RemoveClaimsCommandHandler : ICommandHandler<RemoveClaimsCommand, User>
 {
     private readonly IUserRepository _userRepository;
 
@@ -14,7 +14,7 @@ public sealed class RemoveClaimsCommandHandler : IRequestHandler<RemoveClaimsCom
         _userRepository = userRepository;
     }
 
-    public async Task<User> Handle(RemoveClaimsCommand request, CancellationToken cancellationToken)
+    public async ValueTask<User> Handle(RemoveClaimsCommand request, CancellationToken cancellationToken)
     {
         var requestedBy = await _userRepository.GetByUserNameAsync(request.RequestedBy, cancellationToken)
         ?? throw new UserNotFoundException(request.RequestedBy.ToString());

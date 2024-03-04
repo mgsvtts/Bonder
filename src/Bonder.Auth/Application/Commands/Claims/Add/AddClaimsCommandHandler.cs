@@ -1,11 +1,11 @@
 using Domain.Exceptions;
 using Domain.UserAggregate;
 using Domain.UserAggregate.Repositories;
-using MediatR;
+using Mediator;
 
 namespace Application.Commands.Claims.Add;
 
-public sealed class AddClaimsCommandHandler : IRequestHandler<AddClaimsCommand, User>
+public sealed class AddClaimsCommandHandler : ICommandHandler<AddClaimsCommand, User>
 {
     private readonly IUserRepository _userRepository;
 
@@ -14,7 +14,7 @@ public sealed class AddClaimsCommandHandler : IRequestHandler<AddClaimsCommand, 
         _userRepository = userRepository;
     }
 
-    public async Task<User> Handle(AddClaimsCommand request, CancellationToken cancellationToken)
+    public async ValueTask<User> Handle(AddClaimsCommand request, CancellationToken cancellationToken)
     {
         var requestedBy = await _userRepository.GetByUserNameAsync(request.RequestedBy, cancellationToken)
         ?? throw new UserNotFoundException(request.RequestedBy.ToString());

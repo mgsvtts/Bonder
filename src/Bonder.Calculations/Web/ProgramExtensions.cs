@@ -81,9 +81,9 @@ public static class ProgramExtensions
 
     public static WebApplicationBuilder AddApplication(this WebApplicationBuilder builder)
     {
-        builder.Services.AddMediatR(config =>
+        builder.Services.AddMediator(config =>
         {
-            config.RegisterServicesFromAssemblies(typeof(AssemblyReference).Assembly);
+            config.ServiceLifetime = ServiceLifetime.Scoped;
         });
 
         if (builder.Configuration.GetValue<bool>("TurnOnDaemons"))

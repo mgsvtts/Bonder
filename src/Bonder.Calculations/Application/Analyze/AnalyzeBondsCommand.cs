@@ -1,10 +1,10 @@
 using Application.Analyze.Dto;
 using Domain.BondAggreagte.ValueObjects.Identities;
-using MediatR;
+using Mediator;
 
 namespace Application.Analyze;
 
-public sealed record AnalyzeBondsCommand(AnalyzeOptions DefaultOptions, IEnumerable<BondToAnalyze> Bonds) : IRequest<Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>>;
+public sealed record AnalyzeBondsCommand(AnalyzeOptions DefaultOptions, IEnumerable<BondToAnalyze> Bonds) : ICommand<Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>>;
 
 public sealed record BondToAnalyze(AnalyzeOptions? Option, Ticker Id);
 

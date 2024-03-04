@@ -2,11 +2,11 @@ using Application.Common;
 using Domain.Exceptions;
 using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
-using MediatR;
+using Mediator;
 
 namespace Application.Commands.Refresh;
 
-public sealed class RefreshTokensCommandHandler : IRequestHandler<RefreshTokensCommand, Tokens>
+public sealed class RefreshTokensCommandHandler : ICommandHandler<RefreshTokensCommand, Tokens>
 {
     private readonly IJWTTokenGenerator _tokenGenerator;
     private readonly IUserRepository _userRepository;
@@ -17,7 +17,7 @@ public sealed class RefreshTokensCommandHandler : IRequestHandler<RefreshTokensC
         _userRepository = userRepository;
     }
 
-    public async Task<Tokens> Handle(RefreshTokensCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Tokens> Handle(RefreshTokensCommand request, CancellationToken cancellationToken)
     {
         var principal = await _tokenGenerator.ValidateTokenAsync(request.ExpiredTokens.AccessToken);
         var userName = new UserName(principal.Identity?.Name);

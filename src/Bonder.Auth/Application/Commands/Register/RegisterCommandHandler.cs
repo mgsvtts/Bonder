@@ -1,11 +1,11 @@
 using Domain.UserAggregate;
 using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
-using MediatR;
+using Mediator;
 
 namespace Application.Commands.Register;
 
-public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand>
+public sealed class RegisterCommandHandler : ICommandHandler<RegisterCommand>
 {
     private readonly IUserRepository _userRepository;
 
@@ -14,10 +14,12 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand>
         _userRepository = userRepository;
     }
 
-    public async Task Handle(RegisterCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
         var user = new User(new UserId(Guid.NewGuid()), new UserName(request.UserName));
 
         await _userRepository.RegisterAsync(user, request.Password);
+
+        return Unit.Value;
     }
 }

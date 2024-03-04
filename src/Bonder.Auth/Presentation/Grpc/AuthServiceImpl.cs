@@ -3,7 +3,7 @@ using Application.Queries.GetUserByUserName;
 using Bonder.Auth.Grpc;
 using Domain.UserAggregate.ValueObjects;
 using Grpc.Core;
-using MediatR;
+using Mediator;
 
 namespace Presentation.Grpc;
 

@@ -1,5 +1,5 @@
 ﻿using Domain.UserAggregate.ValueObjects;
-using MediatR;
+using Mediator;
 
 namespace Application.Commands.DeleteUser;
-public sealed record DeleteUserCommand(UserId UserId) : IRequest;
+public sealed record DeleteUserCommand(UserId UserId) : ICommand;

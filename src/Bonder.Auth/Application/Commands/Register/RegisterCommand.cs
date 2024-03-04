@@ -1,5 +1,5 @@
-using MediatR;
+using Mediator;
 
 namespace Application.Commands.Register;
 
-public sealed record RegisterCommand(string UserName, string Password) : IRequest;
+public sealed record RegisterCommand(string UserName, string Password) : ICommand;

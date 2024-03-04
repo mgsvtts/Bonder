@@ -1,10 +1,10 @@
 ﻿using Domain.UserAggregate;
 using Domain.UserAggregate.Repositories;
-using MediatR;
+using Mediator;
 
 namespace Application.Queries.GetUserByUserName;
 
-public sealed class GetUserByUserNameQueryHandler : IRequestHandler<GetUserByUserNameQuery, User>
+public sealed class GetUserByUserNameQueryHandler : IQueryHandler<GetUserByUserNameQuery, User>
 {
     private readonly IUserRepository _userRepository;
 
@@ -13,7 +13,7 @@ public sealed class GetUserByUserNameQueryHandler : IRequestHandler<GetUserByUse
         _userRepository = userRepository;
     }
 
-    public async Task<User> Handle(GetUserByUserNameQuery request, CancellationToken cancellationToken)
+    public async ValueTask<User> Handle(GetUserByUserNameQuery request, CancellationToken cancellationToken)
     {
         return await _userRepository.GetByUserNameAsync(request.UserName, cancellationToken);
     }

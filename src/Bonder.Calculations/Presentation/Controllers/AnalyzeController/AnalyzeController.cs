@@ -1,6 +1,6 @@
 using Application.Analyze;
 using Mapster;
-using MediatR;
+using Mediator;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
 using Presentation.Controllers.AnalyzeController.Analyze;

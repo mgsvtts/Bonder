@@ -1,10 +1,10 @@
 using Application.Calculation.CalculateAll.Services;
 using Application.Calculation.CalculateAll.Services.Dto;
-using MediatR;
+using Mediator;
 
 namespace Application.Calculation.CalculateAll.Command;
 
-public sealed class CalculateAllCommandHandler : IRequestHandler<CalculateAllCommand, CalculateAllResponse>
+public sealed class CalculateAllCommandHandler : ICommandHandler<CalculateAllCommand, CalculateAllResponse>
 {
     private readonly ICalculateAllService _service;
 
@@ -13,7 +13,7 @@ public sealed class CalculateAllCommandHandler : IRequestHandler<CalculateAllCom
         _service = service;
     }
 
-    public async Task<CalculateAllResponse> Handle(CalculateAllCommand request, CancellationToken cancellationToken)
+    public async ValueTask<CalculateAllResponse> Handle(CalculateAllCommand request, CancellationToken cancellationToken)
     {
         return await _service.CalculateAllAsync(request.Request, cancellationToken);
     }

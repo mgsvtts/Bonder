@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿using Mediator;
 using System.Security.Claims;
 
 namespace Application.Queries.GetPrincipalFromToken;

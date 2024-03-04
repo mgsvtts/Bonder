@@ -2,11 +2,11 @@ using Application.Common;
 using Domain.Exceptions;
 using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
-using MediatR;
+using Mediator;
 
 namespace Application.Commands.Login;
 
-public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Tokens>
+public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, Tokens>
 {
     private readonly IUserRepository _userRepository;
     private readonly IJWTTokenGenerator _tokenGenerator;
@@ -17,7 +17,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Tokens>
         _tokenGenerator = tokenGenerator;
     }
 
-    public async Task<Tokens> Handle(LoginCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Tokens> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         var validUser = await _userRepository.IsValidUserAsync(request.UserName, request.Password, cancellationToken);
 

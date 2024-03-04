@@ -1,10 +1,10 @@
 ﻿using Application.Common.Abstractions;
 using Domain.UserAggregate.Abstractions.Repositories;
-using MediatR;
+using Mediator;
 
 namespace Application.AttachTinkoffToken;
 
-public sealed class AttachTinkoffTokenCommandHandler : IRequestHandler<AttachTinkoffTokenCommand>
+public sealed class AttachTinkoffTokenCommandHandler : ICommandHandler<AttachTinkoffTokenCommand>
 {
     private readonly IUserBuilder _userBuilder;
     private readonly IUserRepository _portfolioRepository;
@@ -15,10 +15,12 @@ public sealed class AttachTinkoffTokenCommandHandler : IRequestHandler<AttachTin
         _userBuilder = userBuilder;
     }
 
-    public async Task Handle(AttachTinkoffTokenCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(AttachTinkoffTokenCommand request, CancellationToken cancellationToken)
     {
         var user = await _userBuilder.BuildAsync(request.UserName, request.Token, cancellationToken);
 
         await _portfolioRepository.AddAsync(user, cancellationToken);
+
+        return Unit.Value;
     }
 }

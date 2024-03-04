@@ -2,7 +2,7 @@
 using Application.GetPortfolios;
 using Domain.UserAggregate.ValueObjects.Portfolios;
 using Mapster;
-using MediatR;
+using Mediator;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;

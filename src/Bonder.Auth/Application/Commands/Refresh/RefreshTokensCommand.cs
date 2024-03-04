@@ -1,6 +1,6 @@
 using Domain.UserAggregate.ValueObjects;
-using MediatR;
+using Mediator;
 
 namespace Application.Commands.Refresh;
 
-public sealed record RefreshTokensCommand(Tokens ExpiredTokens) : IRequest<Tokens>;
+public sealed record RefreshTokensCommand(Tokens ExpiredTokens) : ICommand<Tokens>;

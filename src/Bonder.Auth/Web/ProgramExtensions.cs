@@ -41,9 +41,9 @@ public static class ProgramExtensions
                                          section.GetValue<int>("Lifetime"));
         });
 
-        builder.Services.AddMediatR(config =>
+        builder.Services.AddMediator(config =>
         {
-            config.RegisterServicesFromAssemblies(typeof(AssemblyReference).Assembly);
+            config.ServiceLifetime = ServiceLifetime.Scoped;
         });
 
         builder.Services.RegisterMapsterConfiguration();
