@@ -35,7 +35,7 @@ public sealed class UpdateBondPriceJob : IJob
         { }
     }
 
-    private async Task<List<KeyValuePair<Ticker, StaticIncome>>> TryReceiveAsync(CancellationToken token)
+    private async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> TryReceiveAsync(CancellationToken token)
     {
         try
         {
@@ -47,7 +47,7 @@ public sealed class UpdateBondPriceJob : IJob
         }
     }
 
-    private async Task ProcessBondsAsync(List<KeyValuePair<Ticker, StaticIncome>> bondsToUpdate, CancellationToken token)
+    private async Task ProcessBondsAsync(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bondsToUpdate, CancellationToken token)
     {
         var notFoundTickers = await _bondRepository.UpdateIncomesAsync(bondsToUpdate, token);
         if (notFoundTickers.Count == 0)
@@ -60,7 +60,7 @@ public sealed class UpdateBondPriceJob : IJob
         await _bondRepository.AddAsync(notFoundBonds, token);
     }
 
-    private async Task<List<KeyValuePair<Ticker, StaticIncome>>> TryRetryAsync(CancellationToken token)
+    private async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> TryRetryAsync(CancellationToken token)
     {
         var retries = 5;
         while (retries > 0)
@@ -75,6 +75,6 @@ public sealed class UpdateBondPriceJob : IJob
             retries--;
         }
 
-        return new List<KeyValuePair<Ticker, StaticIncome>>();
+        return Enumerable.Empty<KeyValuePair<Ticker, StaticIncome>>();
     }
 }

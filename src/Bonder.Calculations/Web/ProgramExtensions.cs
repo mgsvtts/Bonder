@@ -5,6 +5,10 @@ using Application.Calculation.Common.CalculationService;
 using Application.Common;
 using Domain.BondAggreagte.Abstractions;
 using Infrastructure.Calculation.CalculateAll;
+using Infrastructure.Calculation.CalculateAll.Cache;
+using Infrastructure.Calculation.CalculateAll.GrpcClients;
+using Infrastructure.Calculation.CalculateAll.HttpClients;
+using Infrastructure.Calculation.CalculateAll.Repositories;
 using Infrastructure.Common;
 using LinqToDB;
 using LinqToDB.AspNet;
@@ -24,6 +28,9 @@ public static class ProgramExtensions
     public static WebApplicationBuilder AddInfrastructure(this WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<BondRepository>();
+        builder.Services.AddScoped<CalculateAllService>();
+
+        builder.Services.AddScoped<ICalculateAllService, CachedCalculateAllService>();
         builder.Services.AddScoped<IBondRepository, CachedBondRepository>();
         builder.Services.AddScoped<ITinkoffGrpcClient, TinkoffGrpcClient>();
         builder.Services.AddScoped<IAllBondsReceiver, AllBondsReceiver>();
@@ -105,7 +112,6 @@ public static class ProgramExtensions
         builder.Services.RegisterMapsterConfiguration();
 
         builder.Services.AddSingleton<ICalculationService, CalculationService>();
-        builder.Services.AddScoped<ICalculateAllService, CalculateAllService>();
 
         return builder;
     }

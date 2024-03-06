@@ -9,7 +9,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
-namespace Infrastructure.Calculation.CalculateAll;
+namespace Infrastructure.Calculation.CalculateAll.HttpClients;
 
 public sealed class TinkoffHttpClient : ITInkoffHttpClient
 {

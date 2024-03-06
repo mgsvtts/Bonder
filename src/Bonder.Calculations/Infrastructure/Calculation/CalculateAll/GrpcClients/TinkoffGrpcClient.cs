@@ -4,7 +4,7 @@ using Mapster;
 using Tinkoff.InvestApi;
 using Tinkoff.InvestApi.V1;
 
-namespace Infrastructure.Calculation.CalculateAll;
+namespace Infrastructure.Calculation.CalculateAll.GrpcClients;
 
 public sealed class TinkoffGrpcClient : ITinkoffGrpcClient
 {

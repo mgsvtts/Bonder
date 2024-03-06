@@ -5,5 +5,5 @@ namespace Application.Calculation.Common.Abstractions;
 
 public interface IAllBondsReceiver
 {
-    Task<List<KeyValuePair<Ticker, StaticIncome>>> ReceiveAsync(CancellationToken token);
+    Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> ReceiveAsync(CancellationToken token);
 }

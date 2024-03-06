@@ -20,13 +20,11 @@ public sealed class AllBondsReceiver : IAllBondsReceiver
         _bondRepository = bondRepository;
     }
 
-    public async Task<List<KeyValuePair<Ticker, StaticIncome>>> ReceiveAsync(CancellationToken token)
+    public async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> ReceiveAsync(CancellationToken token)
     {
         var bonds = await _tinkoffHttpClient.GetBondPriceAsync(await GetAllTickersAsync(token), token);
 
-        return bonds
-        .Where(x => x.Value.AbsolutePrice != 0)
-        .ToList();
+        return bonds.Where(x => x.Value.AbsolutePrice != 0);
     }
 
     private async Task<IEnumerable<Ticker>> GetAllTickersAsync(CancellationToken token)

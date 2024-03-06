@@ -10,7 +10,7 @@ using LinqToDB;
 using LinqToDB.Data;
 using Mapster;
 
-namespace Infrastructure.Calculation.CalculateAll;
+namespace Infrastructure.Calculation.CalculateAll.Repositories;
 
 public sealed class BondRepository : IBondRepository
 {
@@ -25,7 +25,7 @@ public sealed class BondRepository : IBondRepository
     {
         var dbBonds = bonds.Adapt<List<Common.Models.Bond>>();
 
-        var tasks = dbBonds.Select(x => Task.Run(() => SetBondValues(x)));
+        var tasks = dbBonds.Select(x => Task.Run(() => SetBondValues(x))).ToList();
 
         await Task.WhenAll(tasks);
 
@@ -180,7 +180,7 @@ public sealed class BondRepository : IBondRepository
         .WhereIf(uids != null, x => uids!.Contains(x.Id))
         .Where(x => x.AbsolutePrice >= filter.PriceFrom)
         .Where(x => x.AbsolutePrice <= filter.PriceTo)
-        .Where(x => x.Rating == null || (x.Rating >= filter.RatingFrom && x.Rating <= filter.RatingTo))
+        .Where(x => x.Rating == null || x.Rating >= filter.RatingFrom && x.Rating <= filter.RatingTo)
         .Where(x => x.AbsoluteNominal >= filter.NominalFrom)
         .Where(x => x.AbsoluteNominal <= filter.NominalTo)
         .WhereIf(!filter.IncludeUnknownRatings, x => x.Rating != null);
@@ -208,7 +208,7 @@ public sealed class BondRepository : IBondRepository
     private static PageInfo CreatePageInfo(GetPriceSortedRequest filter, List<Common.Models.Bond> bonds, int total)
     {
         var itemsOnPage = bonds.Count < filter.PageInfo.ItemsOnPage ? bonds.Count : filter.PageInfo.ItemsOnPage;
-        var lastPage = total == itemsOnPage ? filter.PageInfo.CurrentPage : (total / filter.PageInfo.ItemsOnPage) + 1;
+        var lastPage = total == itemsOnPage ? filter.PageInfo.CurrentPage : total / filter.PageInfo.ItemsOnPage + 1;
 
         var pageInfo = new PageInfo(filter.PageInfo.CurrentPage,
                                     lastPage,

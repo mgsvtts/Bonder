@@ -1,4 +1,5 @@
 ﻿using Domain.BondAggreagte.Dto;
+using Domain.BondAggreagte.ValueObjects.Identities;
 
 namespace Domain.BondAggreagte.Abstractions.Dto;
 
@@ -34,5 +35,19 @@ public sealed class GetPriceSortedRequest : GetIncomeRequest
                                                                            includeUnknownRatings)
     {
         PageInfo = pageInfo;
+    }
+
+    public bool IsDefault()
+    {
+        return (IntervalType == DateIntervalType.TillOfferDate || IntervalType == DateIntervalType.TillMaturityDate) &&
+                PriceFrom == 0 &&
+                PriceTo == decimal.MaxValue &&
+                NominalFrom == 0 &&
+                NominalTo == decimal.MaxValue &&
+                YearCouponFrom == 0 &&
+                YearCouponTo == decimal.MaxValue &&
+                RatingFrom == 0 &&
+                RatingTo == 10 &&
+                IncludeUnknownRatings == true;
     }
 }

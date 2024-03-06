@@ -47,12 +47,12 @@ public sealed class BondBuilder : IBondBuilder
         return (bondResponse, couponTask.Result, ratingTask.Result, moexResponse.Result).Adapt<Bond>();
     }
 
-    public async Task<List<Bond>> BuildAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
+    public async Task<IEnumerable<Bond>> BuildAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
     {
         var tasks = tickers.Select(x => BuildAsync(x, token)).ToList();
 
         await Task.WhenAll(tasks);
 
-        return tasks.Select(x => x.Result).ToList();
+        return tasks.Select(x => x.Result);
     }
 }

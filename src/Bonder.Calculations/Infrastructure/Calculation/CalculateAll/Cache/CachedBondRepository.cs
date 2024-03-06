@@ -4,6 +4,8 @@ using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
+using Infrastructure.Calculation.CalculateAll.Repositories;
+using Infrastructure.Common.JsonConverters;
 using Microsoft.Extensions.Caching.Distributed;
 using System;
 using System.Collections.Generic;
@@ -12,8 +14,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Calculation.CalculateAll;
-public sealed partial class CachedBondRepository : IBondRepository
+namespace Infrastructure.Calculation.CalculateAll.Cache;
+public sealed class CachedBondRepository : IBondRepository
 {
     private static readonly JsonSerializerOptions _jsonOptions;
     private static readonly DistributedCacheEntryOptions _cacheOptions;
@@ -44,7 +46,7 @@ public sealed partial class CachedBondRepository : IBondRepository
             return await _decorated.GetPriceSortedAsync(filter, tickers, uids, takeAll, token);
         }
 
-        var key = $"sort-page-{filter.PageInfo.CurrentPage}-{filter.IntervalType}";
+        var key = $"repo-sort-page-{filter.PageInfo.CurrentPage}-{filter.IntervalType}";
 
         var cachedResponse = await _cache.GetStringAsync(key, token);
 
@@ -62,16 +64,7 @@ public sealed partial class CachedBondRepository : IBondRepository
 
     private static bool IsDefaultRequest(GetPriceSortedRequest filter, IEnumerable<Ticker>? tickers, IEnumerable<Guid>? uids, bool takeAll)
     {
-        return (filter.IntervalType == DateIntervalType.TillOfferDate || filter.IntervalType == DateIntervalType.TillMaturityDate) &&
-               filter.PriceFrom == 0 &&
-               filter.PriceTo == decimal.MaxValue &&
-               filter.NominalFrom == 0 &&
-               filter.NominalTo == decimal.MaxValue &&
-               filter.YearCouponFrom == 0 &&
-               filter.YearCouponTo == decimal.MaxValue &&
-               filter.RatingFrom == 0 &&
-               filter.RatingTo == 10 &&
-               filter.IncludeUnknownRatings == true &&
+        return filter.IsDefault() &&
                tickers is null &&
                uids is null &&
                takeAll == false;

@@ -7,41 +7,40 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
-namespace Infrastructure.Calculation.CalculateAll;
-public sealed partial class CachedBondRepository
+namespace Infrastructure.Common.JsonConverters;
+
+public sealed class BondConverter : JsonConverter<Bond>
 {
-    public sealed class BondConverter : JsonConverter<Bond>
+    public override Bond Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        public override Bond Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            var node = JsonNode.Parse(ref reader);
+        var node = JsonNode.Parse(ref reader);
 
-            var price = decimal.Parse(node["Income"]["StaticIncome"]["AbsolutePrice"].ToString());
-            var nominal = decimal.Parse(node["Income"]["StaticIncome"]["AbsoluteNominal"].ToString());
-            var staticIncome = StaticIncome.FromAbsoluteValues(price, nominal);
+        var price = decimal.Parse(node["Income"]["StaticIncome"]["AbsolutePrice"].ToString());
+        var nominal = decimal.Parse(node["Income"]["StaticIncome"]["AbsoluteNominal"].ToString());
+        var staticIncome = StaticIncome.FromAbsoluteValues(price, nominal);
 
-            var couponIncome = JsonSerializer.Deserialize<CouponIncome>(node["Income"]["CouponIncome"]);
-            var amortizationIncome = JsonSerializer.Deserialize<AmortizationIncome>(node["Income"]["AmortizationIncome"]);
+        var couponIncome = node["Income"]["CouponIncome"].Deserialize<CouponIncome>();
+        var amortizationIncome = node["Income"]["AmortizationIncome"].Deserialize<AmortizationIncome>();
 
-            var constructor = typeToConvert
-            .GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
-            .First();
+        var constructor = typeToConvert
+        .GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
+        .First();
 
-            return (Bond)constructor.Invoke(
-            [
-                JsonSerializer.Deserialize<BondId>(node["Identity"]),
+        return (Bond)constructor.Invoke(
+        [
+            node["Identity"].Deserialize<BondId>(),
                 node["Name"].ToString(),
-                JsonSerializer.Deserialize<Dates>(node["Dates"]),
-                JsonSerializer.Deserialize<int?>(node["Rating"]),
-                JsonSerializer.Deserialize<IEnumerable<Coupon>>(node["Coupons"]),
-                JsonSerializer.Deserialize<IEnumerable<Amortization>>(node["Amortizations"]),
+                node["Dates"].Deserialize<Dates>(),
+                node["Rating"].Deserialize<int?>(),
+                node["Coupons"].Deserialize<IEnumerable<Coupon>>(),
+                node["Amortizations"].Deserialize<IEnumerable<Amortization>>(),
                 new FullIncome(staticIncome, couponIncome, amortizationIncome)
-            ]);
-        }
+        ]);
+    }
 
-        public override void Write(Utf8JsonWriter writer, Bond value, JsonSerializerOptions options)
-        {
-            throw new NotImplementedException();
-        }
+    public override void Write(Utf8JsonWriter writer, Bond value, JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, value, options);
     }
 }
+
