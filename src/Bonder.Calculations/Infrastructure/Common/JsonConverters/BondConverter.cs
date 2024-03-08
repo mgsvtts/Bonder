@@ -15,13 +15,6 @@ public sealed class BondConverter : JsonConverter<Bond>
     {
         var node = JsonNode.Parse(ref reader);
 
-        var price = decimal.Parse(node["Income"]["StaticIncome"]["AbsolutePrice"].ToString());
-        var nominal = decimal.Parse(node["Income"]["StaticIncome"]["AbsoluteNominal"].ToString());
-        var staticIncome = StaticIncome.FromAbsoluteValues(price, nominal);
-
-        var couponIncome = node["Income"]["CouponIncome"].Deserialize<CouponIncome>();
-        var amortizationIncome = node["Income"]["AmortizationIncome"].Deserialize<AmortizationIncome>();
-
         var constructor = typeToConvert
         .GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
         .First();
@@ -29,12 +22,12 @@ public sealed class BondConverter : JsonConverter<Bond>
         return (Bond)constructor.Invoke(
         [
             node["Identity"].Deserialize<BondId>(),
-                node["Name"].ToString(),
-                node["Dates"].Deserialize<Dates>(),
-                node["Rating"].Deserialize<int?>(),
-                node["Coupons"].Deserialize<IEnumerable<Coupon>>(),
-                node["Amortizations"].Deserialize<IEnumerable<Amortization>>(),
-                new FullIncome(staticIncome, couponIncome, amortizationIncome)
+            node["Name"].ToString(),
+            node["Dates"].Deserialize<Dates>(),
+            node["Rating"].Deserialize<int?>(),
+            node["Coupons"].Deserialize<IEnumerable<Coupon>>(),
+            node["Amortizations"].Deserialize<IEnumerable<Amortization>>(),
+            node["Income"].Deserialize<FullIncome>(options)
         ]);
     }
 
@@ -43,4 +36,3 @@ public sealed class BondConverter : JsonConverter<Bond>
         JsonSerializer.Serialize(writer, value, options);
     }
 }
-

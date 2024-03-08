@@ -203,12 +203,12 @@ public static class CustomMappings
 
     public static CalculateResponse MapToCalculateResponse(CalculateAllResponse results)
     {
-        return new CalculateResponse(CalculatedBonds: results.Results.Results.Select(x => new CalculatedBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Priority)),
-                                     PriceSortedBonds: results.Results.PriceSortedBonds.Select(x => new PriceBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
-                                     CouponIncomeSortedBonds: results.Results.Bonds.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.FullIncome.CouponIncome.CouponPercent)).OrderByDescending(x => x.Income),
-                                     AmortizationIncomeSortedBonds: results.Results.Bonds.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.FullIncome.AmortizationIncome.AmortizationPercent)).OrderByDescending(x => x.Income),
-                                     FullIncomeSortedBonds: results.Results.FullIncomeSortedBonds.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
-                                     CreditRatingSortedBonds: results.Results.PriceSortedBonds.GroupBy(x => x.Bond.Rating)
+        return new CalculateResponse(CalculatedBonds: results.Aggregation.PrioritySortedBonds.Select(x => new CalculatedBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Priority)),
+                                     PriceSortedBonds: results.Aggregation.PriceSortedBonds.Select(x => new PriceBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
+                                     CouponIncomeSortedBonds: results.Aggregation.BondsWithIncome.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.FullIncome.CouponIncome.CouponPercent)).OrderByDescending(x => x.Income),
+                                     AmortizationIncomeSortedBonds: results.Aggregation.BondsWithIncome.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.FullIncome.AmortizationIncome.AmortizationPercent)).OrderByDescending(x => x.Income),
+                                     FullIncomeSortedBonds: results.Aggregation.FullIncomeSortedBonds.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
+                                     CreditRatingSortedBonds: results.Aggregation.PriceSortedBonds.GroupBy(x => x.Bond.Rating)
                                                                                               .OrderBy(x => x.Key)
                                                                                               .Select(x => new CreditRatingBondResponse(x.Key, x.Select(x => new CreditRatingBond(x.Bond.Identity.Ticker.ToString(), x.Bond.Name)))),
                                      results.PageInfo);

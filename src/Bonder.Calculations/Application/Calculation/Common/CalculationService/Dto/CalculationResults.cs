@@ -7,15 +7,27 @@ public record struct CalculationResults
 {
     private List<CalculationResult> _results = [];
 
-    public readonly IReadOnlyList<CalculationResult> Results => _results.AsReadOnly();
-    public List<BondWithIncome> Bonds { get; }
+    public readonly IReadOnlyList<CalculationResult> PrioritySortedBonds => _results.AsReadOnly();
+    public List<BondWithIncome> BondsWithIncome { get; }
     public List<CalculationMoneyResult> PriceSortedBonds { get; }
     public List<CalculationMoneyResult> FullIncomeSortedBonds { get; }
+
+    //Deserialization constructor
+    private CalculationResults(List<CalculationResult> prioritySortedBonds,
+                               List<BondWithIncome> bondsWithIncome,
+                               List<CalculationMoneyResult> priceSortedBonds,
+                               List<CalculationMoneyResult> fullIncomeSortedBonds)
+    {
+        _results = prioritySortedBonds;
+        BondsWithIncome = bondsWithIncome;
+        PriceSortedBonds = priceSortedBonds;
+        FullIncomeSortedBonds = fullIncomeSortedBonds;
+    }
 
     public CalculationResults(IEnumerable<BondWithIncome> bonds,
                               IEnumerable<Bond> priceSortedBonds)
     {
-        Bonds = bonds.ToList();
+        BondsWithIncome = bonds.ToList();
         PriceSortedBonds = priceSortedBonds
         .Select(x => new CalculationMoneyResult(x, x.Income.StaticIncome.PricePercent))
         .ToList();
@@ -26,14 +38,14 @@ public record struct CalculationResults
 
     public CalculationResults(CalculationRequest request)
     {
-        Bonds = CalculateIncomes(request);
+        BondsWithIncome = CalculateIncomes(request);
 
-        PriceSortedBonds = Bonds
+        PriceSortedBonds = BondsWithIncome
         .OrderBy(x => x.Bond.Income.StaticIncome.PricePercent)
         .Select(x => new CalculationMoneyResult(x.Bond, x.Bond.Income.StaticIncome.PricePercent))
         .ToList();
 
-        FullIncomeSortedBonds = Bonds
+        FullIncomeSortedBonds = BondsWithIncome
         .OrderByDescending(x => x.FullIncome.FullIncomePercent)
         .Select(x => new CalculationMoneyResult(x.Bond, x.FullIncome.FullIncomePercent))
         .ToList();

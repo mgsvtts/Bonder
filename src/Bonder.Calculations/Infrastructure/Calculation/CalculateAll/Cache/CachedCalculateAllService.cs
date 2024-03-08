@@ -25,10 +25,12 @@ public class CachedCalculateAllService : ICalculateAllService
     {
         _cacheOptions = new DistributedCacheEntryOptions
         {
-            //AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(5)
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10)
         };
         _jsonOptions = new JsonSerializerOptions();
         _jsonOptions.Converters.Add(new BondConverter());
+        _jsonOptions.Converters.Add(new CalculateAllResponseConverter());
+        _jsonOptions.Converters.Add(new FullIncomeConverter());
     }
 
     public CachedCalculateAllService(CalculateAllService decorated, IDistributedCache cache)
