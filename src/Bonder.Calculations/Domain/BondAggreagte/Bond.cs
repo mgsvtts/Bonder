@@ -198,7 +198,7 @@ public sealed class Bond : AggregateRoot<BondId>
 
         Income = new FullIncome(income, CouponIncome.None, AmortizationIncome.None);
         Income = Income with
-        { 
+        {
             CouponIncome = GetCouponIncome(incomeRequest),
             AmortizationIncome = GetAmortizationIncome(incomeRequest)
         };

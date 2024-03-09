@@ -49,13 +49,19 @@ public sealed class TinkoffHttpClient : ITinkoffHttpClient
         var serializedResponse = await response.Content.ReadFromJsonAsync<GetAccountsResponse>(cancellationToken: cancellationToken);
 
         var tasks = serializedResponse.Accounts
-        .Where(x => x.Type == TinkoffAccountType.IIS || x.Type == TinkoffAccountType.Ordinary)
+        .Where(AccountIsValid)
         .Select(x => GetPortfolioAsync(new GetPortfoliosRequest(x, token)))
         .ToList();
 
         await Task.WhenAll(tasks);
 
         return tasks.Select(x => x.Result);
+    }
+
+    private static bool AccountIsValid(TinkoffAccount account)
+    {
+        return account.Status == TinkoffAccountStatus.Open &&
+              (account.Type == TinkoffAccountType.IIS || account.Type == TinkoffAccountType.Ordinary);
     }
 
     private async Task<Portfolio> GetPortfolioAsync(GetPortfoliosRequest request, CancellationToken cancellationToken = default)
@@ -72,7 +78,7 @@ public sealed class TinkoffHttpClient : ITinkoffHttpClient
         var response = await _client.SendAsync(content, cancellationToken);
 
         response.EnsureSuccessStatusCode();
-        var a = await response.Content.ReadAsStringAsync();
+
         var serializedResponse = await response.Content.ReadFromJsonAsync<GetTinkoffPortfolioResponse>(cancellationToken: cancellationToken);
         serializedResponse.Positions = serializedResponse.Positions.Where(x => x.Type == "bond");
 

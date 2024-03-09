@@ -1,4 +1,4 @@
-﻿using Application.Calculation.Common.Abstractions;
+﻿using Application.Commands.Calculation.Common.Abstractions;
 using Google.Protobuf.WellKnownTypes;
 using Mapster;
 using Tinkoff.InvestApi;

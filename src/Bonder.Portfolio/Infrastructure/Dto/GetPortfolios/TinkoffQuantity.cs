@@ -12,6 +12,6 @@ public sealed class TinkoffQuantity
 
     public decimal ToDecimal()
     {
-        return decimal.Parse(Units.ToString() + '.' + Nanos.ToString());
+        return (decimal)Units + (decimal)Nanos / 1000000000m;
     }
 }

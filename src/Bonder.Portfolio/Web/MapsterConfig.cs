@@ -17,25 +17,25 @@ public static class MapsterConfig
     {
         TypeAdapterConfig<AttachTokenRequest, AttachTinkoffTokenCommand>
         .ForType()
-        .MapWith(x => new AttachTinkoffTokenCommand(new UserName(x.UserName), x.Token));
+        .MapWith(x => new AttachTinkoffTokenCommand(new UserId(x.UserId), x.Token));
 
         TypeAdapterConfig<Infrastructure.Common.Models.User, User>
         .ForType()
-        .MapWith(x => new User(new UserName(x.UserName), x.Token, null));
+        .MapWith(x => new User(new UserId(x.Id), x.Token, null));
 
         TypeAdapterConfig<Infrastructure.Common.Models.Portfolio, Portfolio>
         .ForType()
-        .MapWith(x => new Portfolio(x.TotalBondPrice, x.Name, x.Type, x.Status, x.Bonds.Select(x => new Bond(x.BondId, x.Count))));
+        .MapWith(x => new Portfolio(x.TotalBondPrice, x.Name, x.Type, x.BrokerType, x.Bonds.Select(x => new Bond(x.BondId, x.Count))));
 
         TypeAdapterConfig<Infrastructure.Common.Models.User, User>
         .ForType()
-        .MapWith(x => new User(new UserName(x.UserName), x.Token, x.Portfolios.Adapt<IEnumerable<Portfolio>>()));
+        .MapWith(x => new User(new UserId(x.Id), x.Token, x.Portfolios.Adapt<IEnumerable<Portfolio>>()));
 
         TypeAdapterConfig<User, Infrastructure.Common.Models.User>
         .ForType()
         .MapWith(x => new Infrastructure.Common.Models.User
         {
-            UserName = x.Identity.Name,
+            Id = x.Identity.Value,
             Token = x.TinkoffToken,
             Portfolios = x.Portfolios.Adapt<List<Infrastructure.Common.Models.Portfolio>>()
         });
@@ -48,7 +48,6 @@ public static class MapsterConfig
             Name = x.Name,
             TotalBondPrice = x.TotalBondPrice,
             Type = x.Type,
-            Status = x.Status,
         });
 
         TypeAdapterConfig<(GetTinkoffPortfolioResponse Portfolio, TinkoffAccount Account), Portfolio>
@@ -70,7 +69,6 @@ public static class CustopMappings
     public static Portfolio FromTinkoffAccount(GetTinkoffPortfolioResponse portfolio, TinkoffAccount account)
     {
         var totalBondPrice = portfolio.TotalBondPrice.ToDecimal();
-        var status = account.Status == "ACCOUNT_STATUS_OPEN" ? PortfolioStatus.Open : PortfolioStatus.Closed;
         var type = account.Type switch
         {
             "ACCOUNT_TYPE_TINKOFF" => PortfolioType.Ordinary,
@@ -78,6 +76,6 @@ public static class CustopMappings
             _ => PortfolioType.Unknown,
         };
 
-        return new Portfolio(totalBondPrice, account.Name, type, status, portfolio.Positions.Select(x => new Bond(Guid.Parse(x.InstrumentId), x.Quantity.ToDecimal())));
+        return new Portfolio(totalBondPrice, account.Name, type, BrokerType.Tinkoff, portfolio.Positions.Select(x => new Bond(Guid.Parse(x.InstrumentId), x.Quantity.ToDecimal())));
     }
 }

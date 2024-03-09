@@ -1,18 +1,12 @@
-﻿using Application.Calculation.CalculateAll.Services;
-using Application.Calculation.CalculateAll.Services.Dto;
+﻿using Application.Commands.Calculation.CalculateAll.Services;
+using Application.Commands.Calculation.CalculateAll.Services.Dto;
 using Domain.BondAggreagte.Abstractions.Dto;
-using Domain.BondAggreagte.ValueObjects.Identities;
-using Infrastructure.Calculation.CalculateAll.Repositories;
 using Infrastructure.Common.JsonConverters;
 using Microsoft.Extensions.Caching.Distributed;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Calculation.CalculateAll.Cache;
+
 public class CachedCalculateAllService : ICalculateAllService
 {
     private static readonly JsonSerializerOptions _jsonOptions;
@@ -29,8 +23,8 @@ public class CachedCalculateAllService : ICalculateAllService
         };
         _jsonOptions = new JsonSerializerOptions();
         _jsonOptions.Converters.Add(new BondConverter());
-        _jsonOptions.Converters.Add(new CalculateAllResponseConverter());
         _jsonOptions.Converters.Add(new FullIncomeConverter());
+        _jsonOptions.Converters.Add(new CalculateAllResponseConverter());
     }
 
     public CachedCalculateAllService(CalculateAllService decorated, IDistributedCache cache)

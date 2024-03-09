@@ -1,5 +1,5 @@
-using Application.Calculation.Common.Abstractions;
-using Application.Calculation.Common.Abstractions.Dto;
+using Application.Commands.Calculation.Common.Abstractions;
+using Application.Commands.Calculation.Common.Abstractions.Dto;
 using Domain.BondAggreagte;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Domain.BondAggreagte.ValueObjects.Incomes;

@@ -100,6 +100,7 @@ public sealed class BondRepository : IBondRepository
     {
         var dbBonds = await _db.Bonds
         .LoadWith(x => x.Coupons)
+        .LoadWith(x => x.Amortizations)
         .Where(x => x.Coupons.Any(x => x.IsFloating))
         .ToListAsync(token: token);
 
@@ -110,6 +111,7 @@ public sealed class BondRepository : IBondRepository
     {
         var dbBonds = await _db.Bonds
         .LoadWith(x => x.Coupons)
+        .LoadWith(x => x.Amortizations)
         .Where(x => tickers.Select(x => x.Value).Contains(x.Ticker))
         .ToListAsync(token: token);
 

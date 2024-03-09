@@ -1,4 +1,4 @@
-﻿using Application.Calculation.CalculateTickers;
+﻿using Application.Commands.Calculation.CalculateTickers;
 
 namespace Presentation.Controllers.BondController.Calculate.Request;
 public sealed record CalculateBondsRequest(CalculationOptions Options, IdType IdType, IEnumerable<string> Ids);

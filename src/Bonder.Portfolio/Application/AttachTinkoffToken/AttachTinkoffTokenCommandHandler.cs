@@ -7,19 +7,19 @@ namespace Application.AttachTinkoffToken;
 public sealed class AttachTinkoffTokenCommandHandler : ICommandHandler<AttachTinkoffTokenCommand>
 {
     private readonly IUserBuilder _userBuilder;
-    private readonly IUserRepository _portfolioRepository;
+    private readonly IUserRepository _userRepository;
 
     public AttachTinkoffTokenCommandHandler(IUserRepository portfolioRepository, IUserBuilder userBuilder)
     {
-        _portfolioRepository = portfolioRepository;
+        _userRepository = portfolioRepository;
         _userBuilder = userBuilder;
     }
 
     public async ValueTask<Unit> Handle(AttachTinkoffTokenCommand request, CancellationToken cancellationToken)
     {
-        var user = await _userBuilder.BuildAsync(request.UserName, request.Token, cancellationToken);
+        var user = await _userBuilder.BuildAsync(request.UserId, request.Token, cancellationToken);
 
-        await _portfolioRepository.AddAsync(user, cancellationToken);
+        await _userRepository.SaveAsync(user, cancellationToken);
 
         return Unit.Value;
     }

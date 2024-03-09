@@ -10,10 +10,10 @@ public sealed class Portfolio
     [Column("id")]
     public Guid Id { get; set; }
 
-    [Column("user_name")]
-    public string UserName { get; set; }
+    [Column("user_id")]
+    public Guid UserId { get; set; }
 
-    [Association(ThisKey = nameof(UserName), OtherKey = nameof(User.UserName))]
+    [Association(ThisKey = nameof(UserId), OtherKey = nameof(User.Id))]
     public User User { get; set; }
 
     [Column("name")]
@@ -25,8 +25,8 @@ public sealed class Portfolio
     [Column("type")]
     public PortfolioType Type { get; set; }
 
-    [Column("status")]
-    public PortfolioStatus Status { get; set; }
+    [Column("broker_type")]
+    public BrokerType BrokerType { get; set; }
 
     [Association(ThisKey = nameof(Id), OtherKey = nameof(PortfolioBonds.PortfolioId))]
     public List<PortfolioBonds> Bonds { get; set; }

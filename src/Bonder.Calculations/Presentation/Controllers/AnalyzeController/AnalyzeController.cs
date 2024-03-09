@@ -1,4 +1,4 @@
-using Application.Analyze;
+using Application.Commands.Analyze;
 using Mapster;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;

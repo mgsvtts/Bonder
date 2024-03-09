@@ -32,10 +32,10 @@ public sealed class UserRepository : IUserRepository
 
     public async Task<Domain.UserAggregate.User> DeleteAsync(UserId id, CancellationToken token = default)
     {
-        var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == id.Identity.ToString(), cancellationToken: token)
-        ?? throw new UserNotFoundException(id.Identity.ToString());
+        var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == id.Value.ToString(), cancellationToken: token)
+        ?? throw new UserNotFoundException(id.Value.ToString());
 
-        await _db.Users.Where(x => x.Id == id.Identity.ToString())
+        await _db.Users.Where(x => x.Id == id.Value.ToString())
         .ExecuteDeleteAsync(cancellationToken: token);
 
         var claims = await _userManager.GetClaimsAsync(user);
@@ -55,6 +55,20 @@ public sealed class UserRepository : IUserRepository
     public async Task<Domain.UserAggregate.User?> GetByUserNameAsync(UserName userName, CancellationToken cancellationToken = default)
     {
         var user = await _db.Users.FirstOrDefaultAsync(x => x.UserName == userName.Name, cancellationToken: cancellationToken);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        var claims = await _userManager.GetClaimsAsync(user);
+
+        return (user, claims).Adapt<Domain.UserAggregate.User>();
+    }
+
+    public async Task<Domain.UserAggregate.User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == id.Value.ToString(), cancellationToken: cancellationToken);
 
         if (user is null)
         {

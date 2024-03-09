@@ -2,19 +2,19 @@ syntax = "proto3";
 
 package bonder.auth.grpc;
 
-message User {
+message GrpcUser {
 	string id = 1;
 	string user_name = 2;
 	bool is_admin = 3;
 }
 
 service AuthService {
-  rpc GetUserByUserName(GetUserByUserNameRequest) returns (User);
+  rpc GetUserById(GetUserByUserNameRequest) returns (GrpcUser);
   rpc GetUserByToken(GetUserByTokenRequest) returns (GetUserByTokenResponse);
 }
 
 message GetUserByUserNameRequest {
-	string user_name = 1;
+	string user_id = 1;
 }
 
 message GetUserByTokenRequest{
@@ -22,5 +22,5 @@ message GetUserByTokenRequest{
 }
 
 message GetUserByTokenResponse{
-	string user_name = 1;
+	string user_id = 1;
 }

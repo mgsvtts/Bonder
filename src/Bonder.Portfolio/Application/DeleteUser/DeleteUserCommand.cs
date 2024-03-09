@@ -2,4 +2,4 @@
 using Mediator;
 
 namespace Application.DeleteUser;
-public sealed record DeleteUserCommand(UserName UserName) : ICommand;
+public sealed record DeleteUserCommand(UserId UserName) : ICommand;

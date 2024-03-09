@@ -1,20 +1,15 @@
 ﻿using Domain.BondAggreagte;
 using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.Abstractions.Dto;
-using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Infrastructure.Calculation.CalculateAll.Repositories;
 using Infrastructure.Common.JsonConverters;
 using Microsoft.Extensions.Caching.Distributed;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Calculation.CalculateAll.Cache;
+
 public sealed class CachedBondRepository : IBondRepository
 {
     private static readonly JsonSerializerOptions _jsonOptions;
@@ -31,12 +26,13 @@ public sealed class CachedBondRepository : IBondRepository
         };
         _jsonOptions = new JsonSerializerOptions();
         _jsonOptions.Converters.Add(new BondConverter());
+        _jsonOptions.Converters.Add(new FullIncomeConverter());
     }
 
     public CachedBondRepository(BondRepository decorated, IDistributedCache cache)
     {
-        _decorated = decorated;
         _cache = cache;
+        _decorated = decorated;
     }
 
     public async Task<GetPriceSortedResponse> GetPriceSortedAsync(GetPriceSortedRequest filter, IEnumerable<Ticker>? tickers = null, IEnumerable<Guid>? uids = null, bool takeAll = false, CancellationToken token = default)
@@ -62,12 +58,22 @@ public sealed class CachedBondRepository : IBondRepository
         return response;
     }
 
-    private static bool IsDefaultRequest(GetPriceSortedRequest filter, IEnumerable<Ticker>? tickers, IEnumerable<Guid>? uids, bool takeAll)
+    public async Task<List<Bond>> GetByTickersAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
     {
-        return filter.IsDefault() &&
-               tickers is null &&
-               uids is null &&
-               takeAll == false;
+        var key = $"repo-get-by-tickers-{string.Join(',', tickers)}";
+
+        var cachedResponse = await _cache.GetStringAsync(key, token);
+
+        if (!string.IsNullOrEmpty(cachedResponse))
+        {
+            return JsonSerializer.Deserialize<List<Bond>>(cachedResponse, _jsonOptions);
+        }
+
+        var response = await _decorated.GetByTickersAsync(tickers, token);
+
+        await _cache.SetStringAsync(key, JsonSerializer.Serialize(response), _cacheOptions, token);
+
+        return response;
     }
 
     public Task AddAsync(IEnumerable<Bond> bonds, CancellationToken token = default)
@@ -83,11 +89,6 @@ public sealed class CachedBondRepository : IBondRepository
     public Task<List<Bond>> GetAllFloatingAsync(CancellationToken token = default)
     {
         return _decorated.GetAllFloatingAsync(token);
-    }
-
-    public Task<List<Bond>> GetByTickersAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
-    {
-        return _decorated.GetByTickersAsync(tickers, token);
     }
 
     public Task RefreshAsync(IEnumerable<Ticker> oldBondTickers, CancellationToken token = default)
@@ -108,5 +109,13 @@ public sealed class CachedBondRepository : IBondRepository
     public Task<List<Ticker>> UpdateIncomesAsync(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bonds, CancellationToken token = default)
     {
         return _decorated.UpdateIncomesAsync(bonds, token);
+    }
+
+    private static bool IsDefaultRequest(GetPriceSortedRequest filter, IEnumerable<Ticker>? tickers, IEnumerable<Guid>? uids, bool takeAll)
+    {
+        return filter.IsDefault() &&
+               tickers is null &&
+               uids is null &&
+               takeAll == false;
     }
 }

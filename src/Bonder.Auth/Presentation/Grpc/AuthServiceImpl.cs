@@ -1,5 +1,5 @@
 ﻿using Application.Queries.GetPrincipalFromToken;
-using Application.Queries.GetUserByUserName;
+using Application.Queries.GetUserById;
 using Bonder.Auth.Grpc;
 using Domain.UserAggregate.ValueObjects;
 using Grpc.Core;
@@ -16,14 +16,14 @@ public sealed class AuthServiceImpl : AuthService.AuthServiceBase
         _sender = sender;
     }
 
-    public override async Task<User> GetUserByUserName(GetUserByUserNameRequest request, ServerCallContext context)
+    public override async Task<GrpcUser> GetUserById(GetUserByUserNameRequest request, ServerCallContext context)
     {
-        var user = await _sender.Send(new GetUserByUserNameQuery(new UserName(request.UserName)), context.CancellationToken);
+        var user = await _sender.Send(new GetUserByIdQuery(new UserId(Guid.Parse(request.UserId))), context.CancellationToken);
 
-        return new User
+        return new GrpcUser
         {
             Id = user?.Identity.ToString() ?? "",
-            UserName = request.UserName,
+            UserName = user?.UserName is not null ? user?.UserName.ToString() : "",
             IsAdmin = user?.IsAdmin ?? false
         };
     }
@@ -36,7 +36,7 @@ public sealed class AuthServiceImpl : AuthService.AuthServiceBase
 
             return new GetUserByTokenResponse
             {
-                UserName = principal?.Identity?.Name ?? ""
+                UserId = principal?.Identity?.Name ?? ""
             };
         }
         catch (Exception ex)

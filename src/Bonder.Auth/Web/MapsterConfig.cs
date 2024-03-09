@@ -20,7 +20,7 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new Infrastructure.Common.Models.User
         {
-            Id = x.Identity.Identity.ToString(),
+            Id = x.Identity.Value.ToString(),
             UserName = x.UserName.Name,
             RefreshToken = x.Tokens.RefreshToken
         });

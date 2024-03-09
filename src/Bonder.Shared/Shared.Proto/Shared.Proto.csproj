@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <None Remove="auth_service.proto" />
+    <None Remove="calculation_service.proto" />
+    <None Remove="decimal.proto" />
     <None Remove="portfolio_service.proto" />
   </ItemGroup>
 
@@ -16,7 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="auth_service.proto" GrpcServices="Both" />
+    <Protobuf Include="auth_service.proto" />
+    <Protobuf Include="calculation_service.proto" />
+    <Protobuf Include="decimal.proto" />
     <Protobuf Include="portfolio_service.proto" />
   </ItemGroup>
 

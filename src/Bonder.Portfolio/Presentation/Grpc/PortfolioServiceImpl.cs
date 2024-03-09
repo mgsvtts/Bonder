@@ -17,7 +17,7 @@ public sealed class PortfolioServiceImpl : PortfolioService.PortfolioServiceBase
 
     public override async Task<Bonder.Portfolio.Grpc.Void> DeleteUser(DeleteUserRequest request, ServerCallContext context)
     {
-        await _sender.Send(new DeleteUserCommand(new UserName(request.UserName)));
+        await _sender.Send(new DeleteUserCommand(new UserId(Guid.Parse(request.UserName))));
 
         return new Bonder.Portfolio.Grpc.Void();
     }

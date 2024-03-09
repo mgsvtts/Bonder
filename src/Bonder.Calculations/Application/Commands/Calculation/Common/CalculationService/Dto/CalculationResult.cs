@@ -1,0 +1,6 @@
+﻿using Domain.BondAggreagte;
+
+namespace Application.Commands.Calculation.Common.CalculationService.Dto;
+
+public readonly record struct CalculationResult(Bond Bond,
+                                                int Priority);

@@ -2,4 +2,4 @@
 using Mediator;
 
 namespace Application.AttachTinkoffToken;
-public sealed record AttachTinkoffTokenCommand(UserName UserName, string Token) : ICommand;
+public sealed record AttachTinkoffTokenCommand(UserId UserId, string Token) : ICommand;

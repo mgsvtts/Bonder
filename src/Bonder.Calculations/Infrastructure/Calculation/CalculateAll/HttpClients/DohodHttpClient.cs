@@ -1,4 +1,4 @@
-﻿using Application.Calculation.Common.Abstractions;
+﻿using Application.Commands.Calculation.Common.Abstractions;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Infrastructure.Calculation.Dto.GetRating;
 using Microsoft.AspNetCore.Http.Extensions;

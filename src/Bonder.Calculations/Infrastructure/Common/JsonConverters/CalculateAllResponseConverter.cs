@@ -1,20 +1,13 @@
-﻿using Application.Calculation.CalculateAll.Services.Dto;
-using Domain.BondAggreagte.ValueObjects.Identities;
-using Domain.BondAggreagte.ValueObjects.Incomes;
-using Domain.BondAggreagte.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Application.Commands.Calculation.CalculateAll.Services.Dto;
+using Application.Commands.Calculation.Common.CalculationService.Dto;
+using Domain.BondAggreagte.Abstractions.Dto;
 using System.Reflection;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using Domain.BondAggreagte.Abstractions.Dto;
-using Application.Calculation.Common.CalculationService.Dto;
 
 namespace Infrastructure.Common.JsonConverters;
+
 public sealed class CalculateAllResponseConverter : JsonConverter<CalculateAllResponse>
 {
     public override CalculateAllResponse Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

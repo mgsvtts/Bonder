@@ -6,6 +6,7 @@ using Domain.UserAggregate.ValueObjects;
 using Mapster;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Controllers.Dto.Register;
 using Presentation.Filters;
@@ -25,11 +26,11 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request, CancellationToken token)
+    public async Task<IResult> RegisterAsync([FromBody] RegisterRequest request, CancellationToken token)
     {
         await _sender.Send(request.Adapt<RegisterCommand>(), token);
 
-        return Created();
+        return TypedResults.Created();
     }
 
     [HttpPost("login")]
@@ -45,10 +46,10 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpDelete("{userId}")]
-    public async Task<IActionResult> DeleteAsync([FromRoute] Guid userId, CancellationToken token)
+    public async Task<IResult> DeleteAsync([FromRoute] Guid userId, CancellationToken token)
     {
         await _sender.Send(new DeleteUserCommand(new UserId(userId)), token);
 
-        return NoContent();
+        return TypedResults.NoContent();
     }
 }

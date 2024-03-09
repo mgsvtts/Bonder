@@ -1,6 +1,6 @@
-﻿using Application.Common;
-using Application.Common.Abstractions;
+﻿using Application.Common.Abstractions;
 using Bonder.Auth.Grpc;
+using Bonder.Calculation.Grpc;
 using Domain.UserAggregate.Abstractions.Repositories;
 using Infrastructure;
 using Infrastructure.Common;
@@ -32,8 +32,10 @@ public static class ProgramExtensions
 
         builder.Services.AddGrpc();
 
+        var calculationServerUrl = new Uri(builder.Configuration.GetValue<string>("CalculationServerUrl"));
         var authServerUrl = new Uri(builder.Configuration.GetValue<string>("AuthServerUrl"));
         builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(options => options.Address = authServerUrl);
+        builder.Services.AddGrpcClient<CalculationService.CalculationServiceClient>(options => options.Address = calculationServerUrl);
 
         var rateLimiter = TimeLimiter.GetFromMaxCountByInterval(1, TimeSpan.FromMilliseconds(201));
 
@@ -70,8 +72,8 @@ public static class ProgramExtensions
         builder.Services.AddSwaggerGen(options =>
         {
             options.AddEnumsWithValuesFixFilters();
-        }); 
-        
+        });
+
         builder.Services.AddStackExchangeRedisOutputCache(x =>
         {
             x.Configuration = builder.Configuration.GetConnectionString("Redis");

@@ -1,14 +1,17 @@
-﻿using Application.Analyze;
-using Application.Analyze.Dto;
-using Application.Calculation.CalculateAll.Services.Dto;
-using Application.Calculation.CalculateTickers;
-using Application.Calculation.Common.Abstractions.Dto;
+﻿using Application.Commands.Analyze;
+using Application.Commands.Analyze.Dto;
+using Application.Commands.Calculation.CalculateAll.Services.Dto;
+using Application.Commands.Calculation.CalculateTickers;
+using Application.Commands.Calculation.Common.Abstractions.Dto;
+using Application.Queries.GetBondsByTickers;
+using Bonder.Calculation.Grpc;
 using Domain.BondAggreagte;
 using Domain.BondAggreagte.Abstractions.Dto;
 using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Domain.BondAggreagte.ValueObjects.Incomes;
+using Google.Protobuf.WellKnownTypes;
 using Infrastructure.Calculation.Dto.GetAmortization;
 using Infrastructure.Calculation.Dto.GetBonds.TInkoffApiData;
 using Mapster;
@@ -56,7 +59,23 @@ public static class MapsterConfig
 
         TypeAdapterConfig<AnalyzeBondsRequest, AnalyzeBondsCommand>
         .ForType()
-        .MapWith(x => new AnalyzeBondsCommand(x.DefaultOptions, x.Bonds.Select(x => new Application.Analyze.BondToAnalyze(x.Option, new Ticker(x.Ticker)))));
+        .MapWith(x => new AnalyzeBondsCommand(x.DefaultOptions, x.Bonds.Select(x => new Application.Commands.Analyze.BondToAnalyze(x.Option, new Ticker(x.Ticker)))));
+
+        TypeAdapterConfig<Bond, BondItem>
+        .ForType()
+        .MapWith(x => new BondItem(x.Identity.InstrumentId,
+                                   x.Identity.Ticker.ToString(),
+                                   x.Identity.Isin.ToString(),
+                                   x.Name,
+                                   x.Income.StaticIncome.AbsolutePrice,
+                                   x.Income.StaticIncome.AbsoluteNominal,
+                                   x.Dates.MaturityDate,
+                                   x.Dates.OfferDate,
+                                   x.Rating));
+
+        TypeAdapterConfig<IEnumerable<BondItem>, Bonder.Calculation.Grpc.GetBondsByTickersResponse>
+        .ForType()
+        .MapWith(x => CustomMappings.GrpcResponse(x));
 
         TypeAdapterConfig<(Bond Bond, FullIncome Income), BondWithIncome>
         .ForType()
@@ -176,6 +195,32 @@ public static class CustomMappings
                                    new Dates(maturityDate != null ? DateOnly.FromDateTime(maturityDate.Value) : null,
                                              value.OfferDate != null ? DateOnly.FromDateTime(value.OfferDate.Value) : null),
                                    value.IsAmortized);
+    }
+
+    public static Bonder.Calculation.Grpc.GetBondsByTickersResponse GrpcResponse(IEnumerable<BondItem> items)
+    {
+        var response = new Bonder.Calculation.Grpc.GetBondsByTickersResponse();
+
+        foreach (var item in items)
+        {
+            var offerDate = item.OfferDate is not null ? item.OfferDate.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue;
+            var maturityDate = item.MaturityDate is not null ? item.MaturityDate.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue;
+
+            response.Bonds.Add(new GrpcBond
+            {
+                Id = item.Id.ToString(),
+                Isin = item.Isin,
+                Name = item.Name,
+                Nominal = item.Nominal,
+                Price = item.Price,
+                Rating = item.Rating ?? 0,
+                Ticker = item.Ticker,
+                OfferDate = Timestamp.FromDateTime(offerDate.ToUniversalTime()),
+                MaturityDate = Timestamp.FromDateTime(maturityDate.ToUniversalTime()),
+            });
+        }
+
+        return response;
     }
 
     public static Bond CreateBuilderBond(GetBondResponse bond, List<Coupon>? coupons, int? rating, MoexResponse moexResponse)

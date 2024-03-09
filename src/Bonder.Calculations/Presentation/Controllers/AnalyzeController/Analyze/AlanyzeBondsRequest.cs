@@ -1,4 +1,4 @@
-using Application.Analyze;
+using Application.Commands.Analyze;
 
 namespace Presentation.Controllers.AnalyzeController.Analyze;
 

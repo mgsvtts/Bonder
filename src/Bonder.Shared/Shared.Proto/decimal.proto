@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package bonder.protos.custom;
+
+message Decimal {
+	int64 units = 1;
+	int32 nanos = 2;
+}

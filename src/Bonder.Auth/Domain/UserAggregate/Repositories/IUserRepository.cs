@@ -7,6 +7,8 @@ public interface IUserRepository
 {
     Task RegisterAsync(User user, string password);
 
+    Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default);
+
     Task<User?> GetByUserNameAsync(UserName userName, CancellationToken cancellationToken = default);
 
     Task<bool> IsValidUserAsync(UserName userName, string password, CancellationToken cancellationToken = default);

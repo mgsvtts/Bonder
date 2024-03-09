@@ -15,22 +15,22 @@ public sealed class UserBuilder : IUserBuilder
         _grpcClient = grpcClient;
     }
 
-    public async Task<Domain.UserAggregate.User> BuildAsync(UserName userName, string tinkoffToken, CancellationToken cancellationToken = default)
+    public async Task<Domain.UserAggregate.User> BuildAsync(UserId id, string tinkoffToken, CancellationToken cancellationToken = default)
     {
         var portfoliosTask = _httpClient.GetPortfoliosAsync(tinkoffToken, cancellationToken);
 
-        var userTask = _grpcClient.GetUserByUserNameAsync(new GetUserByUserNameRequest
+        var userTask = _grpcClient.GetUserByIdAsync(new GetUserByUserNameRequest
         {
-            UserName = userName.Name
+            UserId = id.Value.ToString()
         }, cancellationToken: cancellationToken);
 
         await Task.WhenAll(portfoliosTask, userTask.ResponseAsync);
 
         if (string.IsNullOrEmpty(userTask.ResponseAsync.Result.Id))
         {
-            throw new ArgumentException($"User {userName.Name} not exist");
+            throw new ArgumentException($"User {id.Value} not exist");
         }
 
-        return new Domain.UserAggregate.User(userName, tinkoffToken, portfoliosTask.Result);
+        return new Domain.UserAggregate.User(id, tinkoffToken, portfoliosTask.Result);
     }
 }

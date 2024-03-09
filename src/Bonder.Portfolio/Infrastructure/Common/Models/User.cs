@@ -6,12 +6,12 @@ namespace Infrastructure.Common.Models;
 public sealed class User
 {
     [PrimaryKey]
-    [Column("user_name")]
-    public string UserName { get; set; }
+    [Column("id")]
+    public Guid Id { get; set; }
 
     [Column("token")]
     public string Token { get; set; }
 
-    [Association(ThisKey = nameof(UserName), OtherKey = nameof(Portfolio.UserName))]
+    [Association(ThisKey = nameof(Id), OtherKey = nameof(Portfolio.UserId))]
     public List<Portfolio> Portfolios { get; set; }
 }

@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package bonder.calculation.grpc;
+
+import "google/protobuf/timestamp.proto";
+import "decimal.proto";
+
+service CalculationService {
+	rpc GetBondsByTickers(GetBondsByTickersRequest) returns (GetBondsByTickersResponse);
+}
+
+message GetBondsByTickersRequest {
+	repeated string tickers = 1;
+}
+
+message GetBondsByTickersResponse {
+	repeated GrpcBond Bonds = 1;
+}
+
+message GrpcBond {
+	string id = 1;
+	string ticker = 2;
+	string isin = 3;
+	string name = 4;
+    bonder.protos.custom.Decimal price = 5;
+	bonder.protos.custom.Decimal nominal = 6;
+	int32 rating = 7;
+	google.protobuf.Timestamp maturity_date = 8;
+	google.protobuf.Timestamp offer_date = 9;
+}

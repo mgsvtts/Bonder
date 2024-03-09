@@ -25,12 +25,15 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Mapster" Version="7.4.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.2" />
     <PackageReference Include="Tinkoff.InvestApi" Version="0.6.9" />
 	<PackageReference Include="linq2db.PostgreSQL" Version="5.4.0" />
     <PackageReference Include="linq2db.AspNet" Version="5.4.0" />
   </ItemGroup>
+	
+    <ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
 	
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />

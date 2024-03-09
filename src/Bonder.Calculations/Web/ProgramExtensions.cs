@@ -1,8 +1,7 @@
-﻿using Application.Calculation.CalculateAll.Jobs;
-using Application.Calculation.CalculateAll.Services;
-using Application.Calculation.Common.Abstractions;
-using Application.Calculation.Common.CalculationService;
-using Application.Common;
+﻿using Application.Commands.Calculation.CalculateAll.Jobs;
+using Application.Commands.Calculation.CalculateAll.Services;
+using Application.Commands.Calculation.Common.Abstractions;
+using Application.Commands.Calculation.Common.CalculationService;
 using Domain.BondAggreagte.Abstractions;
 using Infrastructure.Calculation.CalculateAll;
 using Infrastructure.Calculation.CalculateAll.Cache;
@@ -15,6 +14,7 @@ using LinqToDB.AspNet;
 using LinqToDB.AspNet.Logging;
 using Microsoft.AspNetCore.RateLimiting;
 using Presentation.Filters;
+using Presentation.Grpc;
 using Quartz;
 using RateLimiter;
 using System.Threading.RateLimiting;
@@ -27,6 +27,8 @@ public static class ProgramExtensions
 {
     public static WebApplicationBuilder AddInfrastructure(this WebApplicationBuilder builder)
     {
+        builder.Services.AddGrpc();
+
         builder.Services.AddScoped<BondRepository>();
         builder.Services.AddScoped<CalculateAllService>();
 
@@ -157,6 +159,8 @@ public static class ProgramExtensions
         app.UseOutputCache();
 
         app.UseAuthorization();
+
+        app.MapGrpcService<CalculationServiceImpl>();
 
         app.MapControllers();
 
