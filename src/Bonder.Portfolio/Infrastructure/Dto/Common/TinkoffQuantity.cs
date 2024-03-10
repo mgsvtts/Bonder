@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Infrastructure.Dto.GetPortfolios;
+namespace Infrastructure.Dto.Common;
 
 public sealed class TinkoffQuantity
 {
@@ -12,6 +12,6 @@ public sealed class TinkoffQuantity
 
     public decimal ToDecimal()
     {
-        return (decimal)Units + (decimal)Nanos / 1000000000m;
+        return Units + Nanos / 1000000000m;
     }
 }

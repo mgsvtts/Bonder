@@ -80,9 +80,9 @@ public sealed class BondRepository : IBondRepository
         }
     }
 
-    public async Task<int> CountAsync(CancellationToken token = default)
+    public Task<int> CountAsync(CancellationToken token = default)
     {
-        return await _db.Bonds.CountAsync(token);
+        return _db.Bonds.CountAsync(token);
     }
 
     public async Task<List<Bond>> TakeRangeAsync(Range range, CancellationToken token = default)

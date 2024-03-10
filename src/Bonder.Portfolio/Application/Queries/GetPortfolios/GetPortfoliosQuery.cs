@@ -1,5 +1,5 @@
-﻿using Domain.UserAggregate.ValueObjects.Portfolios;
+﻿using Domain.UserAggregate.Entities;
 using Mediator;
 
-namespace Application.GetPortfolios;
+namespace Application.Queries.GetPortfolios;
 public sealed record GetPortfoliosQuery(string? IdentityToken) : IQuery<IEnumerable<Portfolio>>;

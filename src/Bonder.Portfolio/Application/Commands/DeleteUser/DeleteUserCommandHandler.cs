@@ -1,7 +1,7 @@
 ﻿using Domain.UserAggregate.Abstractions.Repositories;
 using Mediator;
 
-namespace Application.DeleteUser;
+namespace Application.Commands.DeleteUser;
 
 public sealed class DeleteUserCommandHandler : ICommandHandler<DeleteUserCommand>
 {

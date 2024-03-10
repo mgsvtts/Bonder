@@ -1,5 +1,5 @@
 ﻿using Domain.UserAggregate.Abstractions.Repositories;
-using Domain.UserAggregate.ValueObjects;
+using Domain.UserAggregate.ValueObjects.Users;
 using Infrastructure.Common;
 using Infrastructure.Common.Models;
 using LinqToDB;
@@ -26,12 +26,13 @@ public sealed class UserRepository : IUserRepository
         {
             await _db.BeginTransactionAsync(token);
 
-            await _db.Portfolios.Where(x => x.Id == dbUser.Id)
+            await _db.Portfolios.Where(x => x.UserId == dbUser.Id)
             .DeleteAsync(token: token);
 
             await _db.InsertOrReplaceAsync(dbUser, token: token);
             await _db.BulkCopyAsync(dbUser.Portfolios, cancellationToken: token);
             await _db.BulkCopyAsync(portfolioBonds, cancellationToken: token);
+            await _db.BulkCopyAsync(dbUser.Portfolios.SelectMany(x => x.Operations), cancellationToken: token);
 
             await _db.CommitTransactionAsync(token);
         }
@@ -55,6 +56,8 @@ public sealed class UserRepository : IUserRepository
         var user = await _db.Users
         .LoadWith(x => x.Portfolios)
         .ThenLoad(x => x.Bonds)
+        .LoadWith(x => x.Portfolios)
+        .ThenLoad(x => x.Operations)
         .FirstOrDefaultAsync(x => x.Id == id.Value, token: token)
         ?? throw new ArgumentException($"User {id.Value} does not have authorized token");
 
@@ -75,19 +78,31 @@ public sealed class UserRepository : IUserRepository
 
         foreach (var portfolio in dbUser.Portfolios)
         {
-            portfolio.UserId = dbUser.Id;
             var domainPortfolio = user.Portfolios.First(x => x.Name == portfolio.Name && x.Type == portfolio.Type);
-            foreach (var bond in domainPortfolio.Bonds)
-            {
-                result.Add(new PortfolioBonds
-                {
-                    PortfolioId = portfolio.Id,
-                    BondId = bond.Id,
-                    Count = bond.Count
-                });
-            }
+
+            AddValues(dbUser.Id, domainPortfolio, result, portfolio);
         }
 
         return result;
+    }
+
+    private static void AddValues(Guid userId, Domain.UserAggregate.Entities.Portfolio domainPortfolio, List<PortfolioBonds> result, Portfolio portfolio)
+    {
+        portfolio.UserId = userId;
+
+        foreach (var bond in domainPortfolio.Bonds)
+        {
+            result.Add(new PortfolioBonds
+            {
+                PortfolioId = portfolio.Id,
+                BondId = bond.Id,
+                Count = bond.Count
+            });
+        }
+
+        foreach (var operation in portfolio.Operations)
+        {
+            operation.PortfolioId = portfolio.Id;
+        }
     }
 }

@@ -2,7 +2,7 @@
 using Domain.UserAggregate.Abstractions.Repositories;
 using Mediator;
 
-namespace Application.AttachTinkoffToken;
+namespace Application.Commands.AttachTinkoffToken;
 
 public sealed class AttachTinkoffTokenCommandHandler : ICommandHandler<AttachTinkoffTokenCommand>
 {

@@ -1,8 +1,9 @@
-﻿using Application.AttachTinkoffToken;
-using Application.GetPortfolios;
-using Application.ImportPortfolio;
+﻿using Application.Commands.AttachTinkoffToken;
+using Application.Commands.ImportPortfolio;
+using Application.Queries.GetPortfolios;
+using Domain.UserAggregate.Entities;
 using Domain.UserAggregate.ValueObjects;
-using Domain.UserAggregate.ValueObjects.Portfolios;
+using Domain.UserAggregate.ValueObjects.Users;
 using Mapster;
 using Mediator;
 using Microsoft.AspNetCore.Http;
@@ -26,6 +27,13 @@ public sealed class PortfolioController : ControllerBase
         _sender = sender;
     }
 
+    [HttpGet]
+    [OutputCache(Duration = _cacheTime)]
+    public async Task<IEnumerable<Portfolio>> GetPortfolios(CancellationToken cancellationToken)
+    {
+        return await _sender.Send(new GetPortfoliosQuery(HttpContext.Request.Headers.Authorization), cancellationToken);
+    }
+
     [HttpPost("attach-token")]
     public async Task<IResult> AttachToken([FromBody] AttachTokenRequest request, CancellationToken cancellationToken)
     {
@@ -34,19 +42,12 @@ public sealed class PortfolioController : ControllerBase
         return TypedResults.NoContent();
     }
 
-    [HttpGet]
-    [OutputCache(Duration = _cacheTime)]
-    public async Task<IEnumerable<Portfolio>> GetPortfolios(CancellationToken cancellationToken)
-    {
-        return await _sender.Send(new GetPortfoliosQuery(HttpContext.Request.Headers.Authorization), cancellationToken);
-    }
-
     [HttpPost("import")]
     public async Task<IResult> ExportAsync(ImportPortfolioRequest request)
     {
         using var stream = request.File.OpenReadStream();
 
-        await _sender.Send(new ImportPortfolioCommand(new UserId(request.UserId), stream, request.BrokerType));
+        await _sender.Send(new ImportPortfolioCommand(new UserId(request.UserId), stream, request.BrokerType, request.Name));
 
         return TypedResults.Created();
     }

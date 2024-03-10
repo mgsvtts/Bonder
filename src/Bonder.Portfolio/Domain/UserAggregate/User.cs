@@ -1,6 +1,7 @@
 ﻿using Ardalis.GuardClauses;
-using Domain.UserAggregate.ValueObjects;
+using Domain.UserAggregate.Entities;
 using Domain.UserAggregate.ValueObjects.Portfolios;
+using Domain.UserAggregate.ValueObjects.Users;
 using Shared.Domain.Common.Models;
 
 namespace Domain.UserAggregate;
@@ -9,27 +10,26 @@ public sealed class User : AggregateRoot<UserId>
 {
     private readonly List<Portfolio> _portfolios = [];
 
-    public string TinkoffToken { get; private set; }
+    public TinkoffToken Token { get; private set; }
     public IReadOnlyList<Portfolio> Portfolios => _portfolios.AsReadOnly();
 
-    public User(UserId userId, string tinkoffToken, IEnumerable<Portfolio>? portfolios = null) : base(userId)
+    public User(UserId userId, TinkoffToken token, IEnumerable<Portfolio>? portfolios = null) : base(userId)
     {
-        TinkoffToken = Guard.Against.NullOrEmpty(tinkoffToken);
+        Token = token;
         _portfolios = portfolios is not null ? portfolios.ToList() : _portfolios;
     }
 
-    public User AddPortfolio(decimal bondsPrice, BrokerType brokerType, IEnumerable<Bond> bonds)
+    public User AddImportedPortfolio(decimal bondsPrice, BrokerType brokerType, IEnumerable<Bond>? bonds, string? name =null)
     {
-        var portfolio = new Portfolio
+        _portfolios.Add(new Portfolio
         (
+            new PortfolioId(Guid.NewGuid()),
             bondsPrice,
-            $"{brokerType}-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}",
+            name ?? $"{brokerType}-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}",
             PortfolioType.Exported,
             brokerType,
             bonds
-        );
-
-        _portfolios.Add(portfolio);
+        ));
 
         return this;
     }

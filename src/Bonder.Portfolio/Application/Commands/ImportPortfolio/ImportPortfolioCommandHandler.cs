@@ -5,7 +5,7 @@ using IronXL;
 using Mapster;
 using Mediator;
 
-namespace Application.ImportPortfolio;
+namespace Application.Commands.ImportPortfolio;
 
 public sealed class ImportPortfolioCommandHandler : ICommandHandler<ImportPortfolioCommand>
 {
@@ -38,11 +38,16 @@ public sealed class ImportPortfolioCommandHandler : ICommandHandler<ImportPortfo
 
         var cells = GetCellsInRange(workbook.DefaultWorkSheet);
         var tickers = GetTickers(cells);
-        var bonds = await GetBondsAsync(tickers, cancellationToken);
 
-        var user = await _userRepository.GetByIdAsync(command.UserId, cancellationToken);
+        var bondsTask = GetBondsAsync(tickers, cancellationToken);
+        var userTask = _userRepository.GetByIdAsync(command.UserId, cancellationToken);
 
-        user.AddPortfolio(bonds.Sum(x => x.Price), command.BrokerType, bonds.Adapt<IEnumerable<Bond>>());
+        await Task.WhenAll(bondsTask, userTask);
+
+        var user = userTask.Result;
+        var bonds = bondsTask.Result;
+
+        user.AddImportedPortfolio(bonds.Sum(x => x.Price), command.BrokerType, bonds.Adapt<IEnumerable<Bond>>(), command.Name);
 
         await _userRepository.SaveAsync(user, cancellationToken);
 

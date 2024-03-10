@@ -1,3 +1,4 @@
+using Infrastructure.Dto.Common;
 using System.Text.Json.Serialization;
 
 namespace Infrastructure.Dto.GetPortfolios;

@@ -1,4 +1,4 @@
-﻿using Domain.UserAggregate.ValueObjects;
+﻿using Domain.UserAggregate.ValueObjects.Users;
 
 namespace Domain.UserAggregate.Abstractions.Repositories;
 

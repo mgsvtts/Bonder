@@ -16,6 +16,9 @@ public sealed class Portfolio
     [Association(ThisKey = nameof(UserId), OtherKey = nameof(User.Id))]
     public User User { get; set; }
 
+    [Column("account_id")]
+    public string? AccountId { get; set; }
+
     [Column("name")]
     public string Name { get; set; }
 
@@ -30,4 +33,7 @@ public sealed class Portfolio
 
     [Association(ThisKey = nameof(Id), OtherKey = nameof(PortfolioBonds.PortfolioId))]
     public List<PortfolioBonds> Bonds { get; set; }
+
+    [Association(ThisKey = nameof(Id), OtherKey = nameof(Operation.PortfolioId))]
+    public List<Operation> Operations { get; set; }
 }

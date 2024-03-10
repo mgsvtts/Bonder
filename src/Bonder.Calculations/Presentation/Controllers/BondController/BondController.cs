@@ -36,12 +36,12 @@ public sealed class BondController : ControllerBase
         return result.Adapt<CalculateResponse>();
     }
 
-    [HttpGet]
-    public async IAsyncEnumerable<CalculateResponse> GetState([FromQuery] PageInfoRequest pageInfo, [EnumeratorCancellation] CancellationToken token)
+    [HttpGet("{currentPage:int?}")]
+    public async IAsyncEnumerable<CalculateResponse> GetState([FromRoute]int currentPage = 1, [EnumeratorCancellation] CancellationToken token = default)
     {
         var waitSeconds = TimeSpan.FromSeconds(5);
         await foreach (var result in _sender.CreateStream(new CalculateAllStreamCommand(new GetPriceSortedRequest(DateIntervalType.TillOfferDate,
-                                                                                        new PageInfo(pageInfo.CurrentPage))), token))
+                                                                                        new PageInfo(currentPage))), token))
         {
             yield return result.Adapt<CalculateResponse>();
 

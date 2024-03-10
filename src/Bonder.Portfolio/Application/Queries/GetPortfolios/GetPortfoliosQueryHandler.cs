@@ -1,11 +1,11 @@
 ﻿using Bonder.Auth.Grpc;
 using Domain.UserAggregate.Abstractions.Repositories;
-using Domain.UserAggregate.ValueObjects;
-using Domain.UserAggregate.ValueObjects.Portfolios;
+using Domain.UserAggregate.Entities;
+using Domain.UserAggregate.ValueObjects.Users;
 using Grpc.Core;
 using Mediator;
 
-namespace Application.GetPortfolios;
+namespace Application.Queries.GetPortfolios;
 
 public sealed class GetPortfoliosQueryHandler : IQueryHandler<GetPortfoliosQuery, IEnumerable<Portfolio>>
 {

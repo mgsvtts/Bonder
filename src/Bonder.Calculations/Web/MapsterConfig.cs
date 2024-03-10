@@ -55,7 +55,7 @@ public static class MapsterConfig
 
         TypeAdapterConfig<TinkoffValue, GetBondResponse>
         .ForType()
-        .MapWith(x => CustomMappings.CreateBond(x));
+        .MapWith(x => CustomMappings.FromTinkoffValue(x));
 
         TypeAdapterConfig<AnalyzeBondsRequest, AnalyzeBondsCommand>
         .ForType()
@@ -75,7 +75,7 @@ public static class MapsterConfig
 
         TypeAdapterConfig<IEnumerable<BondItem>, Bonder.Calculation.Grpc.GetBondsByTickersResponse>
         .ForType()
-        .MapWith(x => CustomMappings.GrpcResponse(x));
+        .MapWith(x => CustomMappings.FromBondItems(x));
 
         TypeAdapterConfig<(Bond Bond, FullIncome Income), BondWithIncome>
         .ForType()
@@ -92,11 +92,11 @@ public static class MapsterConfig
 
         TypeAdapterConfig<Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>, IEnumerable<AnalyzeBondsResponse>>
         .ForType()
-        .MapWith(x => CustomMappings.MapAnalyze(x));
+        .MapWith(x => CustomMappings.FromBondsWithIncome(x));
 
         TypeAdapterConfig<(GetBondResponse BondResponse, List<Coupon>? Coupons, int? Rating, MoexResponse MoexResponse), Bond>
         .ForType()
-        .MapWith(x => CustomMappings.CreateBuilderBond(x.BondResponse, x.Coupons, x.Rating, x.MoexResponse));
+        .MapWith(x => CustomMappings.FromBondResponse(x.BondResponse, x.Coupons, x.Rating, x.MoexResponse));
 
         TypeAdapterConfig<Tinkoff.InvestApi.V1.Coupon, Coupon>
         .ForType()
@@ -129,7 +129,7 @@ public static class MapsterConfig
 
         TypeAdapterConfig<CalculateAllResponse, CalculateResponse>
         .ForType()
-        .MapWith(x => CustomMappings.MapToCalculateResponse(x));
+        .MapWith(x => CustomMappings.FromCalculateAllResponse(x));
 
         TypeAdapterConfig<Infrastructure.Common.Models.Bond, Bond>
         .ForType()
@@ -183,7 +183,7 @@ public static class MapsterConfig
 
 public static class CustomMappings
 {
-    public static GetBondResponse CreateBond(TinkoffValue value)
+    public static GetBondResponse FromTinkoffValue(TinkoffValue value)
     {
         var maturityDate = value.MaturityDate ?? value.CallDate;
 
@@ -197,9 +197,9 @@ public static class CustomMappings
                                    value.IsAmortized);
     }
 
-    public static Bonder.Calculation.Grpc.GetBondsByTickersResponse GrpcResponse(IEnumerable<BondItem> items)
+    public static GetBondsByTickersResponse FromBondItems(IEnumerable<BondItem> items)
     {
-        var response = new Bonder.Calculation.Grpc.GetBondsByTickersResponse();
+        var response = new GetBondsByTickersResponse();
 
         foreach (var item in items)
         {
@@ -223,7 +223,7 @@ public static class CustomMappings
         return response;
     }
 
-    public static Bond CreateBuilderBond(GetBondResponse bond, List<Coupon>? coupons, int? rating, MoexResponse moexResponse)
+    public static Bond FromBondResponse(GetBondResponse bond, List<Coupon>? coupons, int? rating, MoexResponse moexResponse)
     {
         List<Coupon> couponsToAdd;
         List<Amortization>? amortizationsToAdd = null;
@@ -246,7 +246,7 @@ public static class CustomMappings
                            amortizationsToAdd);
     }
 
-    public static CalculateResponse MapToCalculateResponse(CalculateAllResponse results)
+    public static CalculateResponse FromCalculateAllResponse(CalculateAllResponse results)
     {
         return new CalculateResponse(CalculatedBonds: results.Aggregation.PrioritySortedBonds.Select(x => new CalculatedBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Priority)),
                                      PriceSortedBonds: results.Aggregation.PriceSortedBonds.Select(x => new PriceBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
@@ -259,7 +259,7 @@ public static class CustomMappings
                                      results.PageInfo);
     }
 
-    public static IEnumerable<AnalyzeBondsResponse> MapAnalyze(Dictionary<BondWithIncome, IEnumerable<BondWithIncome>> dict)
+    public static IEnumerable<AnalyzeBondsResponse> FromBondsWithIncome(Dictionary<BondWithIncome, IEnumerable<BondWithIncome>> dict)
     {
         return dict.Select(a => new AnalyzeBondsResponse
         (
