@@ -8,5 +8,6 @@ namespace Application.Common.Abstractions;
 public interface ITinkoffHttpClient
 {
     Task<List<Operation>> GetOperationsAsync(TinkoffToken tinkoffToken, AccountId accountId, CancellationToken token);
+
     Task<IEnumerable<Portfolio>> GetPortfoliosAsync(TinkoffToken tinkoffToken, CancellationToken cancellationToken = default);
 }

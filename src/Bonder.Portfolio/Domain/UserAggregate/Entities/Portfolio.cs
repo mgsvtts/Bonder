@@ -38,7 +38,7 @@ public sealed class Portfolio : Entity<PortfolioId>
 
     public Portfolio AddOperations(IEnumerable<Operation> operations)
     {
-        if(operations is null || !operations.Any())
+        if (operations is null || !operations.Any())
         {
             return this;
         }

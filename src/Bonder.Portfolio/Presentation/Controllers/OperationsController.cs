@@ -1,13 +1,8 @@
-﻿using Domain.UserAggregate.ValueObjects.Operations;
-using Mediator;
+﻿using Mediator;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Presentation.Controllers;
+
 public sealed class OperationsController : ControllerBase
 {
     private readonly ISender _sender;
@@ -17,5 +12,5 @@ public sealed class OperationsController : ControllerBase
         _sender = sender;
     }
 
-   // public async Task<IEnumerable<Operation>> GetOperations(Guid portfolioId)
+    // public async Task<IEnumerable<Operation>> GetOperations(Guid portfolioId)
 }

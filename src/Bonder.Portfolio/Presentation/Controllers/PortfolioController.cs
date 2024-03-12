@@ -2,7 +2,6 @@
 using Application.Commands.ImportPortfolio;
 using Application.Queries.GetPortfolios;
 using Domain.UserAggregate.Entities;
-using Domain.UserAggregate.ValueObjects;
 using Domain.UserAggregate.ValueObjects.Users;
 using Mapster;
 using Mediator;

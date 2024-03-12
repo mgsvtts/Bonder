@@ -1,6 +1,5 @@
 ﻿using Application.Commands.DeleteUser;
 using Bonder.Portfolio.Grpc;
-using Domain.UserAggregate.ValueObjects;
 using Domain.UserAggregate.ValueObjects.Users;
 using Grpc.Core;
 using Mediator;

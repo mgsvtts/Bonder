@@ -6,5 +6,7 @@ public enum OperationType
     CouponInput,
     Input,
     Output,
-    Tax
+    Tax,
+    Sell,
+    BrokerFee
 }

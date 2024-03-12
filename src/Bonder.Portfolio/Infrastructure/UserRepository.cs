@@ -33,6 +33,7 @@ public sealed class UserRepository : IUserRepository
             await _db.BulkCopyAsync(dbUser.Portfolios, cancellationToken: token);
             await _db.BulkCopyAsync(portfolioBonds, cancellationToken: token);
             await _db.BulkCopyAsync(dbUser.Portfolios.SelectMany(x => x.Operations), cancellationToken: token);
+            await _db.BulkCopyAsync(dbUser.Portfolios.SelectMany(x => x.Operations).SelectMany(x => x.Trades), cancellationToken: token);
 
             await _db.CommitTransactionAsync(token);
         }
@@ -103,6 +104,11 @@ public sealed class UserRepository : IUserRepository
         foreach (var operation in portfolio.Operations)
         {
             operation.PortfolioId = portfolio.Id;
+
+            foreach (var trade in operation.Trades)
+            {
+                trade.OperationId = operation.Id;
+            }
         }
     }
 }
