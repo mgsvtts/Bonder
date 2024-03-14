@@ -1,7 +1,7 @@
 ﻿using Application.Commands.Calculation.CalculateAll.Command;
 using Application.Commands.Calculation.CalculateAll.Stream;
 using Application.Commands.Calculation.CalculateTickers;
-using Domain.BondAggreagte.Abstractions.Dto;
+using Domain.BondAggreagte.Abstractions.Dto.GetPriceSorted;
 using Domain.BondAggreagte.Dto;
 using Mapster;
 using Mediator;
@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Routing;
 using Presentation.Controllers.BondController.Calculate.Request;
 using Presentation.Controllers.BondController.Calculate.Response;
 using Presentation.Filters;
+using Shared.Domain.Common;
 using System.Runtime.CompilerServices;
 
 namespace Presentation.Controllers.BondController;

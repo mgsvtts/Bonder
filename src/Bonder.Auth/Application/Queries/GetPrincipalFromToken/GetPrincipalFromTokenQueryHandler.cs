@@ -1,4 +1,5 @@
 ﻿using Application.Common;
+using Domain.Common.Abstractions;
 using Mediator;
 using System.Security.Claims;
 
@@ -13,7 +14,7 @@ public sealed class GetPrincipalFromTokenQueryHandler : IRequestHandler<GetPrinc
         _tokenGenerator = tokenGenerator;
     }
 
-    public async ValueTask<ClaimsPrincipal> Handle(GetPrincipalFromTokenQuery request, CancellationToken cancellationToken)
+    public async ValueTask<ClaimsPrincipal> Handle(GetPrincipalFromTokenQuery request, CancellationToken token)
     {
         return await _tokenGenerator.ValidateTokenAsync(request.IdentityToken, true);
     }

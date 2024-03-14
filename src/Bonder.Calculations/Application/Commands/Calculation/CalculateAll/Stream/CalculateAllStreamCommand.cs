@@ -1,5 +1,5 @@
-﻿using Application.Commands.Calculation.CalculateAll.Services.Dto;
-using Domain.BondAggreagte.Abstractions.Dto;
+﻿using Domain.BondAggreagte.Abstractions.Dto.CalculateAll;
+using Domain.BondAggreagte.Abstractions.Dto.GetPriceSorted;
 using Mediator;
 
 namespace Application.Commands.Calculation.CalculateAll.Stream;

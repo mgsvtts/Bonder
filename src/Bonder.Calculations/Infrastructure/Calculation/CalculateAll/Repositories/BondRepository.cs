@@ -1,6 +1,6 @@
 ﻿using Domain.BondAggreagte;
 using Domain.BondAggreagte.Abstractions;
-using Domain.BondAggreagte.Abstractions.Dto;
+using Domain.BondAggreagte.Abstractions.Dto.GetPriceSorted;
 using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Infrastructure.Calculation.Dto.BondRepository;
@@ -9,6 +9,7 @@ using Infrastructure.Common.Extensions;
 using LinqToDB;
 using LinqToDB.Data;
 using Mapster;
+using Shared.Domain.Common;
 
 namespace Infrastructure.Calculation.CalculateAll.Repositories;
 
@@ -202,21 +203,9 @@ public sealed class BondRepository : IBondRepository
             return new GetPriceSortedResponse(null, bonds.Adapt<List<Bond>>());
         }
 
-        var pageInfo = CreatePageInfo(filter, bonds, await query.CountAsync(token: token));
+        var pageInfo = filter.PageInfo.Recreate(bonds, await query.CountAsync(token: token));
 
         return new GetPriceSortedResponse(pageInfo, bonds.Adapt<List<Bond>>());
-    }
-
-    private static PageInfo CreatePageInfo(GetPriceSortedRequest filter, List<Common.Models.Bond> bonds, int total)
-    {
-        var itemsOnPage = bonds.Count < filter.PageInfo.ItemsOnPage ? bonds.Count : filter.PageInfo.ItemsOnPage;
-        var lastPage = total == itemsOnPage ? filter.PageInfo.CurrentPage : total / filter.PageInfo.ItemsOnPage + 1;
-
-        var pageInfo = new PageInfo(filter.PageInfo.CurrentPage,
-                                    lastPage,
-                                    itemsOnPage,
-                                    total);
-        return pageInfo;
     }
 
     private static void SetBondValues(Common.Models.Bond bond)

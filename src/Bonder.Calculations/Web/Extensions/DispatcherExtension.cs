@@ -13,9 +13,9 @@ public static class DispatcherExtension
             _dispatcher = dispatcher;
         }
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
-            return _dispatcher.Enqueue(() => base.SendAsync(request, cancellationToken), cancellationToken);
+            return _dispatcher.Enqueue(() => base.SendAsync(request, token), token);
         }
     }
 

@@ -12,9 +12,9 @@ public sealed class DeleteUserCommandHandler : ICommandHandler<DeleteUserCommand
         _userRepository = userRepository;
     }
 
-    public async ValueTask<Unit> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(DeleteUserCommand request, CancellationToken token)
     {
-        await _userRepository.DeleteAsync(request.UserName, cancellationToken);
+        await _userRepository.DeleteAsync(request.UserName, token);
 
         return Unit.Value;
     }

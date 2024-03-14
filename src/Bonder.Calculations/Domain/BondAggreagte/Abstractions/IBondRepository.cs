@@ -1,4 +1,4 @@
-﻿using Domain.BondAggreagte.Abstractions.Dto;
+﻿using Domain.BondAggreagte.Abstractions.Dto.GetPriceSorted;
 using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
 

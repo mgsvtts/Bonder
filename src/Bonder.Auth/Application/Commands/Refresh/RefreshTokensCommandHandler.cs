@@ -1,4 +1,5 @@
 using Application.Common;
+using Domain.Common.Abstractions;
 using Domain.Exceptions;
 using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
@@ -17,12 +18,12 @@ public sealed class RefreshTokensCommandHandler : ICommandHandler<RefreshTokensC
         _userRepository = userRepository;
     }
 
-    public async ValueTask<Tokens> Handle(RefreshTokensCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Tokens> Handle(RefreshTokensCommand request, CancellationToken token)
     {
         var principal = await _tokenGenerator.ValidateTokenAsync(request.ExpiredTokens.AccessToken);
         var userName = new UserName(principal.Identity?.Name);
 
-        var saved = await _userRepository.GetByUserNameAsync(userName, cancellationToken)
+        var saved = await _userRepository.GetByUserNameAsync(userName, token)
         ?? throw new UserNotFoundException(userName.ToString());
 
         var newTokens = _tokenGenerator.Generate(userName);
@@ -33,7 +34,7 @@ public sealed class RefreshTokensCommandHandler : ICommandHandler<RefreshTokensC
             throw new AuthorizationException("Invalid info");
         }
 
-        await _userRepository.SetRefreshTokenAsync(userName, newTokens.Value.RefreshToken, cancellationToken);
+        await _userRepository.SetRefreshTokenAsync(userName, newTokens.Value.RefreshToken, token);
 
         return newTokens.Value;
     }

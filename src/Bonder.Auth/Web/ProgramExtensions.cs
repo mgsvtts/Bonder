@@ -1,5 +1,5 @@
-using Application.Common;
 using Bonder.Portfolio.Grpc;
+using Domain.Common.Abstractions;
 using Domain.UserAggregate.Repositories;
 using Infrastructure.Common;
 using Infrastructure.Token;

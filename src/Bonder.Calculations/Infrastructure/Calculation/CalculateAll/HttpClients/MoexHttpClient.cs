@@ -1,5 +1,5 @@
-using Application.Commands.Calculation.Common.Abstractions;
-using Application.Commands.Calculation.Common.Abstractions.Dto;
+using Domain.BondAggreagte.Abstractions;
+using Domain.BondAggreagte.Abstractions.Dto.Moex;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Infrastructure.Calculation.Dto.GetAmortization;
 using Mapster;

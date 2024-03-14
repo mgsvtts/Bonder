@@ -1,4 +1,4 @@
-using Application.Common;
+using Domain.Common.Abstractions;
 using Domain.UserAggregate.ValueObjects;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;

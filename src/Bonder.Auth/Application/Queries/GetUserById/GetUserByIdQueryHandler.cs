@@ -1,20 +1,36 @@
 ﻿using Domain.UserAggregate;
 using Domain.UserAggregate.Repositories;
+using Infrastructure.Common;
+using Mapster;
 using Mediator;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
 
 namespace Application.Queries.GetUserById;
 
 public sealed class GetUserByIdQueryHandler : IQueryHandler<GetUserByIdQuery, User?>
 {
-    private readonly IUserRepository _userRepository;
+    private readonly DatabaseContext _db;
+    private readonly UserManager<Infrastructure.Common.Models.User> _userManager;
 
-    public GetUserByIdQueryHandler(IUserRepository userRepository)
+    public GetUserByIdQueryHandler(DatabaseContext db, UserManager<Infrastructure.Common.Models.User> userManager)
     {
-        _userRepository = userRepository;
+        _db = db;
+        _userManager = userManager;
     }
 
-    public async ValueTask<User?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+    public async ValueTask<User?> Handle(GetUserByIdQuery request, CancellationToken token)
     {
-        return await _userRepository.GetByIdAsync(request.Id, cancellationToken);
+        var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == request.Id.Value.ToString(), cancellationToken: token);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        var claims = await _userManager.GetClaimsAsync(user);
+
+        return (user, claims).Adapt<User>();
     }
 }

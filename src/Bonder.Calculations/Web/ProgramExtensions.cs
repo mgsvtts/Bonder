@@ -1,6 +1,4 @@
 ﻿using Application.Commands.Calculation.CalculateAll.Jobs;
-using Application.Commands.Calculation.CalculateAll.Services;
-using Application.Commands.Calculation.Common.Abstractions;
 using Application.Commands.Calculation.Common.CalculationService;
 using Domain.BondAggreagte.Abstractions;
 using Infrastructure.Calculation.CalculateAll;

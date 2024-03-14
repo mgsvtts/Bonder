@@ -65,9 +65,9 @@ public sealed class UserRepository : IUserRepository
         return user.Adapt<Domain.UserAggregate.User>();
     }
 
-    public async Task<string> GetTokenAsync(UserId id, CancellationToken cancellationToken = default)
+    public async Task<string> GetTokenAsync(UserId id, CancellationToken token = default)
     {
-        var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == id.Value, cancellationToken)
+        var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == id.Value, token)
         ?? throw new ArgumentException($"User {id.Value} does not have authorized token");
 
         return user.Token;

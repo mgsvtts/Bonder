@@ -1,6 +1,6 @@
-﻿using Application.Commands.Calculation.CalculateAll.Services.Dto;
-using Application.Commands.Calculation.Common.CalculationService.Dto;
-using Domain.BondAggreagte.Abstractions.Dto;
+﻿using Domain.BondAggreagte.Abstractions.Dto;
+using Domain.BondAggreagte.Abstractions.Dto.CalculateAll;
+using Shared.Domain.Common;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;

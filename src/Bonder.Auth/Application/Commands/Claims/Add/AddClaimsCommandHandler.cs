@@ -14,9 +14,9 @@ public sealed class AddClaimsCommandHandler : ICommandHandler<AddClaimsCommand, 
         _userRepository = userRepository;
     }
 
-    public async ValueTask<User> Handle(AddClaimsCommand request, CancellationToken cancellationToken)
+    public async ValueTask<User> Handle(AddClaimsCommand request, CancellationToken token)
     {
-        var requestedBy = await _userRepository.GetByUserNameAsync(request.RequestedBy, cancellationToken)
+        var requestedBy = await _userRepository.GetByUserNameAsync(request.RequestedBy, token)
         ?? throw new UserNotFoundException(request.RequestedBy.ToString());
 
         if (!requestedBy.IsAdmin)
@@ -26,7 +26,7 @@ public sealed class AddClaimsCommandHandler : ICommandHandler<AddClaimsCommand, 
 
         request = request with { Claims = request.Claims.DistinctBy(x => x.Type) };
 
-        var user = await _userRepository.GetByUserNameAsync(request.AddTo, cancellationToken)
+        var user = await _userRepository.GetByUserNameAsync(request.AddTo, token)
         ?? throw new UserNotFoundException(request.AddTo.ToString());
 
         var existingClaims = request.Claims.Where(x => user.Claims.Select(x => x.Type).Contains(x.Type));
@@ -35,6 +35,6 @@ public sealed class AddClaimsCommandHandler : ICommandHandler<AddClaimsCommand, 
             throw new InvalidOperationException($"User {request.AddTo.Name} already has claims: {string.Join(", ", existingClaims.Select(x => x.Value))}");
         }
 
-        return await _userRepository.AddClaimsAsync(request.AddTo, request.Claims, cancellationToken);
+        return await _userRepository.AddClaimsAsync(request.AddTo, request.Claims, token);
     }
 }

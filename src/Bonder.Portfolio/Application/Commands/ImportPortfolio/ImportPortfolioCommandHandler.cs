@@ -32,15 +32,15 @@ public sealed class ImportPortfolioCommandHandler : ICommandHandler<ImportPortfo
         _userRepository = userRepository;
     }
 
-    public async ValueTask<Unit> Handle(ImportPortfolioCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(ImportPortfolioCommand command, CancellationToken token)
     {
         var workbook = WorkBook.Load(command.FileStream);
 
         var cells = GetCellsInRange(workbook.DefaultWorkSheet);
         var tickers = GetTickers(cells);
 
-        var bondsTask = GetBondsAsync(tickers, cancellationToken);
-        var userTask = _userRepository.GetByIdAsync(command.UserId, cancellationToken);
+        var bondsTask = GetBondsAsync(tickers, token);
+        var userTask = _userRepository.GetByIdAsync(command.UserId, token);
 
         await Task.WhenAll(bondsTask, userTask);
 
@@ -49,17 +49,17 @@ public sealed class ImportPortfolioCommandHandler : ICommandHandler<ImportPortfo
 
         user.AddImportedPortfolio(bonds.Sum(x => x.Price), command.BrokerType, bonds.Adapt<IEnumerable<Bond>>(), command.Name);
 
-        await _userRepository.SaveAsync(user, cancellationToken);
+        await _userRepository.SaveAsync(user, token);
 
         return Unit.Value;
     }
 
-    private async Task<IList<GrpcBond>> GetBondsAsync(List<string> tickers, CancellationToken cancellationToken)
+    private async Task<IList<GrpcBond>> GetBondsAsync(List<string> tickers, CancellationToken token)
     {
         var request = new GetBondsByTickersRequest();
         request.Tickers.AddRange(tickers);
 
-        var response = await _grpcClient.GetBondsByTickersAsync(request, cancellationToken: cancellationToken);
+        var response = await _grpcClient.GetBondsByTickersAsync(request, cancellationToken: token);
 
         return response.Bonds;
     }
@@ -69,7 +69,7 @@ public sealed class ImportPortfolioCommandHandler : ICommandHandler<ImportPortfo
         var tickers = new List<string>();
         for (int i = 0; i < cells.Count; i += 5)
         {
-            if (!cells[i + 4].Text.Contains("обл"))
+            if (NotBond(cells, i))
             {
                 continue;
             }
@@ -80,10 +80,18 @@ public sealed class ImportPortfolioCommandHandler : ICommandHandler<ImportPortfo
         return tickers;
     }
 
+    private static bool NotBond(List<Cell> cells, int i)
+    {
+        return !cells[i + 4].Text.Contains("обл");
+    }
+
     private static List<Cell> GetCellsInRange(WorkSheet worksheet)
     {
-        var startCell = worksheet[worksheet.RangeAddress.Location].FirstOrDefault(x => x.Text.Equals("4.1 Информация о ценных бумагах", StringComparison.OrdinalIgnoreCase));
-        var endCell = worksheet[worksheet.RangeAddress.Location].FirstOrDefault(x => x.Text.Equals("4.2 Информация об инструментах, не квалифицированных в качестве ценной бумаги", StringComparison.OrdinalIgnoreCase));
+        var startCell = worksheet[worksheet.RangeAddress.Location]
+        .FirstOrDefault(x => x.Text.Equals("4.1 Информация о ценных бумагах", StringComparison.OrdinalIgnoreCase));
+
+        var endCell = worksheet[worksheet.RangeAddress.Location]
+        .FirstOrDefault(x => x.Text.Equals("4.2 Информация об инструментах, не квалифицированных в качестве ценной бумаги", StringComparison.OrdinalIgnoreCase));
 
         if (startCell is null || endCell is null)
         {

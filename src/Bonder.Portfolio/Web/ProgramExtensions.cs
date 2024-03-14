@@ -1,6 +1,6 @@
-﻿using Application.Common.Abstractions;
-using Bonder.Auth.Grpc;
+﻿using Bonder.Auth.Grpc;
 using Bonder.Calculation.Grpc;
+using Domain.Common.Abstractions;
 using Domain.UserAggregate.Abstractions.Repositories;
 using Infrastructure;
 using Infrastructure.Common;
@@ -9,6 +9,7 @@ using LinqToDB.AspNet;
 using LinqToDB.AspNet.Logging;
 using Presentation.Grpc;
 using RateLimiter;
+using System.Threading.RateLimiting;
 using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 using Web.Extensions;
 
@@ -37,15 +38,6 @@ public static class ProgramExtensions
         builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(options => options.Address = authServerUrl);
         builder.Services.AddGrpcClient<CalculationService.CalculationServiceClient>(options => options.Address = calculationServerUrl);
 
-        var rateLimiter = TimeLimiter.GetFromMaxCountByInterval(1, TimeSpan.FromMilliseconds(201));
-
-        builder.Services.AddHttpClient<ITinkoffHttpClient, TinkoffHttpClient>((httpClient, services) =>
-        {
-            return new TinkoffHttpClient(httpClient,
-                                         builder.Configuration.GetValue<string>("TinkoffUsersServerUrl"),
-                                         builder.Configuration.GetValue<string>("TinkoffOperatoinsServerUrl"));
-        }).AddHttpMessageHandler(rateLimiter.AsDelegate);
-
         return builder;
     }
 
@@ -57,8 +49,6 @@ public static class ProgramExtensions
         {
             config.ServiceLifetime = ServiceLifetime.Scoped;
         });
-
-        builder.Services.AddTransient<IUserBuilder, UserBuilder>();
 
         return builder;
     }
@@ -85,6 +75,18 @@ public static class ProgramExtensions
     public static WebApplicationBuilder AddDomain(this WebApplicationBuilder builder)
     {
         builder.Services.AddTransient<IUserRepository, UserRepository>();
+
+        var rateLimiter = TimeLimiter.GetFromMaxCountByInterval(1, TimeSpan.FromMilliseconds(201));
+        builder.Services.AddSingleton(rateLimiter);
+
+        builder.Services.AddHttpClient<ITinkoffHttpClient, TinkoffHttpClient>((httpClient, services) =>
+        {
+            return new TinkoffHttpClient(httpClient,
+                                         builder.Configuration.GetValue<string>("TinkoffUsersServerUrl"),
+                                         builder.Configuration.GetValue<string>("TinkoffOperatoinsServerUrl"));
+        }).AddHttpMessageHandler(rateLimiter.AsDelegate);
+
+        builder.Services.AddTransient<IUserBuilder, UserBuilder>();
 
         return builder;
     }

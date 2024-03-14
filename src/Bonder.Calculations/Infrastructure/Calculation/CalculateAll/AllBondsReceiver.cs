@@ -1,5 +1,4 @@
-﻿using Application.Commands.Calculation.Common.Abstractions;
-using Domain.BondAggreagte.Abstractions;
+﻿using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Tinkoff.InvestApi;

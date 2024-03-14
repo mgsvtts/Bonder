@@ -1,6 +1,6 @@
-﻿using Application.Commands.Calculation.Common.Abstractions;
-using Application.Commands.Calculation.Common.CalculationService.Dto;
-using Application.Commands.Calculation.Common.CalculationService.Extensions;
+﻿using Application.Commands.Calculation.Common.CalculationService.Extensions;
+using Domain.BondAggreagte.Abstractions;
+using Domain.BondAggreagte.Abstractions.Dto.CalculateAll;
 
 namespace Application.Commands.Calculation.Common.CalculationService;
 

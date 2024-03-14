@@ -1,12 +1,12 @@
 ﻿using Application.Commands.Analyze;
 using Application.Commands.Analyze.Dto;
-using Application.Commands.Calculation.CalculateAll.Services.Dto;
 using Application.Commands.Calculation.CalculateTickers;
-using Application.Commands.Calculation.Common.Abstractions.Dto;
 using Application.Queries.GetBondsByTickers;
 using Bonder.Calculation.Grpc;
 using Domain.BondAggreagte;
-using Domain.BondAggreagte.Abstractions.Dto;
+using Domain.BondAggreagte.Abstractions.Dto.CalculateAll;
+using Domain.BondAggreagte.Abstractions.Dto.GetPriceSorted;
+using Domain.BondAggreagte.Abstractions.Dto.Moex;
 using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
@@ -19,6 +19,7 @@ using MapsterMapper;
 using Presentation.Controllers.AnalyzeController.Analyze;
 using Presentation.Controllers.BondController.Calculate.Request;
 using Presentation.Controllers.BondController.Calculate.Response;
+using Shared.Domain.Common;
 using System.Reflection;
 
 namespace Web;
@@ -73,13 +74,13 @@ public static class MapsterConfig
                                    x.Dates.OfferDate,
                                    x.Rating));
 
-        TypeAdapterConfig<IEnumerable<BondItem>, Bonder.Calculation.Grpc.GetBondsByTickersResponse>
+        TypeAdapterConfig<IEnumerable<BondItem>,GetBondsByTickersResponse>
         .ForType()
         .MapWith(x => CustomMappings.FromBondItems(x));
 
-        TypeAdapterConfig<(Bond Bond, FullIncome Income), BondWithIncome>
+        TypeAdapterConfig<(Bond Bond, FullIncome Income), AnalyzeBondWithIncome>
         .ForType()
-        .MapWith(x => new BondWithIncome(x.Bond.Identity.Ticker, x.Bond.Name, x.Bond.Income.StaticIncome.AbsolutePrice, x.Income.FullIncomePercent));
+        .MapWith(x => new AnalyzeBondWithIncome(x.Bond.Identity.Ticker, x.Bond.Name, x.Bond.Income.StaticIncome.AbsolutePrice, x.Income.FullIncomePercent));
 
         TypeAdapterConfig<MoexItem, MoexResponse>
         .ForType()
@@ -90,7 +91,7 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new Amortization(x.Date, x.Payment ?? 0));
 
-        TypeAdapterConfig<Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>, IEnumerable<AnalyzeBondsResponse>>
+        TypeAdapterConfig<Dictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>>, IEnumerable<AnalyzeBondsResponse>>
         .ForType()
         .MapWith(x => CustomMappings.FromBondsWithIncome(x));
 
@@ -259,7 +260,7 @@ public static class CustomMappings
                                      results.PageInfo);
     }
 
-    public static IEnumerable<AnalyzeBondsResponse> FromBondsWithIncome(Dictionary<BondWithIncome, IEnumerable<BondWithIncome>> dict)
+    public static IEnumerable<AnalyzeBondsResponse> FromBondsWithIncome(Dictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>> dict)
     {
         return dict.Select(a => new AnalyzeBondsResponse
         (

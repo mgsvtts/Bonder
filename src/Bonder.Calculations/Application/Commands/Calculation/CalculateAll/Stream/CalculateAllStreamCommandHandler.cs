@@ -1,5 +1,5 @@
-﻿using Application.Commands.Calculation.CalculateAll.Services;
-using Application.Commands.Calculation.CalculateAll.Services.Dto;
+﻿using Domain.BondAggreagte.Abstractions;
+using Domain.BondAggreagte.Abstractions.Dto.CalculateAll;
 using Mediator;
 using System.Runtime.CompilerServices;
 
@@ -14,11 +14,11 @@ public sealed class CalculateAllStreamCommandHandler : IStreamCommandHandler<Cal
         _service = service;
     }
 
-    public async IAsyncEnumerable<CalculateAllResponse> Handle(CalculateAllStreamCommand request, [EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<CalculateAllResponse> Handle(CalculateAllStreamCommand request, [EnumeratorCancellation] CancellationToken token)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        while (!token.IsCancellationRequested)
         {
-            yield return await _service.CalculateAllAsync(request.Request, cancellationToken);
+            yield return await _service.CalculateAllAsync(request.Request, token);
         }
     }
 }

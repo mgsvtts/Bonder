@@ -18,7 +18,7 @@ public sealed class GetPortfoliosQueryHandler : IQueryHandler<GetPortfoliosQuery
         _grpcClient = grpcClient;
     }
 
-    public async ValueTask<IEnumerable<Portfolio>> Handle(GetPortfoliosQuery request, CancellationToken cancellationToken)
+    public async ValueTask<IEnumerable<Portfolio>> Handle(GetPortfoliosQuery request, CancellationToken token)
     {
         UserId userName;
         try
@@ -26,7 +26,7 @@ public sealed class GetPortfoliosQueryHandler : IQueryHandler<GetPortfoliosQuery
             var response = await _grpcClient.GetUserByTokenAsync(new GetUserByTokenRequest
             {
                 Token = request?.IdentityToken?.Split(" ").Last()
-            }, cancellationToken: cancellationToken);
+            }, cancellationToken: token);
 
             userName = new UserId(Guid.Parse(response.UserId));
         }
@@ -35,7 +35,7 @@ public sealed class GetPortfoliosQueryHandler : IQueryHandler<GetPortfoliosQuery
             throw new ArgumentException("You does not have access to this call");
         }
 
-        var user = await _portfolioRepository.GetByIdAsync(userName, cancellationToken);
+        var user = await _portfolioRepository.GetByIdAsync(userName, token);
 
         return user.Portfolios;
     }

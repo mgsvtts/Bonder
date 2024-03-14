@@ -4,7 +4,7 @@ using Mediator;
 
 namespace Application.Commands.Analyze;
 
-public sealed record AnalyzeBondsCommand(AnalyzeOptions DefaultOptions, IEnumerable<BondToAnalyze> Bonds) : ICommand<Dictionary<BondWithIncome, IEnumerable<BondWithIncome>>>;
+public sealed record AnalyzeBondsCommand(AnalyzeOptions DefaultOptions, IEnumerable<BondToAnalyze> Bonds) : ICommand<Dictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>>>;
 
 public sealed record BondToAnalyze(AnalyzeOptions? Option, Ticker Id);
 

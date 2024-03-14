@@ -1,5 +1,5 @@
-using Application.Common.Abstractions;
 using Bonder.Auth.Grpc;
+using Domain.Common.Abstractions;
 using Domain.UserAggregate.Entities;
 using Domain.UserAggregate.ValueObjects.Operations;
 using Domain.UserAggregate.ValueObjects.Portfolios;
@@ -20,16 +20,16 @@ public sealed class UserBuilder : IUserBuilder
         _grpcClient = grpcClient;
     }
 
-    public async Task<Domain.UserAggregate.User> BuildAsync(UserId id, TinkoffToken tinkoffToken, CancellationToken cancellationToken = default)
+    public async Task<Domain.UserAggregate.User> BuildAsync(UserId id, TinkoffToken tinkoffToken, CancellationToken token = default)
     {
-        var portfolios = await _httpClient.GetPortfoliosAsync(tinkoffToken, cancellationToken);
+        var portfolios = await _httpClient.GetPortfoliosAsync(tinkoffToken, token);
 
         var userTask = _grpcClient.GetUserByIdAsync(new GetUserByUserNameRequest
         {
             UserId = id.Value.ToString()
-        }, cancellationToken: cancellationToken);
+        }, cancellationToken: token);
 
-        var operations = await WaitAllAsync(tinkoffToken, portfolios, userTask, cancellationToken);
+        var operations = await WaitAllAsync(tinkoffToken, portfolios, userTask, token);
 
         if (string.IsNullOrEmpty(userTask.ResponseAsync.Result.Id))
         {
@@ -44,7 +44,7 @@ public sealed class UserBuilder : IUserBuilder
         return new Domain.UserAggregate.User(id, tinkoffToken, portfolios);
     }
 
-    private async Task<IDictionary<PortfolioId, IEnumerable<Operation>>> WaitAllAsync(TinkoffToken tinkoffToken, IEnumerable<Portfolio> portfolios, AsyncUnaryCall<GrpcUser> userTask, CancellationToken cancellationToken)
+    private async Task<IDictionary<PortfolioId, IEnumerable<Operation>>> WaitAllAsync(TinkoffToken tinkoffToken, IEnumerable<Portfolio> portfolios, AsyncUnaryCall<GrpcUser> userTask, CancellationToken token)
     {
         var waitList = new List<Task>();
         var dict = new ConcurrentDictionary<PortfolioId, IEnumerable<Operation>>();
@@ -52,7 +52,7 @@ public sealed class UserBuilder : IUserBuilder
         var operationsTask = portfolios
         .Select(async x =>
         {
-            var operations = await _httpClient.GetOperationsAsync(tinkoffToken, x.AccountId.Value, cancellationToken);
+            var operations = await _httpClient.GetOperationsAsync(tinkoffToken, x.AccountId.Value, token);
 
             dict.TryAdd(x.Identity, operations);
         })

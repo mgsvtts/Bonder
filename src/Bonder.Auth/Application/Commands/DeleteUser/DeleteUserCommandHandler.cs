@@ -15,13 +15,13 @@ public sealed class DeleteUserCommandHandler : ICommandHandler<DeleteUserCommand
         _grpcClient = grpcClient;
     }
 
-    public async ValueTask<Unit> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(DeleteUserCommand request, CancellationToken token)
     {
-        var deletedUser = await _userRepository.DeleteAsync(request.UserId, cancellationToken);
+        var deletedUser = await _userRepository.DeleteAsync(request.UserId, token);
         await _grpcClient.DeleteUserAsync(new DeleteUserRequest
         {
             UserName = deletedUser.UserName.Name
-        }, cancellationToken: cancellationToken);
+        }, cancellationToken: token);
 
         return Unit.Value;
     }

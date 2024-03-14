@@ -43,18 +43,18 @@ public sealed class UserRepository : IUserRepository
         return (user, claims).Adapt<Domain.UserAggregate.User>();
     }
 
-    public async Task SetRefreshTokenAsync(UserName userName, string refreshToken, CancellationToken cancellationToken = default)
+    public async Task SetRefreshTokenAsync(UserName userName, string refreshToken, CancellationToken token = default)
     {
         await _db.Users
         .Where(x => x.UserName == userName.Name)
-        .ExecuteUpdateAsync(call => call.SetProperty(x => x.RefreshToken, refreshToken), cancellationToken: cancellationToken);
+        .ExecuteUpdateAsync(call => call.SetProperty(x => x.RefreshToken, refreshToken), cancellationToken: token);
 
-        await _db.SaveChangesAsync(cancellationToken);
+        await _db.SaveChangesAsync(token);
     }
 
-    public async Task<Domain.UserAggregate.User?> GetByUserNameAsync(UserName userName, CancellationToken cancellationToken = default)
+    public async Task<Domain.UserAggregate.User?> GetByUserNameAsync(UserName userName, CancellationToken token = default)
     {
-        var user = await _db.Users.FirstOrDefaultAsync(x => x.UserName == userName.Name, cancellationToken: cancellationToken);
+        var user = await _db.Users.FirstOrDefaultAsync(x => x.UserName == userName.Name, cancellationToken: token);
 
         if (user is null)
         {
@@ -66,30 +66,16 @@ public sealed class UserRepository : IUserRepository
         return (user, claims).Adapt<Domain.UserAggregate.User>();
     }
 
-    public async Task<Domain.UserAggregate.User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default)
+    public async Task<bool> IsValidUserAsync(UserName userName, string password, CancellationToken token = default)
     {
-        var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == id.Value.ToString(), cancellationToken: cancellationToken);
-
-        if (user is null)
-        {
-            return null;
-        }
-
-        var claims = await _userManager.GetClaimsAsync(user);
-
-        return (user, claims).Adapt<Domain.UserAggregate.User>();
-    }
-
-    public async Task<bool> IsValidUserAsync(UserName userName, string password, CancellationToken cancellationToken = default)
-    {
-        var user = await GetByUserNameInternalAsync(userName, cancellationToken);
+        var user = await GetByUserNameInternalAsync(userName, token);
 
         return await _userManager.CheckPasswordAsync(user, password);
     }
 
-    public async Task<Domain.UserAggregate.User> AddClaimsAsync(UserName userName, IEnumerable<Claim> claims, CancellationToken cancellationToken = default)
+    public async Task<Domain.UserAggregate.User> AddClaimsAsync(UserName userName, IEnumerable<Claim> claims, CancellationToken token = default)
     {
-        var user = await GetByUserNameInternalAsync(userName, cancellationToken);
+        var user = await GetByUserNameInternalAsync(userName, token);
 
         var result = await _userManager.AddClaimsAsync(user, claims);
 
@@ -103,22 +89,22 @@ public sealed class UserRepository : IUserRepository
         return (user, actualClaims).Adapt<Domain.UserAggregate.User>();
     }
 
-    public async Task<Domain.UserAggregate.User> RemoveClaimsAsync(UserName userName, IEnumerable<string> claims, CancellationToken cancellationToken = default)
+    public async Task<Domain.UserAggregate.User> RemoveClaimsAsync(UserName userName, IEnumerable<string> claims, CancellationToken token = default)
     {
-        var user = await GetByUserNameInternalAsync(userName, cancellationToken);
+        var user = await GetByUserNameInternalAsync(userName, token);
 
         await _db.UserClaims
         .Where(x => claims.Contains(x.ClaimType))
-        .ExecuteDeleteAsync(cancellationToken: cancellationToken);
+        .ExecuteDeleteAsync(cancellationToken: token);
 
         var actualClaims = await _userManager.GetClaimsAsync(user);
 
         return (user, actualClaims).Adapt<Domain.UserAggregate.User>();
     }
 
-    private async Task<Common.Models.User> GetByUserNameInternalAsync(UserName userName, CancellationToken cancellationToken = default)
+    private async Task<Common.Models.User> GetByUserNameInternalAsync(UserName userName, CancellationToken token = default)
     {
-        return await _db.Users.FirstOrDefaultAsync(x => x.UserName == userName.Name, cancellationToken: cancellationToken)
+        return await _db.Users.FirstOrDefaultAsync(x => x.UserName == userName.Name, cancellationToken: token)
         ?? throw new UserNotFoundException(userName.Name);
     }
 }

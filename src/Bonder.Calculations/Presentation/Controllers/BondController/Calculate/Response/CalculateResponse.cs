@@ -1,4 +1,4 @@
-﻿using Domain.BondAggreagte.Abstractions.Dto;
+﻿using Shared.Domain.Common;
 
 namespace Presentation.Controllers.BondController.Calculate.Response;
 public readonly record struct CalculateResponse(IEnumerable<CalculatedBondResponse> CalculatedBonds,

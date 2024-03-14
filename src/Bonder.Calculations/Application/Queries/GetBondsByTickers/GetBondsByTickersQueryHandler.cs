@@ -13,9 +13,9 @@ public sealed class GetBondsByTickersQueryHandler : IQueryHandler<GetBondsByTick
         _bondRepository = bondRepository;
     }
 
-    public async ValueTask<IEnumerable<BondItem>> Handle(GetBondsByTickersQuery query, CancellationToken cancellationToken)
+    public async ValueTask<IEnumerable<BondItem>> Handle(GetBondsByTickersQuery query, CancellationToken token)
     {
-        var bonds = await _bondRepository.GetByTickersAsync(query.Tickers, cancellationToken);
+        var bonds = await _bondRepository.GetByTickersAsync(query.Tickers, token);
 
         return bonds.Adapt<IEnumerable<BondItem>>();
     }

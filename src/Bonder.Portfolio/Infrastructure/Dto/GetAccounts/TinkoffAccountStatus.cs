@@ -2,5 +2,5 @@
 
 public static class TinkoffAccountStatus
 {
-    public static string Open => "ACCOUNT_STATUS_OPEN";
+    public const string Open = "ACCOUNT_STATUS_OPEN";
 }

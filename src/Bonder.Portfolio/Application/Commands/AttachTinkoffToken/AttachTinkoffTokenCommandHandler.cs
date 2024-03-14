@@ -1,4 +1,4 @@
-﻿using Application.Common.Abstractions;
+﻿using Domain.Common.Abstractions;
 using Domain.UserAggregate.Abstractions.Repositories;
 using Mediator;
 
@@ -15,11 +15,11 @@ public sealed class AttachTinkoffTokenCommandHandler : ICommandHandler<AttachTin
         _userBuilder = userBuilder;
     }
 
-    public async ValueTask<Unit> Handle(AttachTinkoffTokenCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(AttachTinkoffTokenCommand request, CancellationToken token)
     {
-        var user = await _userBuilder.BuildAsync(request.UserId, request.Token, cancellationToken);
+        var user = await _userBuilder.BuildAsync(request.UserId, request.Token, token);
 
-        await _userRepository.SaveAsync(user, cancellationToken);
+        await _userRepository.SaveAsync(user, token);
 
         return Unit.Value;
     }

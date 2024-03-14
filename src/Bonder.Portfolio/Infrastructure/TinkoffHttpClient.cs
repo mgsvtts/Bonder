@@ -1,4 +1,4 @@
-﻿using Application.Common.Abstractions;
+﻿using Domain.Common.Abstractions;
 using Domain.UserAggregate.Entities;
 using Domain.UserAggregate.Exceptions;
 using Domain.UserAggregate.ValueObjects.Operations;

@@ -1,4 +1,4 @@
-﻿using Application.Commands.Calculation.Common.CalculationService.Dto;
+﻿using Domain.BondAggreagte.Abstractions.Dto.CalculateAll;
 using Domain.BondAggreagte.ValueObjects.Identities;
 
 namespace Application.Commands.Calculation.Common.CalculationService.Extensions;

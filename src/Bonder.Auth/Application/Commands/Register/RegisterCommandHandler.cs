@@ -14,7 +14,7 @@ public sealed class RegisterCommandHandler : ICommandHandler<RegisterCommand>
         _userRepository = userRepository;
     }
 
-    public async ValueTask<Unit> Handle(RegisterCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(RegisterCommand request, CancellationToken token)
     {
         var user = new User(new UserId(Guid.NewGuid()), new UserName(request.UserName));
 

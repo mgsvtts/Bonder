@@ -1,8 +1,6 @@
-﻿using Application.Commands.Calculation.CalculateAll.Services.Dto;
-using Application.Commands.Calculation.Common.Abstractions;
-using Application.Commands.Calculation.Common.CalculationService.Dto;
-using Domain.BondAggreagte.Abstractions;
-using Domain.BondAggreagte.Abstractions.Dto;
+﻿using Domain.BondAggreagte.Abstractions;
+using Domain.BondAggreagte.Abstractions.Dto.CalculateAll;
+using Domain.BondAggreagte.Abstractions.Dto.GetPriceSorted;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Mediator;
 
@@ -19,16 +17,16 @@ public sealed class CalculateBondsCommandHandler : ICommandHandler<CalculateBond
         _repository = repository;
     }
 
-    public async ValueTask<CalculateAllResponse> Handle(CalculateBondsCommand request, CancellationToken cancellationToken)
+    public async ValueTask<CalculateAllResponse> Handle(CalculateBondsCommand request, CancellationToken token)
     {
         GetPriceSortedResponse bonds;
         if (request.IdType == IdType.Ticker)
         {
-            bonds = await _repository.GetPriceSortedAsync(request.Options, tickers: request.Ids.Select(x => new Ticker(x)), token: cancellationToken);
+            bonds = await _repository.GetPriceSortedAsync(request.Options, tickers: request.Ids.Select(x => new Ticker(x)), token: token);
         }
         else
         {
-            bonds = await _repository.GetPriceSortedAsync(request.Options, uids: request.Ids.Select(Guid.Parse), token: cancellationToken);
+            bonds = await _repository.GetPriceSortedAsync(request.Options, uids: request.Ids.Select(Guid.Parse), token: token);
         }
 
         return new CalculateAllResponse(_calculator.Calculate(new CalculationRequest(request.Options, bonds.Bonds)), bonds.PageInfo.Value);
