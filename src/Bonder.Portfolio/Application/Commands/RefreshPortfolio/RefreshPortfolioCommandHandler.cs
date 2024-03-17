@@ -4,18 +4,18 @@ using Mediator;
 
 namespace Application.Commands.AttachTinkoffToken;
 
-public sealed class AttachTinkoffTokenCommandHandler : ICommandHandler<AttachTinkoffTokenCommand>
+public sealed class RefreshPortfolioCommandHandler : ICommandHandler<RefreshPortfolioCommand>
 {
     private readonly IUserBuilder _userBuilder;
     private readonly IUserRepository _userRepository;
 
-    public AttachTinkoffTokenCommandHandler(IUserRepository portfolioRepository, IUserBuilder userBuilder)
+    public RefreshPortfolioCommandHandler(IUserRepository portfolioRepository, IUserBuilder userBuilder)
     {
         _userRepository = portfolioRepository;
         _userBuilder = userBuilder;
     }
 
-    public async ValueTask<Unit> Handle(AttachTinkoffTokenCommand request, CancellationToken token)
+    public async ValueTask<Unit> Handle(RefreshPortfolioCommand request, CancellationToken token)
     {
         var user = await _userBuilder.BuildAsync(request.UserId, request.Token, token);
 

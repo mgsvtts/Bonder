@@ -70,6 +70,7 @@ public sealed class TinkoffHttpClient : ITinkoffHttpClient
         do
         {
             response = await GetOperationsAsync(tinkoffToken, accountId, response.NextCursor, token);
+
             result.AddRange(response.Operations.Adapt<IEnumerable<Operation>>());
         }
         while (response.HasNext);

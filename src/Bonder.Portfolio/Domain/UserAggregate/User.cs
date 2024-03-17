@@ -1,4 +1,5 @@
 ﻿using Domain.UserAggregate.Entities;
+using Domain.UserAggregate.ValueObjects.Operations;
 using Domain.UserAggregate.ValueObjects.Portfolios;
 using Domain.UserAggregate.ValueObjects.Users;
 using Shared.Domain.Common.Models;
@@ -18,7 +19,7 @@ public sealed class User : AggregateRoot<UserId>
         _portfolios = portfolios is not null ? portfolios.ToList() : _portfolios;
     }
 
-    public User AddImportedPortfolio(decimal bondsPrice, BrokerType brokerType, IEnumerable<Bond>? bonds, string? name = null)
+    public User AddImportedPortfolio(decimal bondsPrice, BrokerType brokerType, IEnumerable<Bond>? bonds, IEnumerable<Operation>? operations = null, string? name = null)
     {
         _portfolios.Add(new Portfolio
         (
@@ -27,7 +28,8 @@ public sealed class User : AggregateRoot<UserId>
             name ?? $"{brokerType}-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}",
             PortfolioType.Exported,
             brokerType,
-            bonds
+            bonds,
+            operations
         ));
 
         return this;

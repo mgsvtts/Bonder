@@ -2,8 +2,8 @@
 
 public enum PortfolioType
 {
-    Unknown,
-    Exported,
-    Ordinary,
-    IIS
+    Unknown = 0,
+    Exported = 1,
+    Ordinary = 2,
+    IIS = 3
 }

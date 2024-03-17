@@ -39,7 +39,7 @@ public sealed class PortfolioController : ControllerBase
     [HttpPost("refresh")]
     public async Task<IResult> AttachToken([FromBody] AttachTokenRequest request, CancellationToken token)
     {
-        await _sender.Send(request.Adapt<AttachTinkoffTokenCommand>(), token);
+        await _sender.Send(request.Adapt<RefreshPortfolioCommand>(), token);
 
         return TypedResults.NoContent();
     }

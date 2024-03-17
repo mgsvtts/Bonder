@@ -2,7 +2,7 @@
 
 public enum BrokerType
 {
-    Tinkoff,
-    VTB,
-    Sber
+    Tinkoff=0,
+    VTB=1,
+    Sber=2
 }

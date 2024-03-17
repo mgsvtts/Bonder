@@ -1,4 +1,6 @@
 ﻿using Application.Commands.AttachTinkoffToken;
+using Application.Commands.ImportPortfolio.Dto;
+using Bonder.Calculation.Grpc;
 using Domain.UserAggregate;
 using Domain.UserAggregate.Entities;
 using Domain.UserAggregate.ValueObjects.Operations;
@@ -18,9 +20,13 @@ public static class MapsterConfig
 {
     public static void RegisterMapsterConfiguration(this IServiceCollection services)
     {
-        TypeAdapterConfig<AttachTokenRequest, AttachTinkoffTokenCommand>
+        TypeAdapterConfig<AttachTokenRequest, RefreshPortfolioCommand>
         .ForType()
-        .MapWith(x => new AttachTinkoffTokenCommand(new UserId(x.UserId), new TinkoffToken(x.Token)));
+        .MapWith(x => new RefreshPortfolioCommand(new UserId(x.UserId), new TinkoffToken(x.Token)));
+
+        TypeAdapterConfig<(List<ImportedOperation> Operations, IList<GrpcBond> Bonds), IEnumerable<Operation>>
+       .ForType()
+       .MapWith(x => x.Operations.Select(operation => CustomMappings.FromImportedOperation(operation, x.Bonds.FirstOrDefault(bond => operation.Ticker == bond.Ticker))));
 
         TypeAdapterConfig<Infrastructure.Common.Models.Portfolio, Portfolio>
         .ForType()
@@ -33,6 +39,10 @@ public static class MapsterConfig
                                     x.Operations.Adapt<IEnumerable<Operation>>(),
                                     x.AccountId != null ? new AccountId(x.AccountId) : null));
 
+        TypeAdapterConfig<Dictionary<GrpcBond, int>, IEnumerable<Bond>>
+       .ForType()
+       .MapWith(x => x.Select(x => CustomMappings.FromImportedBond(x)));
+
         TypeAdapterConfig<Infrastructure.Common.Models.User, User>
         .ForType()
         .MapWith(x => new User(new UserId(x.Id), new TinkoffToken(x.Token), x.Portfolios.Adapt<IEnumerable<Portfolio>>()));
@@ -40,7 +50,6 @@ public static class MapsterConfig
         TypeAdapterConfig<Infrastructure.Common.Models.Operation, Operation>
         .ForType()
         .MapWith(x => new Operation(x.Name,
-                                    x.Description,
                                     x.Type,
                                     x.State,
                                     x.Date,
@@ -48,10 +57,11 @@ public static class MapsterConfig
                                     x.Price,
                                     x.Commission,
                                     x.InstrumentType,
-                                    x.InstrumentId,
                                     x.Quantity,
                                     x.RestQuantity,
-                                    x.Trades.Adapt<IReadOnlyList<Domain.UserAggregate.ValueObjects.Trades.Trade>>()));
+                                    x.InstrumentId,
+                                    x.Trades.Adapt<IEnumerable<Domain.UserAggregate.ValueObjects.Trades.Trade>>(),
+                                    x.Description));
 
         TypeAdapterConfig<Operation, Infrastructure.Common.Models.Operation>
         .ForType()
@@ -148,7 +158,6 @@ public static class CustomMappings
     public static Operation FromTinkoffOperation(TinkoffOperation operation)
     {
         return new Operation(operation.Name,
-                             operation.Description,
                              MapOperationType(operation),
                              MapOperationState(operation),
                              operation.Date,
@@ -156,77 +165,94 @@ public static class CustomMappings
                              operation.ItemPrice.ToDecimal(),
                              operation.ItemCommission.ToDecimal(),
                              MapInstrumentType(operation),
-                             string.IsNullOrEmpty(operation.InstrumentId) ? null : Guid.Parse(operation.InstrumentId),
                              operation.Quantity,
                              operation.RestQuantity,
-                             operation.TradeInfo is not null ? operation.TradeInfo.Trades.Adapt<IReadOnlyList<Domain.UserAggregate.ValueObjects.Trades.Trade>>() : new List<Domain.UserAggregate.ValueObjects.Trades.Trade>().AsReadOnly());
+                             string.IsNullOrEmpty(operation.InstrumentId) ? null : Guid.Parse(operation.InstrumentId),
+                             operation.TradeInfo is not null ? operation.TradeInfo.Trades.Adapt<IEnumerable<Domain.UserAggregate.ValueObjects.Trades.Trade>>() : Enumerable.Empty<Domain.UserAggregate.ValueObjects.Trades.Trade>(),
+                             operation.Description);
+    }
+
+    public static Operation FromImportedOperation(ImportedOperation operation, GrpcBond? bond)
+    {
+        var type = MapOperationType(operation.Type);
+        var date = operation.Date.ToDateTime(operation.Time);
+
+        return new Operation(operation.Name,
+                             type,
+                             OperationState.Executed,
+                             date,
+                             operation.Payout,
+                             operation.Price,
+                             operation.Commission,
+                             InstrumentType.Bond,
+                             operation.Quantity,
+                             0,
+                             bond is not null ? Guid.Parse(bond.Id) : null,
+                             null,
+                             $"Импорт от {date:yyyy-MM-dd-HH-mm-ss}");
+    }
+
+    public static Bond FromImportedBond(KeyValuePair<GrpcBond, int> bond)
+    {
+        return new Bond(Guid.Parse(bond.Key.Id), bond.Value);
+    }
+
+    private static OperationType MapOperationType(string type)
+    {
+        return type switch
+        {
+            ImportedOperationType.Buy => OperationType.Buy,
+            ImportedOperationType.Sell => OperationType.Sell,
+            _ => OperationType.Unknown
+        };
     }
 
     private static PortfolioType MapPortfolioType(TinkoffAccount account)
     {
-        if (account.Type == TinkoffAccountType.Ordinary)
+        return account.Type switch
         {
-            return PortfolioType.Ordinary;
-        }
-        if (account.Type == TinkoffAccountType.IIS)
-        {
-            return PortfolioType.IIS;
-        }
-
-        return PortfolioType.Unknown;
+            TinkoffAccountType.Ordinary => PortfolioType.Ordinary,
+            TinkoffAccountType.IIS => PortfolioType.IIS,
+            _ => PortfolioType.Unknown
+        };
     }
 
     private static OperationState MapOperationState(TinkoffOperation operation)
     {
-        if (operation.Type == TinkoffOperationState.Executed)
+        return operation.State switch
         {
-            return OperationState.Executed;
-        }
-        if (operation.Type == TinkoffOperationState.Canceled)
-        {
-            return OperationState.Canceled;
-        }
-        if (operation.Type == TinkoffOperationState.InProgress)
-        {
-            return OperationState.InProgress;
-        }
-
-        return OperationState.Unknown;
+            TinkoffOperationState.Executed => OperationState.Executed,
+            TinkoffOperationState.Canceled => OperationState.Canceled,
+            TinkoffOperationState.InProgress => OperationState.InProgress,
+            _ => OperationState.Unknown
+        };
     }
 
     private static OperationType MapOperationType(TinkoffOperation operation)
     {
-        if (operation.Type == TinkoffOperationType.Input)
+        return operation.Type switch
         {
-            return OperationType.Input;
-        }
-        if (operation.Type == TinkoffOperationType.Output)
-        {
-            return OperationType.Output;
-        }
-        if (operation.Type == TinkoffOperationType.Tax)
-        {
-            return OperationType.Tax;
-        }
-        if (operation.Type == TinkoffOperationType.CouponInput)
-        {
-            return OperationType.CouponInput;
-        }
-
-        return OperationType.Unknown;
+            TinkoffOperationType.CouponInput => OperationType.CouponInput,
+            TinkoffOperationType.Input => OperationType.Input,
+            TinkoffOperationType.Output => OperationType.Output,
+            TinkoffOperationType.BondTax => OperationType.BondTax,
+            TinkoffOperationType.Tax => OperationType.Tax,
+            TinkoffOperationType.Sell => OperationType.Sell,
+            TinkoffOperationType.BrokerFee => OperationType.BrokerFee,
+            TinkoffOperationType.Buy => OperationType.Buy,
+            TinkoffOperationType.MoneyTransfer => OperationType.MoneyTransfer,
+            TinkoffOperationType.AssetsTransfer => OperationType.AssetsTransfer,
+            _ => OperationType.Unknown
+        };
     }
 
     public static InstrumentType MapInstrumentType(TinkoffOperation operation)
     {
-        if (operation.InstrumentKind == TinkoffOperationKind.Bond)
+        return operation.InstrumentKind switch
         {
-            return InstrumentType.Bond;
-        }
-        if (operation.InstrumentKind == TinkoffOperationKind.Share)
-        {
-            return InstrumentType.Share;
-        }
-
-        return InstrumentType.Unknown;
+            TinkoffOperationKind.Bond => InstrumentType.Bond,
+            TinkoffOperationKind.Share => InstrumentType.Share,
+            _ => InstrumentType.Unknown
+        };
     }
 }

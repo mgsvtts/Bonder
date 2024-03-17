@@ -2,8 +2,8 @@
 
 public enum OperationState
 {
-    Unknown,
-    Executed,
-    Canceled,
-    InProgress
+    Unknown =0,
+    Executed=1,
+    Canceled=2,
+    InProgress=3
 }

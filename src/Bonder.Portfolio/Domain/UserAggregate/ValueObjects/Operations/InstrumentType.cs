@@ -2,7 +2,7 @@
 
 public enum InstrumentType
 {
-    Unknown,
-    Bond,
-    Share
+    Unknown=0,
+    Bond=1,
+    Share=2
 }

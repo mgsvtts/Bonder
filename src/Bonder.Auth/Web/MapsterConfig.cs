@@ -49,13 +49,6 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new LoginCommand(new UserName(x.UserName), x.Password));
 
-        TypeAdapterConfig<(Infrastructure.Common.Models.User User, IEnumerable<Claim> Claims), User>
-                        .ForType()
-                        .MapWith(x => new User(new UserId(Guid.Parse(x.User.Id)),
-                                               new UserName(x.User.UserName),
-                                               x.Claims,
-                                               new Tokens(x.User.RefreshToken, null)));
-
         TypeAdapterConfig<(Infrastructure.Common.Models.User User, IList<Claim> Claims), User>
                 .ForType()
                 .MapWith(x => new User(new UserId(Guid.Parse(x.User.Id)),
