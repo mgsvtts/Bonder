@@ -5,8 +5,7 @@ public readonly record struct ImportedOperation(DateOnly Date,
                                                 string Type,
                                                 string Name,
                                                 string Ticker,
-                                                int Quantity,
-                                                decimal Payout,
-                                                decimal Price,
-                                                decimal Commission);
-
+                                                double Quantity,
+                                                double Payout,
+                                                double Price,
+                                                double Commission);

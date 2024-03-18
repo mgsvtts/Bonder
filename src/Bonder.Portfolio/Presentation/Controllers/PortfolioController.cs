@@ -1,5 +1,5 @@
-﻿using Application.Commands.AttachTinkoffToken;
-using Application.Commands.ImportPortfolio;
+﻿using Application.Commands.ImportPortfolio;
+using Application.Commands.RefreshPortfolio;
 using Application.Queries.GetOperations;
 using Application.Queries.GetPortfolios;
 using Domain.UserAggregate.Entities;

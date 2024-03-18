@@ -2,7 +2,7 @@
 using Domain.UserAggregate.Abstractions.Repositories;
 using Mediator;
 
-namespace Application.Commands.AttachTinkoffToken;
+namespace Application.Commands.RefreshPortfolio;
 
 public sealed class RefreshPortfolioCommandHandler : ICommandHandler<RefreshPortfolioCommand>
 {

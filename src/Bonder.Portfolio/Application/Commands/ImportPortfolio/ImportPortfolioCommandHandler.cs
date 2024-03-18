@@ -3,30 +3,18 @@ using Bonder.Calculation.Grpc;
 using Domain.UserAggregate.Abstractions.Repositories;
 using Domain.UserAggregate.ValueObjects.Operations;
 using Domain.UserAggregate.ValueObjects.Portfolios;
-using IronXL;
 using Mapster;
 using Mediator;
-using Microsoft.AspNetCore.Http;
-using System.Text.Json;
+using NPOI.SS.UserModel;
+using NPOI.SS.Util;
 using System.Text.RegularExpressions;
 
 namespace Application.Commands.ImportPortfolio;
 
 public sealed partial class ImportPortfolioCommandHandler : ICommandHandler<ImportPortfolioCommand>
 {
-    private const int _cellSize = 2;
-
-    private const string _operationsRange1 = "1.1 Информация о совершенных и исполненных сделках на конец отчетного периода";
-    private const string _operationsRange2 = "1.2 Информация о неисполненных сделках на конец отчетного периода";
-
-    private const string _tickersRange1 = "4.1 Информация о ценных бумагах";
-    private const string _tickersRange2 = "4.2 Информация об инструментах, не квалифицированных в качестве ценной бумаги";
-
-    private const string _bondsCountRange1 = "3.1 Движение по ценным бумагам инвестора";
-    private const string _bondsCountRange2 = "3.2 Движение по производным финансовым инструментам";
-
-    private readonly CalculationService.CalculationServiceClient _grpcClient;
     private readonly IUserRepository _userRepository;
+    private readonly CalculationService.CalculationServiceClient _grpcClient;
 
     public ImportPortfolioCommandHandler(CalculationService.CalculationServiceClient grpcClient, IUserRepository userRepository)
     {
@@ -36,34 +24,171 @@ public sealed partial class ImportPortfolioCommandHandler : ICommandHandler<Impo
 
     public async ValueTask<Unit> Handle(ImportPortfolioCommand command, CancellationToken token)
     {
-        var workbook = WorkBook.Load(command.FileStream);
+        var workbook = WorkbookFactory.Create(command.FileStream, true);
 
-        var operationsTask = GetOperationsAsync(workbook, token);
-        var bondsTask = GetBondsAsync(workbook, token);
-        var userTask = _userRepository.GetByIdAsync(command.UserId, token);
+        var processingResult = await ProcessFileAsync(command, workbook.GetSheetAt(0), token);
 
-        await Task.WhenAll(bondsTask, operationsTask, userTask);
+        var bondsResult = await GetBondsAsync(processingResult, token);
 
-        var bonds = bondsTask.Result;
-        var operations = operationsTask.Result;
-        var user = userTask.Result;
+        processingResult.User.AddImportedPortfolio
+        (
+            bondsResult.Bonds.Sum(x => x.Key.Price),
+            command.BrokerType,
+            bondsResult.Bonds.Adapt<IEnumerable<Bond>>(),
+            (processingResult.Operations, bondsResult.OperationBonds).Adapt<IEnumerable<Operation>>(),
+            command.Name
+        );
 
-        user.AddImportedPortfolio(bonds.Sum(x => x.Key.Price), command.BrokerType, bonds.Adapt<IEnumerable<Bond>>(), operations, command.Name);
-
-        await _userRepository.SaveAsync(user, token);
+        await _userRepository.SaveAsync(processingResult.User, token);
 
         return Unit.Value;
     }
 
-    private async Task<Dictionary<GrpcBond, int>> GetBondsAsync(WorkBook workBook, CancellationToken token)
+    private async Task<GetBondsResult> GetBondsAsync(FileProcessingResult processingResult, CancellationToken token)
     {
-        var counts = GetBondsCount(workBook);
-        var bonds = await GetBondsAsync(GetTickers(workBook), token);
+        var countBondsTask = GetBondsAsync(processingResult.Tickers, token);
+        var operationBondsTask = GetBondsAsync(processingResult.Operations.Select(x => x.Ticker).Distinct(), token);
 
-        return MergeBonds(counts, bonds);
+        await Task.WhenAll(countBondsTask, operationBondsTask);
+
+        var bonds = MergeBonds(countBondsTask.Result, processingResult.BoncCounts);
+
+        return new GetBondsResult(operationBondsTask.Result, bonds);
     }
 
-    private static Dictionary<GrpcBond, int> MergeBonds(Dictionary<string, int> counts, IList<GrpcBond> bonds)
+    private async Task<FileProcessingResult> ProcessFileAsync(ImportPortfolioCommand command, ISheet sheet, CancellationToken token)
+    {
+        var operationsTask = Task.Run(() => ProcessSheet(sheet, ParseOperation, Boundaries.OperationsRange1, Boundaries.OperationsRange2));
+        var bondCountsTask = Task.Run(() => ProcessSheet(sheet, ParseBondCount, Boundaries.BondsCountRange1, Boundaries.BondsCountRange2));
+        var tickersTask = Task.Run(() => ProcessSheet(sheet, ParseTickers, Boundaries.TickersRange1, Boundaries.TickersRange2));
+        var userTask = _userRepository.GetByIdAsync(command.UserId, token);
+
+        await Task.WhenAll(operationsTask, bondCountsTask, tickersTask, userTask);
+
+        return new FileProcessingResult(operationsTask.Result, bondCountsTask.Result, tickersTask.Result, userTask.Result);
+    }
+
+    private static List<T> ProcessSheet<T>(ISheet sheet, Func<List<ICell>, T> func, string range1, string range2)
+    {
+        var range = GetRowsInRange(sheet, range1, range2);
+
+        const int headerSize = 2;
+
+        var result = new List<T>(range.LastRow - range.FirstRow);
+        for (int i = range.FirstRow + headerSize; i < range.LastRow; i++)
+        {
+            var row = sheet.GetRow(i);
+
+            if (row is null || ShouldSkip(row))
+            {
+                continue;
+            }
+
+            result.Add(func.Invoke(row.Cells));
+        }
+
+        return result;
+    }
+
+    private static ImportedOperation ParseOperation(List<ICell> cells)
+    {
+        var date = DateOnly.Parse(cells[3].StringCellValue);
+        var time = TimeOnly.Parse(cells[4].StringCellValue);
+        var type = cells[6].StringCellValue;
+        var name = cells[7].StringCellValue;
+        var ticker = cells[8].StringCellValue;
+        var quantity = cells[11].NumericCellValue;
+        var payout = cells[14].NumericCellValue;
+        var price = payout / quantity;
+        var commission = cells[16].NumericCellValue;
+
+        return new ImportedOperation(date, time, type, name, ticker, quantity, payout, price, commission);
+    }
+
+    private static (string Ticker, double Count) ParseBondCount(List<ICell> cells)
+    {
+        return (cells[5].StringCellValue, cells[27].NumericCellValue);
+    }
+
+    private static string? ParseTickers(List<ICell> cells)
+    {
+        if (!cells[26].StringCellValue.Contains("обл", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return cells[6].StringCellValue;
+    }
+
+    private static CellRangeAddress GetRowsInRange(ISheet sheet, string range1, string range2)
+    {
+        var (startRow, endRow) = GetBoundaries(sheet, range1, range2);
+
+        return CellRangeAddress.ValueOf($"{startRow.Cells[0].Address}:{endRow.Cells[^1].Address}");
+    }
+
+    private static (IRow Start, IRow End) GetBoundaries(ISheet sheet, string range1, string range2)
+    {
+        IRow startRow = null;
+        IRow endRow = null;
+
+        var enumerator = sheet.GetRowEnumerator();
+        while (enumerator.MoveNext())
+        {
+            if (enumerator.Current is not IRow row)
+            {
+                continue;
+            }
+
+            if (row.Cells.Any(x => x.CellType == CellType.String && x.StringCellValue.Equals(range1, StringComparison.OrdinalIgnoreCase)))
+            {
+                startRow = row;
+            }
+
+            if (row.Cells.Any(x => x.CellType == CellType.String && x.StringCellValue.Equals(range2, StringComparison.OrdinalIgnoreCase)))
+            {
+                endRow = row;
+            }
+
+            if (startRow is not null && endRow is not null)
+            {
+                break;
+            }
+        }
+
+        if (startRow is null || endRow is null)
+        {
+            throw new InvalidOperationException("Cannot find file boundaries");
+        }
+
+        return (startRow, endRow);
+    }
+
+    private static bool ShouldSkip(IRow row)
+    {
+        var concated = string.Concat(row.Cells);
+
+        return concated.Contains("из", StringComparison.OrdinalIgnoreCase) &&
+               LastNumberRegex().IsMatch(concated) &&
+               FirstNumberRegex().IsMatch(concated);
+    }
+
+    private async Task<IList<GrpcBond>> GetBondsAsync(IEnumerable<string?>? tickers, CancellationToken token)
+    {
+        if (tickers is null || !tickers.Any())
+        {
+            return [];
+        }
+
+        var request = new GetBondsByTickersRequest();
+        request.Tickers.AddRange(tickers.Where(x => !string.IsNullOrEmpty(x)));
+
+        var response = await _grpcClient.GetBondsByTickersAsync(request, cancellationToken: token);
+
+        return response.Bonds;
+    }
+
+    private static Dictionary<GrpcBond, int> MergeBonds(IList<GrpcBond> bonds, IEnumerable<(string Ticker, double Count)> counts)
     {
         var result = new Dictionary<GrpcBond, int>();
         foreach (var (ticker, count) in counts)
@@ -74,146 +199,15 @@ public sealed partial class ImportPortfolioCommandHandler : ICommandHandler<Impo
                 continue;
             }
 
-            result.Add(bond, count);
+            result.Add(bond, (int)count);
         }
 
         return result;
-    }
-
-    private static IEnumerable<string> GetTickers(WorkBook workBook)
-    {
-        var cells = GetBoundaredCells(workBook, _tickersRange1, _tickersRange2);
-        for (var i = 0; i < cells.Count; i++)
-        {
-            var row = cells[i];
-            if (ShouldSkip(row))
-            {
-                continue;
-            }
-
-            var ticker = ParseTicker(row.Columns.ToList());
-            if (ticker is null)
-            {
-                continue;
-            }
-
-            yield return ticker;
-        }
-    }
-
-    private async Task<IEnumerable<Operation>> GetOperationsAsync(WorkBook workBook, CancellationToken token)
-    {
-        var operations = new List<ImportedOperation>();
-
-        var cells = GetBoundaredCells(workBook, _operationsRange1, _operationsRange2);
-        for (var i = 0; i < cells.Count; i++)
-        {
-            var row = cells[i];
-            if (ShouldSkip(row))
-            {
-                continue;
-            }
-
-            operations.Add(ParseOperation(row.Columns.ToList()));
-        }
-
-        var response = await GetBondsAsync(operations.Select(x => x.Ticker).Distinct(), token);
-
-        return (operations, response).Adapt<IEnumerable<Operation>>();
-    }
-
-    private static Dictionary<string, int> GetBondsCount(WorkBook workBook)
-    {
-        var result = new Dictionary<string, int>();
-
-        var cells = GetBoundaredCells(workBook, _bondsCountRange1, _bondsCountRange2);
-        for (var i = 0; i < cells.Count; i++)
-        {
-            var row = cells[i];
-            if (ShouldSkip(row))
-            {
-                continue;
-            }
-
-            var (ticker, count) = ParseBondCount(row.Columns.ToList());
-
-            result.Add(ticker, count);
-        }
-
-        return result;
-    }
-
-    private static bool ShouldSkip(RangeRow row)
-    {
-        var trimmed = string.Concat(row
-        .ToString()
-        .Where(x => x != '\t' && x != '\n' && x != ' '));
-
-        return trimmed.Contains("из", StringComparison.OrdinalIgnoreCase) &&
-               LastNumberRegex().IsMatch(trimmed) && 
-               FirstNumberRegex().IsMatch(trimmed);
-    }
-
-    private static List<RangeRow> GetBoundaredCells(WorkBook workBook, string startBoundary, string endBoundary)
-    {
-        var start = workBook.DefaultWorkSheet.FirstOrDefault(x => x.Text.Equals(startBoundary, StringComparison.OrdinalIgnoreCase));
-        var end = workBook.DefaultWorkSheet.FirstOrDefault(x => x.Text.Equals(endBoundary, StringComparison.OrdinalIgnoreCase));
-
-        if (start is null || end is null)
-        {
-            throw new InvalidOperationException("Cannot find file boundaries");
-        }
-
-        return workBook
-        .DefaultWorkSheet[$"{start.Address.FirstRow + _cellSize}:AF{end.Address.LastRow}"]
-        .Rows
-        .Where(x => !x.IsEmpty)
-        .Skip(1)
-        .ToList();
-    }
-
-    private static ImportedOperation ParseOperation(List<RangeColumn> columns)
-    {
-        var date = DateOnly.Parse(columns[3].StringValue);
-        var time = TimeOnly.Parse(columns[4].StringValue);
-        var type = columns[6].StringValue;
-        var name = columns[7].StringValue;
-        var ticker = columns[8].StringValue;
-        var quantity = int.Parse(columns[11].StringValue);
-        var payout = decimal.Parse(columns[14].StringValue);
-        var price = payout / quantity;
-        var commission = decimal.Parse(columns[16].StringValue);
-
-        return new ImportedOperation(date, time, type, name, ticker, quantity, payout, price, commission);
-    }
-
-    private static string? ParseTicker(List<RangeColumn> columns)
-    {
-        if (!columns[26].StringValue.Contains("обл", StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        return columns[6].StringValue;
-    }
-
-    private static (string Ticker, int Count) ParseBondCount(List<RangeColumn> columns)
-    {
-        return (columns[5].StringValue, columns[27].Int32Value);
-    }
-
-    private async Task<IList<GrpcBond>> GetBondsAsync(IEnumerable<string> tickers, CancellationToken token)
-    {
-        var request = new GetBondsByTickersRequest();
-        request.Tickers.AddRange(tickers);
-
-        var response = await _grpcClient.GetBondsByTickersAsync(request, cancellationToken: token);
-
-        return response.Bonds;
     }
 
     [GeneratedRegex(@"\d+$")]
     private static partial Regex LastNumberRegex();
+
     [GeneratedRegex(@"^\d+")]
     private static partial Regex FirstNumberRegex();
 }

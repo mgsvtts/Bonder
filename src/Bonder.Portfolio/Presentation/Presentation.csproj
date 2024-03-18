@@ -12,7 +12,7 @@
 	
 	<ItemGroup>
 	  <PackageReference Include="Mapster" Version="7.4.0" />
-	  <PackageReference Include="Microsoft.AspNetCore.OutputCaching.StackExchangeRedis" Version="8.0.2" />
+	  <PackageReference Include="Microsoft.AspNetCore.OutputCaching.StackExchangeRedis" Version="8.0.3" />
 	</ItemGroup>
 	
 	<ItemGroup>

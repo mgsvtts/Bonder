@@ -1,5 +1,5 @@
-﻿using Application.Commands.AttachTinkoffToken;
-using Application.Commands.ImportPortfolio.Dto;
+﻿using Application.Commands.ImportPortfolio.Dto;
+using Application.Commands.RefreshPortfolio;
 using Bonder.Calculation.Grpc;
 using Domain.UserAggregate;
 using Domain.UserAggregate.Entities;
@@ -181,11 +181,11 @@ public static class CustomMappings
                              type,
                              OperationState.Executed,
                              date,
-                             operation.Payout,
-                             operation.Price,
-                             operation.Commission,
+                             (decimal)operation.Payout,
+                             (decimal)operation.Price,
+                             (decimal)operation.Commission,
                              InstrumentType.Bond,
-                             operation.Quantity,
+                             (int)operation.Quantity,
                              0,
                              bond is not null ? Guid.Parse(bond.Id) : null,
                              null,
