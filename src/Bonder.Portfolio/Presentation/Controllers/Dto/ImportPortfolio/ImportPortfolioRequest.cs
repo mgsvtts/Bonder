@@ -2,4 +2,4 @@
 using Microsoft.AspNetCore.Http;
 
 namespace Presentation.Controllers.Dto.ImportPortfolio;
-public sealed record ImportPortfolioRequest(Guid UserId, IFormFile File, BrokerType BrokerType, string? Name);
+public sealed record ImportPortfolioRequest(Guid UserId, IFormFileCollection Files, BrokerType BrokerType, string? Name);

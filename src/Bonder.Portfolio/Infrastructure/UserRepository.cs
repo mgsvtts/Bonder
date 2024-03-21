@@ -60,7 +60,7 @@ public sealed class UserRepository : IUserRepository
         .LoadWith(x => x.Portfolios)
         .ThenLoad(x => x.Operations)
         .FirstOrDefaultAsync(x => x.Id == id.Value, token: token)
-        ?? throw new ArgumentException($"User {id.Value} does not have authorized token");
+        ?? throw new ArgumentException($"User {id.Value} not found");
 
         return user.Adapt<Domain.UserAggregate.User>();
     }

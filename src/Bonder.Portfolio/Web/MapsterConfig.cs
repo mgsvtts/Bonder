@@ -24,7 +24,7 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new RefreshPortfolioCommand(new UserId(x.UserId), new TinkoffToken(x.Token)));
 
-        TypeAdapterConfig<(List<ImportedOperation> Operations, IList<GrpcBond> Bonds), IEnumerable<Operation>>
+        TypeAdapterConfig<(IEnumerable<ImportedOperation> Operations, IList<GrpcBond> Bonds), IEnumerable<Operation>>
        .ForType()
        .MapWith(x => x.Operations.Select(operation => CustomMappings.FromImportedOperation(operation, x.Bonds.FirstOrDefault(bond => operation.Ticker == bond.Ticker))));
 

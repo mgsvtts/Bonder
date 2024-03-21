@@ -45,11 +45,21 @@ public sealed class PortfolioController : ControllerBase
     }
 
     [HttpPost("import")]
-    public async Task<IResult> Export(ImportPortfolioRequest request, CancellationToken token)
+    public async Task<IResult> Export([FromForm] ImportPortfolioRequest request, CancellationToken token)
     {
-        using var stream = request.File.OpenReadStream();
+        var streams = new List<Stream>();
 
-        await _sender.Send(new ImportPortfolioCommand(new UserId(request.UserId), stream, request.BrokerType, request.Name), token);
+        foreach (var file in request.Files)
+        {
+            streams.Add(file.OpenReadStream());
+        }
+
+        await _sender.Send(new ImportPortfolioCommand(new UserId(request.UserId), request.BrokerType, request.Name, streams), token);
+
+        foreach (var stream in streams)
+        {
+            stream.Dispose();
+        }
 
         return TypedResults.Created();
     }

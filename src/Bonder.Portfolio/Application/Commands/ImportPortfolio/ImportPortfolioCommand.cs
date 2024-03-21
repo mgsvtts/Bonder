@@ -3,4 +3,4 @@ using Domain.UserAggregate.ValueObjects.Users;
 using Mediator;
 
 namespace Application.Commands.ImportPortfolio;
-public sealed record ImportPortfolioCommand(UserId UserId, Stream FileStream, BrokerType BrokerType, string? Name) : ICommand;
+public sealed record ImportPortfolioCommand(UserId UserId, BrokerType BrokerType, string? Name, IEnumerable<Stream> Streams) : ICommand;
