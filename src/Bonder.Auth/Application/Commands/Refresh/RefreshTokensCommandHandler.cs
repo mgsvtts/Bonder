@@ -31,7 +31,7 @@ public sealed class RefreshTokensCommandHandler : ICommandHandler<RefreshTokensC
         if (saved?.Tokens.RefreshToken != request.ExpiredTokens.RefreshToken ||
             newTokens is null)
         {
-            throw new AuthorizationException("Invalid info");
+            throw new AuthorizationException("Invalid token info");
         }
 
         await _userRepository.SetRefreshTokenAsync(userName, newTokens.Value.RefreshToken, token);

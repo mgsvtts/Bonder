@@ -55,6 +55,10 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Contracts", "src\Bonder.Shared\Shared.Contracts\Shared.Contracts.csproj", "{853B06C0-3E0D-46FE-ABB6-917F413C956F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bonder.Gateway", "Bonder.Gateway", "{6E105ABE-E945-421D-80B1-C88ECB5A0D0D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Web", "src\Bonder.Gateway\Web\Web.csproj", "{EA5036AE-458A-4C1D-BDAA-5F44DA096197}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,6 +145,10 @@ Global
 		{853B06C0-3E0D-46FE-ABB6-917F413C956F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{853B06C0-3E0D-46FE-ABB6-917F413C956F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{853B06C0-3E0D-46FE-ABB6-917F413C956F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA5036AE-458A-4C1D-BDAA-5F44DA096197}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA5036AE-458A-4C1D-BDAA-5F44DA096197}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA5036AE-458A-4C1D-BDAA-5F44DA096197}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA5036AE-458A-4C1D-BDAA-5F44DA096197}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -169,6 +177,8 @@ Global
 		{A56E338F-363B-43C2-8E7F-5F061868D6AC} = {22E6AC2F-5FB5-481C-B910-A510A5A1EE94}
 		{7EE04D16-5C1A-4420-B35A-49B52C4F0BE3} = {22E6AC2F-5FB5-481C-B910-A510A5A1EE94}
 		{853B06C0-3E0D-46FE-ABB6-917F413C956F} = {22E6AC2F-5FB5-481C-B910-A510A5A1EE94}
+		{6E105ABE-E945-421D-80B1-C88ECB5A0D0D} = {44EA86F6-4D10-429E-9288-6073817B89D9}
+		{EA5036AE-458A-4C1D-BDAA-5F44DA096197} = {6E105ABE-E945-421D-80B1-C88ECB5A0D0D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BDF9679E-5CC3-40C5-BDF7-AB6E41A1DEA9}

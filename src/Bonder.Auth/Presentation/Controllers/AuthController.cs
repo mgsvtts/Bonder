@@ -40,9 +40,9 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public async Task<Tokens> RefreshAsync([FromBody] Tokens tokens, CancellationToken token)
+    public async Task<Tokens> RefreshAsync(Dto.RefreshTokens.Tokens tokens, CancellationToken token)
     {
-        return await _sender.Send(new RefreshTokensCommand(tokens), token);
+        return await _sender.Send(new RefreshTokensCommand(tokens.Adapt<Tokens>()), token);
     }
 
     [HttpDelete("{userId}")]
