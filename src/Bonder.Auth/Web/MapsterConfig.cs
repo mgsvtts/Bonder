@@ -6,6 +6,7 @@ using Domain.UserAggregate.ValueObjects;
 using Mapster;
 using MapsterMapper;
 using Presentation.Controllers.Dto.AddClaims;
+using Presentation.Controllers.Dto.Login;
 using Presentation.Controllers.Dto.RemoveClaims;
 using System.Reflection;
 using System.Security.Claims;
@@ -25,9 +26,9 @@ public static class MapsterConfig
             RefreshToken = x.Tokens.RefreshToken
         });
 
-        TypeAdapterConfig<(string CurrentUser, AddClaimRequest Request), AddClaimsCommand>
+        TypeAdapterConfig<AddClaimRequest, AddClaimsCommand>
         .ForType()
-        .MapWith(x => new AddClaimsCommand(new UserName(x.CurrentUser), new UserName(x.Request.UserName), x.Request.Claims.Adapt<IEnumerable<Claim>>()));
+        .MapWith(x => new AddClaimsCommand(new UserId(x.CurrentUserId), new UserName(x.AddTo), x.Claims.Adapt<IEnumerable<Claim>>()));
 
         TypeAdapterConfig<(string CurrentUser, RemoveClaimRequest Request), RemoveClaimsCommand>
         .ForType()
@@ -45,7 +46,7 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new UserClaim(x.Type, x.Value));
 
-        TypeAdapterConfig<Presentation.Controllers.Dto.Register.LoginRequest, LoginCommand>
+        TypeAdapterConfig<LoginRequest, LoginCommand>
         .ForType()
         .MapWith(x => new LoginCommand(new UserName(x.UserName), x.Password));
 

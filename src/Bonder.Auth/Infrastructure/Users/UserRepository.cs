@@ -66,6 +66,20 @@ public sealed class UserRepository : IUserRepository
         return (user, claims).Adapt<Domain.UserAggregate.User>();
     }
 
+    public async Task<Domain.UserAggregate.User?> GetByIdAsync(UserId userId, CancellationToken token = default)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId.ToString(), cancellationToken: token);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        var claims = await _userManager.GetClaimsAsync(user);
+
+        return (user, claims).Adapt<Domain.UserAggregate.User>();
+    }
+
     public async Task<bool> IsValidUserAsync(UserName userName, string password, CancellationToken token = default)
     {
         var user = await GetByUserNameInternalAsync(userName, token);

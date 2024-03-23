@@ -9,7 +9,6 @@ using Infrastructure.Common.Extensions;
 using LinqToDB;
 using LinqToDB.Data;
 using Mapster;
-using Shared.Domain.Common;
 
 namespace Infrastructure.Calculation.CalculateAll.Repositories;
 

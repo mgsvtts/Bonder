@@ -11,7 +11,6 @@ using Infrastructure.Dto.GetOperations;
 using Infrastructure.Dto.GetPortfolios;
 using Mapster;
 using MapsterMapper;
-using Presentation.Controllers.Dto.AttachToken;
 using System.Reflection;
 
 namespace Web;
@@ -20,9 +19,9 @@ public static class MapsterConfig
 {
     public static void RegisterMapsterConfiguration(this IServiceCollection services)
     {
-        TypeAdapterConfig<AttachTokenRequest, RefreshPortfolioCommand>
+        TypeAdapterConfig<(string TinkoffToken, Guid UserId), RefreshPortfolioCommand>
         .ForType()
-        .MapWith(x => new RefreshPortfolioCommand(new UserId(x.UserId), new TinkoffToken(x.Token)));
+        .MapWith(x => new RefreshPortfolioCommand(new UserId(x.UserId), new TinkoffToken(x.TinkoffToken)));
 
         TypeAdapterConfig<(IEnumerable<ImportedOperation> Operations, IList<GrpcBond> Bonds), IEnumerable<Operation>>
        .ForType()

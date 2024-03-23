@@ -1,11 +1,9 @@
 ﻿using Domain.UserAggregate;
-using Domain.UserAggregate.Repositories;
 using Infrastructure.Common;
 using Mapster;
 using Mediator;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Data.Common;
 
 namespace Application.Queries.GetUserById;
 

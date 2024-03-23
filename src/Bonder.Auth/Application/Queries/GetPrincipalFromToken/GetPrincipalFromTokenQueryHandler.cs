@@ -1,5 +1,4 @@
-﻿using Application.Common;
-using Domain.Common.Abstractions;
+﻿using Domain.Common.Abstractions;
 using Mediator;
 using System.Security.Claims;
 

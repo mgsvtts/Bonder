@@ -1,11 +1,12 @@
 
 using Microsoft.AspNetCore.Authorization;
+using Web.AuthorizationHandlers;
 
 namespace Web;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -13,41 +14,33 @@ public class Program
             .LoadFromConfig(builder.Configuration.GetSection("Yarp"));
 
         builder.Services.AddHttpClient();
-        builder.Services.AddTransient<IAuthorizationHandler, AuthRequirementHandler>();
-
-        builder.Services.AddAuthorizationBuilder()
-        .AddPolicy("check-access", policy =>
+        builder.Services.AddScoped<IAuthorizationHandler, AuthRequirementHandler>(x =>
         {
-            policy.Requirements.Add(new AuthRequirement());
+            return new AuthRequirementHandler(x.GetRequiredService<HttpClient>(),
+                                              builder.Configuration["Yarp:Clusters:auth-cluster:Destinations:auth-destination:Address"]);
         });
+
+        builder.Services.AddAuthentication().AddBearerToken();
+
+        builder.Services.AddAuthorization(x =>
+        {
+            x.AddPolicy("check-access", policy =>
+            {
+                policy.Requirements.Add(new AuthRequirement());
+            });
+
+            x.DefaultPolicy = x.GetPolicy("check-access");
+        });
+
 
         var app = builder.Build();
 
+        app.UseAuthentication();
+
+        app.UseAuthorization();
+
         app.MapReverseProxy();
 
-        app.Run();
-    }
-}
-public sealed class AuthRequirement : IAuthorizationRequirement 
-{ 
-
-}
-
-public sealed class AuthRequirementHandler : AuthorizationHandler<AuthRequirement>
-{
-    private readonly HttpClient _httpClient;
-
-    public AuthRequirementHandler(HttpClient httpClient)
-    {
-        _httpClient = httpClient;
-    }
-
-    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AuthRequirement requirement)
-    {
-        var httpContext = context.Resource as HttpContext;
-
-
-
-        context.Succeed(requirement);
+        await app.RunAsync();
     }
 }

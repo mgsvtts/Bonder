@@ -1,0 +1,7 @@
+{
+  "Access": {
+    "/api/portfolio/import": {
+      "Authorized": true
+    }
+  }
+}

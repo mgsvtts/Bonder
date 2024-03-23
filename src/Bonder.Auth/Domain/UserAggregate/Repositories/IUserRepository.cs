@@ -18,4 +18,5 @@ public interface IUserRepository
     Task<User> RemoveClaimsAsync(UserName userName, IEnumerable<string> claims, CancellationToken token = default);
 
     Task<User> DeleteAsync(UserId id, CancellationToken token = default);
+    Task<User?> GetByIdAsync(UserId userId, CancellationToken token = default);
 }

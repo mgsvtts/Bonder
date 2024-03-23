@@ -5,4 +5,4 @@ using System.Security.Claims;
 
 namespace Application.Commands.Claims.Add;
 
-public sealed record AddClaimsCommand(UserName RequestedBy, UserName AddTo, IEnumerable<Claim> Claims) : ICommand<User>;
+public sealed record AddClaimsCommand(UserId RequestedBy, UserName AddTo, IEnumerable<Claim> Claims) : ICommand<User>;

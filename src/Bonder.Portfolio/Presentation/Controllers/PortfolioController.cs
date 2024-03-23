@@ -10,7 +10,6 @@ using Mediator;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
-using Presentation.Controllers.Dto.AttachToken;
 using Presentation.Controllers.Dto.ImportPortfolio;
 using Presentation.Filters;
 using Shared.Domain.Common;
@@ -31,21 +30,21 @@ public sealed class PortfolioController : ControllerBase
 
     [HttpGet]
     [OutputCache(Duration = _cacheTime)]
-    public async Task<IEnumerable<Portfolio>> GetPortfolios(CancellationToken token)
+    public async Task<IEnumerable<Portfolio>> GetPortfoliosAsync([FromHeader(Name = "X-USER-ID")] Guid userId, CancellationToken token)
     {
-        return await _sender.Send(new GetPortfoliosQuery(HttpContext.Request.Headers.Authorization), token);
+        return await _sender.Send(new GetPortfoliosQuery(new UserId(userId)), token);
     }
 
     [HttpPost("refresh")]
-    public async Task<IResult> AttachToken([FromBody] AttachTokenRequest request, CancellationToken token)
+    public async Task<IResult> AttachTokenAsync([FromBody] string tinkoffToken, [FromHeader(Name = "X-USER-ID")] Guid userId, CancellationToken token)
     {
-        await _sender.Send(request.Adapt<RefreshPortfolioCommand>(), token);
+        await _sender.Send((tinkoffToken, userId).Adapt<RefreshPortfolioCommand>(), token);
 
         return TypedResults.NoContent();
     }
 
     [HttpPost("import")]
-    public async Task<IResult> Export([FromForm] ImportPortfolioRequest request, CancellationToken token)
+    public async Task<IResult> ImportAsync(ImportPortfolioRequest request, CancellationToken token)
     {
         var streams = new List<Stream>();
 
@@ -54,7 +53,7 @@ public sealed class PortfolioController : ControllerBase
             streams.Add(file.OpenReadStream());
         }
 
-        await _sender.Send(new ImportPortfolioCommand(new UserId(request.UserId), request.BrokerType, request.Name, streams), token);
+        await _sender.Send(new ImportPortfolioCommand(new UserId(request.userId), request.BrokerType, request.Name, streams), token);
 
         foreach (var stream in streams)
         {
@@ -66,7 +65,7 @@ public sealed class PortfolioController : ControllerBase
 
 
     [HttpGet("{portfolioId:guid}/{currentPage:int?}")]
-    public async Task<GetOperationsResponse> GetOperations([FromRoute] Guid portfolioId, int currentPage = 1, CancellationToken token = default)
+    public async Task<GetOperationsResponse> GetOperationsAsync([FromRoute] Guid portfolioId, int currentPage = 1, CancellationToken token = default)
     {
         return await _sender.Send(new GetOperationsQuery(new PortfolioId(portfolioId), new PageInfo(currentPage)), token);
     }

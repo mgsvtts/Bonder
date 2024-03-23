@@ -16,7 +16,7 @@ public sealed class AddClaimsCommandHandler : ICommandHandler<AddClaimsCommand, 
 
     public async ValueTask<User> Handle(AddClaimsCommand request, CancellationToken token)
     {
-        var requestedBy = await _userRepository.GetByUserNameAsync(request.RequestedBy, token)
+        var requestedBy = await _userRepository.GetByIdAsync(request.RequestedBy, token)
         ?? throw new UserNotFoundException(request.RequestedBy.ToString());
 
         if (!requestedBy.IsAdmin)

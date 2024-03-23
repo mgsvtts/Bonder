@@ -1,5 +1,4 @@
-﻿using Domain.BondAggreagte;
-using Domain.BondAggreagte.ValueObjects.Incomes;
+﻿using Domain.BondAggreagte.ValueObjects.Incomes;
 
 namespace Domain.BondAggreagte.Abstractions.Dto.CalculateAll;
 

@@ -1,4 +1,3 @@
-using Application.Common;
 using Domain.Common.Abstractions;
 using Domain.Exceptions;
 using Domain.UserAggregate.Repositories;

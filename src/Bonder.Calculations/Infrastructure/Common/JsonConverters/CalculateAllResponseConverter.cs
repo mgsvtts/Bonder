@@ -1,5 +1,4 @@
-﻿using Domain.BondAggreagte.Abstractions.Dto;
-using Domain.BondAggreagte.Abstractions.Dto.CalculateAll;
+﻿using Domain.BondAggreagte.Abstractions.Dto.CalculateAll;
 using Shared.Domain.Common;
 using System.Reflection;
 using System.Text.Json;

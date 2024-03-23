@@ -3,6 +3,7 @@ using Bonder.Portfolio.Grpc;
 using Domain.UserAggregate.ValueObjects.Users;
 using Grpc.Core;
 using Mediator;
+using Void = Bonder.Portfolio.Grpc.Void;
 
 namespace Presentation.Grpc;
 
@@ -19,6 +20,6 @@ public sealed class PortfolioServiceImpl : PortfolioService.PortfolioServiceBase
     {
         await _sender.Send(new DeleteUserCommand(new UserId(Guid.Parse(request.UserName))));
 
-        return new Bonder.Portfolio.Grpc.Void();
+        return new Void();
     }
 }

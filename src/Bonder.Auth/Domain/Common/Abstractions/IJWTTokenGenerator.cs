@@ -7,5 +7,5 @@ public interface IJWTTokenGenerator
 {
     Tokens? Generate(UserName userName);
 
-    Task<ClaimsPrincipal> ValidateTokenAsync(string? token, bool allowExpiration = false);
+    Task<ClaimsPrincipal> ValidateTokenAsync(string? token, bool validateLifetime = false);
 }

@@ -74,7 +74,7 @@ public static class MapsterConfig
                                    x.Dates.OfferDate,
                                    x.Rating));
 
-        TypeAdapterConfig<IEnumerable<BondItem>,GetBondsByTickersResponse>
+        TypeAdapterConfig<IEnumerable<BondItem>, GetBondsByTickersResponse>
         .ForType()
         .MapWith(x => CustomMappings.FromBondItems(x));
 

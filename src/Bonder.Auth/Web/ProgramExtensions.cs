@@ -8,8 +8,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Presentation.Grpc;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 
 namespace Web;
@@ -40,6 +41,11 @@ public static class ProgramExtensions
                                          section.GetValue<string>("Key"),
                                          section.GetValue<int>("Lifetime"));
         });
+
+        var routes = JsonNode.Parse(File.ReadAllText("access.json"))["Access"]
+            .Deserialize<Dictionary<string, Application.Commands.CheckAccess.Dto.Route>>();
+
+        builder.Services.AddSingleton(routes);
 
         builder.Services.AddMediator(config =>
         {
@@ -118,8 +124,6 @@ public static class ProgramExtensions
         app.UseAuthentication();
 
         app.UseAuthorization();
-
-        app.MapGrpcService<AuthServiceImpl>();
 
         app.MapControllers();
 

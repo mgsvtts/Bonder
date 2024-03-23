@@ -23,9 +23,9 @@ public sealed class ClaimsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<AddClaimResponse> AddClaims([FromBody] AddClaimRequest request, CancellationToken token)
+    public async Task<AddClaimResponse> AddClaims(AddClaimRequest request, CancellationToken token)
     {
-        var response = await _sender.Send((User.Identity.Name, request).Adapt<AddClaimsCommand>(), token);
+        var response = await _sender.Send(request.Adapt<AddClaimsCommand>(), token);
 
         return response.Adapt<AddClaimResponse>();
     }

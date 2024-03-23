@@ -1,3 +1,4 @@
+using Application.Commands.CheckAccess;
 using Application.Commands.DeleteUser;
 using Application.Commands.Login;
 using Application.Commands.Refresh;
@@ -8,7 +9,10 @@ using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Controllers.Dto.CheckAccess;
+using Presentation.Controllers.Dto.Login;
 using Presentation.Controllers.Dto.Register;
+using Presentation.Extensions;
 using Presentation.Filters;
 
 namespace Presentation.Controllers;
@@ -45,8 +49,23 @@ public sealed class AuthController : ControllerBase
         return await _sender.Send(new RefreshTokensCommand(tokens.Adapt<Tokens>()), token);
     }
 
-    [HttpDelete("{userId}")]
-    public async Task<IResult> DeleteAsync([FromRoute] Guid userId, CancellationToken token)
+    [HttpPost("check-access")]
+    public async Task<IResult> CheckAccessAsync([FromBody] CheckAccessRequest request, CancellationToken token)
+    {
+        var result = await _sender.Send(new CheckAccessCommand(request.Path, request.AccessToken), token);
+
+        HttpContext.SetAccessHeaders(result);
+
+        if (!result.AccessAllowed)
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        return TypedResults.NoContent();
+    }
+
+    [HttpDelete]
+    public async Task<IResult> DeleteAsync([FromHeader(Name = "X-USER-ID")] Guid userId, CancellationToken token)
     {
         await _sender.Send(new DeleteUserCommand(new UserId(userId)), token);
 

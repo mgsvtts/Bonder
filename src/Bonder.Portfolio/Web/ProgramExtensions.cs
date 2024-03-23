@@ -1,5 +1,4 @@
-﻿using Bonder.Auth.Grpc;
-using Bonder.Calculation.Grpc;
+﻿using Bonder.Calculation.Grpc;
 using Domain.Common.Abstractions;
 using Domain.UserAggregate.Abstractions.Repositories;
 using Infrastructure;
@@ -9,7 +8,6 @@ using LinqToDB.AspNet;
 using LinqToDB.AspNet.Logging;
 using Presentation.Grpc;
 using RateLimiter;
-using System.Threading.RateLimiting;
 using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 using Web.Extensions;
 
@@ -34,8 +32,6 @@ public static class ProgramExtensions
         builder.Services.AddGrpc();
 
         var calculationServerUrl = new Uri(builder.Configuration.GetValue<string>("CalculationServerUrl"));
-        var authServerUrl = new Uri(builder.Configuration.GetValue<string>("AuthServerUrl"));
-        builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(options => options.Address = authServerUrl);
         builder.Services.AddGrpcClient<CalculationService.CalculationServiceClient>(options => options.Address = calculationServerUrl);
 
         return builder;
