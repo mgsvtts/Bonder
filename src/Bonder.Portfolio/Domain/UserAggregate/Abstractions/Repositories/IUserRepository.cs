@@ -4,9 +4,9 @@ namespace Domain.UserAggregate.Abstractions.Repositories;
 
 public interface IUserRepository
 {
-    Task<User> GetByIdAsync(UserId id, CancellationToken token = default);
+    Task<User> GetOrCreateByIdAsync(UserId id, CancellationToken token);
 
-    Task SaveAsync(User user, CancellationToken token = default);
+    Task SaveAsync(User user, CancellationToken token);
 
-    Task DeleteAsync(UserId id, CancellationToken token = default);
+    Task DeleteAsync(UserId id, CancellationToken token);
 }

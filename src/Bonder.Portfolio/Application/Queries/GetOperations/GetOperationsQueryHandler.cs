@@ -8,16 +8,11 @@ namespace Application.Queries.GetOperations;
 
 public sealed class GetOperationsQueryHandler : IRequestHandler<GetOperationsQuery, GetOperationsResponse>
 {
-    private readonly DbConnection _db;
-
-    public GetOperationsQueryHandler(DbConnection db)
-    {
-        _db = db;
-    }
-
     public async ValueTask<GetOperationsResponse> Handle(GetOperationsQuery request, CancellationToken token)
     {
-        var query = _db.Operations
+        using var db = new DbConnection();
+
+        var query = db.Operations
         .Where(x => x.PortfolioId == request.PortfolioId.Value);
 
         var operations = await query

@@ -11,6 +11,7 @@ public sealed class Portfolio : Entity<PortfolioId>
 
     public AccountId? AccountId { get; }
     public decimal TotalBondPrice { get; }
+    public decimal TotalPortfolioPrice { get; }
     public string Name { get; }
     public PortfolioType Type { get; }
     public BrokerType BrokerType { get; }
@@ -19,6 +20,7 @@ public sealed class Portfolio : Entity<PortfolioId>
 
     public Portfolio(PortfolioId id,
                      decimal totalBondPrice,
+                     decimal totalPortfolioPrice,
                      string name,
                      PortfolioType type,
                      BrokerType brokerType,
@@ -26,11 +28,12 @@ public sealed class Portfolio : Entity<PortfolioId>
                      IEnumerable<Operation>? operations = null,
                      AccountId? accountId = null) : base(id)
     {
-        AccountId = accountId;
-        TotalBondPrice = totalBondPrice;
         Name = name;
         Type = type;
+        AccountId = accountId;
         BrokerType = brokerType;
+        TotalBondPrice = totalBondPrice;
+        TotalPortfolioPrice = totalPortfolioPrice;
 
         _bonds = bonds is not null ? bonds.ToList() : _bonds;
         _operations = operations is not null ? operations.ToList() : _operations;

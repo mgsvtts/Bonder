@@ -6,4 +6,4 @@ namespace Presentation.Controllers.Dto.ImportPortfolio;
 public sealed record ImportPortfolioRequest([FromForm] IFormFileCollection Files,
                                             [FromForm] BrokerType BrokerType,
                                             [FromForm] string? Name,
-                                            [FromHeader(Name = "X-USER-ID")] Guid userId);
+                                            [FromHeader(Name = "X-USER-ID")] Guid UserId);

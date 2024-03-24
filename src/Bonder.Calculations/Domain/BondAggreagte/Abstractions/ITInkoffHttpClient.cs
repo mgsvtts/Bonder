@@ -6,7 +6,7 @@ namespace Domain.BondAggreagte.Abstractions;
 
 public interface ITInkoffHttpClient
 {
-    public Task<Dictionary<Ticker, StaticIncome>> GetBondPriceAsync(IEnumerable<Ticker> tickers, CancellationToken token = default);
+    public Task<Dictionary<Ticker, StaticIncome>> GetBondPriceAsync(IEnumerable<Ticker> tickers, CancellationToken token);
 
-    public Task<GetBondResponse> GetBondByTickerAsync(Ticker ticker, CancellationToken token = default);
+    public Task<GetBondResponse> GetBondByTickerAsync(Ticker ticker, CancellationToken token);
 }

@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Infrastructure.Common.Extensions;
+namespace Shared.Infrastructure.Extensions;
 
 public static class IQuerableExtensions
 {

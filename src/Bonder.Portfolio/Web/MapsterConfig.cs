@@ -1,6 +1,9 @@
-﻿using Application.Commands.ImportPortfolio.Dto;
+﻿using Application.Commands.ImportPortfolio;
+using Application.Commands.ImportPortfolio.Dto;
 using Application.Commands.RefreshPortfolio;
+using Application.Queries.GetStats;
 using Bonder.Calculation.Grpc;
+using Domain.Common.Abstractions.Dto;
 using Domain.UserAggregate;
 using Domain.UserAggregate.Entities;
 using Domain.UserAggregate.ValueObjects.Operations;
@@ -11,6 +14,9 @@ using Infrastructure.Dto.GetOperations;
 using Infrastructure.Dto.GetPortfolios;
 using Mapster;
 using MapsterMapper;
+using Presentation.Controllers;
+using Presentation.Controllers.Dto.GetStats;
+using Presentation.Controllers.Dto.RefreshPortfolio;
 using System.Reflection;
 
 namespace Web;
@@ -19,18 +25,23 @@ public static class MapsterConfig
 {
     public static void RegisterMapsterConfiguration(this IServiceCollection services)
     {
-        TypeAdapterConfig<(string TinkoffToken, Guid UserId), RefreshPortfolioCommand>
+        TypeAdapterConfig<(RefreshPortfolioRequest Request, Guid UserId), RefreshPortfolioCommand>
         .ForType()
-        .MapWith(x => new RefreshPortfolioCommand(new UserId(x.UserId), new TinkoffToken(x.TinkoffToken)));
+        .MapWith(x => new RefreshPortfolioCommand(new UserId(x.UserId), new TinkoffToken(x.Request.TinkoffToken)));
 
         TypeAdapterConfig<(IEnumerable<ImportedOperation> Operations, IList<GrpcBond> Bonds), IEnumerable<Operation>>
        .ForType()
        .MapWith(x => x.Operations.Select(operation => CustomMappings.FromImportedOperation(operation, x.Bonds.FirstOrDefault(bond => operation.Ticker == bond.Ticker))));
 
+        TypeAdapterConfig<(GetStatsRequest Request, Guid CurrentUserId), GetStatsQuery>
+        .ForType()
+        .MapWith(x => new GetStatsQuery(x.Request.Type, x.Request.Id, new UserId(x.CurrentUserId), x.Request.DateFrom, x.Request.DateTo));
+
         TypeAdapterConfig<Infrastructure.Common.Models.Portfolio, Portfolio>
         .ForType()
         .MapWith(x => new Portfolio(new PortfolioId(x.Id),
                                     x.TotalBondPrice,
+                                    x.TotalPortfolioPrice,
                                     x.Name,
                                     x.Type,
                                     x.BrokerType,
@@ -44,7 +55,7 @@ public static class MapsterConfig
 
         TypeAdapterConfig<Infrastructure.Common.Models.User, User>
         .ForType()
-        .MapWith(x => new User(new UserId(x.Id), new TinkoffToken(x.Token), x.Portfolios.Adapt<IEnumerable<Portfolio>>()));
+        .MapWith(x => new User(new UserId(x.Id), x.Token != null ? new TinkoffToken(x.Token) : null, x.Portfolios.Adapt<IEnumerable<Portfolio>>()));
 
         TypeAdapterConfig<Infrastructure.Common.Models.Operation, Operation>
         .ForType()
@@ -105,9 +116,13 @@ public static class MapsterConfig
         .MapWith(x => new Infrastructure.Common.Models.User
         {
             Id = x.Identity.Value,
-            Token = x.Token.ToString(),
+            Token = x.Token != null ? x.Token.ToString() : null,
             Portfolios = x.Portfolios.Adapt<List<Infrastructure.Common.Models.Portfolio>>()
         });
+
+        TypeAdapterConfig<ImportPortfolioCommand, AddPortfoliosToUserRequest>
+        .ForType()
+        .MapWith(x => new AddPortfoliosToUserRequest(x.BrokerType, x.Name, x.Streams));
 
         TypeAdapterConfig<Portfolio, Infrastructure.Common.Models.Portfolio>
         .ForType()
@@ -116,6 +131,7 @@ public static class MapsterConfig
             Id = Guid.NewGuid(),
             Name = x.Name,
             TotalBondPrice = x.TotalBondPrice,
+            TotalPortfolioPrice = x.TotalPortfolioPrice,
             Type = x.Type,
             BrokerType = x.BrokerType,
             AccountId = x.AccountId != null ? x.AccountId.ToString() : null,
@@ -140,12 +156,11 @@ public static class CustomMappings
 {
     public static Portfolio FromTinkoffAccount(GetTinkoffPortfolioResponse portfolio, TinkoffAccount account)
     {
-        var totalBondPrice = portfolio.TotalBondPrice.ToDecimal();
-
         var type = MapPortfolioType(account);
 
         return new Portfolio(new PortfolioId(Guid.NewGuid()),
-                             totalBondPrice,
+                             portfolio.TotalBondPrice.ToDecimal(),
+                             portfolio.TotalPortfolioPrice.ToDecimal(),
                              account.Name,
                              type,
                              BrokerType.Tinkoff,

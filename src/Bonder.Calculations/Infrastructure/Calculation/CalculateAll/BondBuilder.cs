@@ -25,7 +25,7 @@ public sealed class BondBuilder : IBondBuilder
         _moexHttpClient = moexHttpClient;
     }
 
-    public async Task<Bond> BuildAsync(Ticker ticker, CancellationToken token = default)
+    public async Task<Bond> BuildAsync(Ticker ticker, CancellationToken token)
     {
         var bondResponse = await _tinkoffHttpClient.GetBondByTickerAsync(ticker, token);
 
@@ -47,7 +47,7 @@ public sealed class BondBuilder : IBondBuilder
         return (bondResponse, couponTask.Result, ratingTask.Result, moexResponse.Result).Adapt<Bond>();
     }
 
-    public async Task<IEnumerable<Bond>> BuildAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
+    public async Task<IEnumerable<Bond>> BuildAsync(IEnumerable<Ticker> tickers, CancellationToken token)
     {
         var tasks = tickers.Select(x => BuildAsync(x, token)).ToList();
 

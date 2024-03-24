@@ -30,7 +30,7 @@ public sealed class TinkoffHttpClient : ITinkoffHttpClient
         _tinkoffOperationsServiceUrl = tinkoffOperationsServiceUrl;
     }
 
-    public async Task<IEnumerable<Portfolio>> GetPortfoliosAsync(TinkoffToken tinkoffToken, CancellationToken token = default)
+    public async Task<IEnumerable<Portfolio>> GetPortfoliosAsync(TinkoffToken tinkoffToken, CancellationToken token)
     {
         var content = new HttpRequestMessage
         {
@@ -54,7 +54,7 @@ public sealed class TinkoffHttpClient : ITinkoffHttpClient
 
         var tasks = serializedResponse.Accounts
         .Where(AccountIsValid)
-        .Select(x => GetPortfolioAsync(x, tinkoffToken))
+        .Select(x => GetPortfolioAsync(x, tinkoffToken, token))
         .ToList();
 
         await Task.WhenAll(tasks);
@@ -116,7 +116,7 @@ public sealed class TinkoffHttpClient : ITinkoffHttpClient
               (account.Type == TinkoffAccountType.IIS || account.Type == TinkoffAccountType.Ordinary);
     }
 
-    private async Task<Portfolio> GetPortfolioAsync(TinkoffAccount account, TinkoffToken tinkoffToken, CancellationToken token = default)
+    private async Task<Portfolio> GetPortfolioAsync(TinkoffAccount account, TinkoffToken tinkoffToken, CancellationToken token)
     {
         var content = new HttpRequestMessage
         {

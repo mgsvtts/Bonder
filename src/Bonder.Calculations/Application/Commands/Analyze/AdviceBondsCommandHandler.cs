@@ -5,47 +5,52 @@ using Domain.BondAggreagte.Dto;
 using Mapster;
 using Mediator;
 using Shared.Domain.Common;
+using System.Collections.Concurrent;
 
 namespace Application.Commands.Analyze;
 
-public sealed class AnalyzeBondsCommandHandler : ICommandHandler<AnalyzeBondsCommand, Dictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>>>
+public sealed class AdviceBondsCommandHandler : ICommandHandler<AdviceBondsCommand, Dictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>>>
 {
     private const int _topFive = 5;
 
     private readonly IBondRepository _bondRepository;
 
-    public AnalyzeBondsCommandHandler(IBondRepository bondRepository)
+    public AdviceBondsCommandHandler(IBondRepository bondRepository)
     {
         _bondRepository = bondRepository;
     }
 
-    public async ValueTask<Dictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>>> Handle(AnalyzeBondsCommand request, CancellationToken token)
+    public async ValueTask<Dictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>>> Handle(AdviceBondsCommand request, CancellationToken token)
     {
-        var results = new Dictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>>();
+        var results = new ConcurrentDictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>>();
 
-        await HandleNotSpecialBonds(request, results, token);
+        var notSpecialTask = HandleNotSpecialBonds(request, results, token);
 
-        await HandleSpecialBonds(request, results, token);
+        var specialTask = HandleSpecialBonds(request, results, token);
 
-        return results;
+        await Task.WhenAll(notSpecialTask, specialTask);
+
+        return results.ToDictionary();
     }
 
-    private async Task HandleNotSpecialBonds(AnalyzeBondsCommand request, Dictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>> results, CancellationToken token)
+    private async Task HandleNotSpecialBonds(AdviceBondsCommand request, ConcurrentDictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>> results, CancellationToken token)
     {
         var defaultIncomeRequest = GetIncomeRequest(request, null);
 
-        var defaultBonds = await GetDefaultBonds(request, defaultIncomeRequest, token);
+        var defaultBondsTask = GetDefaultBonds(request, defaultIncomeRequest, token);
 
-        var notSpecialBonds = await _bondRepository.GetByTickersAsync(request.Bonds.Where(x => x.Option is null).Select(x => x.Id), token);
+        var notSpecialBondsTask = _bondRepository.GetByTickersAsync(request.Bonds.Where(x => x.Option is null).Select(x => x.Id), token);
 
-        foreach (var notSpecialBond in notSpecialBonds)
+        await Task.WhenAll(defaultBondsTask, notSpecialBondsTask);
+
+        foreach (var notSpecialBond in notSpecialBondsTask.Result)
         {
-            results.Add((notSpecialBond, notSpecialBond.GetIncomeOnDate(defaultIncomeRequest)).Adapt<AnalyzeBondWithIncome>(),
-                        defaultBonds);
+            results.TryAdd((notSpecialBond, notSpecialBond.GetIncomeOnDate(defaultIncomeRequest)).Adapt<AnalyzeBondWithIncome>(),
+                            defaultBondsTask.Result);
         }
     }
 
-    private async Task HandleSpecialBonds(AnalyzeBondsCommand request, Dictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>> results, CancellationToken token)
+    private async Task HandleSpecialBonds(AdviceBondsCommand request, ConcurrentDictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>> results, CancellationToken token)
     {
         var specialBonds = request.Bonds.Where(x => x.Option is not null);
         var loadedSpecialBonds = await _bondRepository.GetByTickersAsync(specialBonds.Select(x => x.Id), token);
@@ -58,12 +63,12 @@ public sealed class AnalyzeBondsCommandHandler : ICommandHandler<AnalyzeBondsCom
 
             var bond = loadedSpecialBonds.First(x => x.Identity.Ticker == bondToAnalyze.Id);
 
-            results.Add((bond, bond.GetIncomeOnDate(incomeRequest)).Adapt<AnalyzeBondWithIncome>(),
-                        betterBonds);
+            results.TryAdd((bond, bond.GetIncomeOnDate(incomeRequest)).Adapt<AnalyzeBondWithIncome>(),
+                            betterBonds);
         }
     }
 
-    private async Task<List<AnalyzeBondWithIncome>> GetDefaultBonds(AnalyzeBondsCommand request, GetIncomeRequest defaultIncomeRequest, CancellationToken token)
+    private async Task<List<AnalyzeBondWithIncome>> GetDefaultBonds(AdviceBondsCommand request, GetIncomeRequest defaultIncomeRequest, CancellationToken token)
     {
         var defaultBonds = await _bondRepository.GetPriceSortedAsync
         (
@@ -84,7 +89,7 @@ public sealed class AnalyzeBondsCommandHandler : ICommandHandler<AnalyzeBondsCom
         return SelectTop(defaultIncomeRequest, defaultBonds);
     }
 
-    private async Task<List<AnalyzeBondWithIncome>> GetBetterBondsAsync(AnalyzeBondsCommand request, BondToAnalyze? bondToAnalyze, GetIncomeRequest incomeRequest, CancellationToken token)
+    private async Task<List<AnalyzeBondWithIncome>> GetBetterBondsAsync(AdviceBondsCommand request, BondToAnalyze? bondToAnalyze, GetIncomeRequest incomeRequest, CancellationToken token)
     {
         var filteredBonds = await _bondRepository.GetPriceSortedAsync
         (
@@ -118,7 +123,7 @@ public sealed class AnalyzeBondsCommandHandler : ICommandHandler<AnalyzeBondsCom
         .ToList();
     }
 
-    private static GetIncomeRequest GetIncomeRequest(AnalyzeBondsCommand? request, BondToAnalyze? bondToAnalyze)
+    private static GetIncomeRequest GetIncomeRequest(AdviceBondsCommand? request, BondToAnalyze? bondToAnalyze)
     {
         GetIncomeRequest incomeRequest;
         if (bondToAnalyze?.Option?.DateTo is not null)

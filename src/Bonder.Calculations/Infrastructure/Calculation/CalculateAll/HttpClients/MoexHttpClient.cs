@@ -22,7 +22,7 @@ public sealed class MoexHttpClient : IMoexHttpClient
         _serverUrl = serverUrl;
     }
 
-    public async Task<MoexResponse> GetMoexResponseAsync(Ticker ticker, CancellationToken token = default)
+    public async Task<MoexResponse> GetMoexResponseAsync(Ticker ticker, CancellationToken token)
     {
         var content = new HttpRequestMessage
         {

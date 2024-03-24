@@ -6,16 +6,16 @@ namespace Application.Queries.GetPortfolios;
 
 public sealed class GetPortfoliosQueryHandler : IQueryHandler<GetPortfoliosQuery, IEnumerable<Portfolio>>
 {
-    private readonly IUserRepository _portfolioRepository;
+    private readonly IUserRepository _userRepository;
 
-    public GetPortfoliosQueryHandler(IUserRepository portfolioRepository)
+    public GetPortfoliosQueryHandler(IUserRepository userRepository)
     {
-        _portfolioRepository = portfolioRepository;
+        _userRepository = userRepository;
     }
 
     public async ValueTask<IEnumerable<Portfolio>> Handle(GetPortfoliosQuery request, CancellationToken token)
     {
-        var user = await _portfolioRepository.GetByIdAsync(request.UserId, token);
+        var user = await _userRepository.GetOrCreateByIdAsync(request.UserId, token);
 
         return user.Portfolios;
     }

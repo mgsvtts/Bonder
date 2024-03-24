@@ -17,7 +17,7 @@ public sealed class UserRepository : IUserRepository
         _db = db;
     }
 
-    public async Task SaveAsync(Domain.UserAggregate.User user, CancellationToken token = default)
+    public async Task SaveAsync(Domain.UserAggregate.User user, CancellationToken token)
     {
         var dbUser = user.Adapt<User>();
         var portfolioBonds = SetPortfolioValues(dbUser, user);
@@ -45,27 +45,36 @@ public sealed class UserRepository : IUserRepository
         }
     }
 
-    public async Task DeleteAsync(UserId id, CancellationToken token = default)
+    public async Task DeleteAsync(UserId id, CancellationToken token)
     {
         await _db.Users
         .Where(x => x.Id == id.Value)
         .DeleteAsync(token: token);
     }
 
-    public async Task<Domain.UserAggregate.User> GetByIdAsync(UserId id, CancellationToken token = default)
+    public async Task<Domain.UserAggregate.User?> GetOrCreateByIdAsync(UserId id, CancellationToken token)
     {
         var user = await _db.Users
         .LoadWith(x => x.Portfolios)
         .ThenLoad(x => x.Bonds)
         .LoadWith(x => x.Portfolios)
         .ThenLoad(x => x.Operations)
-        .FirstOrDefaultAsync(x => x.Id == id.Value, token: token)
-        ?? throw new ArgumentException($"User {id.Value} not found");
+        .FirstOrDefaultAsync(x => x.Id == id.Value, token: token);
 
-        return user.Adapt<Domain.UserAggregate.User>();
+        if(user is null)
+        {
+            user = new User
+            { 
+                Id = id.Value 
+            };
+
+            await _db.InsertAsync(user, token: token);
+        }
+
+        return user.Adapt<Domain.UserAggregate.User?>();
     }
 
-    public async Task<string> GetTokenAsync(UserId id, CancellationToken token = default)
+    public async Task<string> GetTokenAsync(UserId id, CancellationToken token)
     {
         var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == id.Value, token)
         ?? throw new ArgumentException($"User {id.Value} does not have authorized token");

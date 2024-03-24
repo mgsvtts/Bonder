@@ -15,7 +15,7 @@ public sealed class CalculateAllService : ICalculateAllService
         _calculator = calculator;
     }
 
-    public async Task<CalculateAllResponse> CalculateAllAsync(GetPriceSortedRequest request, CancellationToken token = default)
+    public async Task<CalculateAllResponse> CalculateAllAsync(GetPriceSortedRequest request, CancellationToken token)
     {
         var paginatedBonds = await _bondRepository.GetPriceSortedAsync(request, token: token);
 

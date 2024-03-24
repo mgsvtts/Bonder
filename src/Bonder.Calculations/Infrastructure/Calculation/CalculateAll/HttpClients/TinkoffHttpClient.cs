@@ -26,14 +26,14 @@ public sealed class TinkoffHttpClient : ITInkoffHttpClient
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
     }
 
-    public async Task<GetBondResponse> GetBondByTickerAsync(Ticker ticker, CancellationToken token = default)
+    public async Task<GetBondResponse> GetBondByTickerAsync(Ticker ticker, CancellationToken token)
     {
         var response = await GetTinkoffResponseAsync([ticker], token);
 
         return response.Payload.Values.First().Adapt<GetBondResponse>();
     }
 
-    public async Task<Dictionary<Ticker, StaticIncome>> GetBondPriceAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
+    public async Task<Dictionary<Ticker, StaticIncome>> GetBondPriceAsync(IEnumerable<Ticker> tickers, CancellationToken token)
     {
         var result = new Dictionary<Ticker, StaticIncome>();
 

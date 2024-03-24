@@ -5,5 +5,5 @@ namespace Domain.BondAggreagte.Abstractions;
 
 public interface ICalculateAllService
 {
-    public Task<CalculateAllResponse> CalculateAllAsync(GetPriceSortedRequest request, CancellationToken token = default);
+    public Task<CalculateAllResponse> CalculateAllAsync(GetPriceSortedRequest request, CancellationToken token);
 }

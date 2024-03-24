@@ -17,7 +17,7 @@ public sealed class DohodHttpClient : IDohodHttpClient
         _serverUrl = serverUrl;
     }
 
-    public async Task<int?> GetBondRatingAsync(Isin isin, CancellationToken token = default)
+    public async Task<int?> GetBondRatingAsync(Isin isin, CancellationToken token)
     {
         var content = new HttpRequestMessage
         {

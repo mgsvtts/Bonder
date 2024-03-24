@@ -4,5 +4,5 @@ namespace Domain.BondAggreagte.Abstractions;
 
 public interface ITinkoffGrpcClient
 {
-    public Task<List<Coupon>> GetCouponsAsync(Guid instrumentId, CancellationToken token = default);
+    public Task<List<Coupon>> GetCouponsAsync(Guid instrumentId, CancellationToken token);
 }

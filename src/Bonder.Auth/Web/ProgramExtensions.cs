@@ -106,7 +106,7 @@ public static class ProgramExtensions
 
     public static WebApplicationBuilder AddDomain(this WebApplicationBuilder builder)
     {
-        builder.Services.AddTransient<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
 
         return builder;
     }

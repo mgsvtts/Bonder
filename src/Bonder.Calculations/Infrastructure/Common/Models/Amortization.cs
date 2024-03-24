@@ -7,7 +7,7 @@ public sealed class Amortization
 {
     [PrimaryKey]
     [Column("id")]
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 
     [Column("bond_id")]
     public Guid BondId { get; set; }
@@ -16,11 +16,11 @@ public sealed class Amortization
     public Bond Bond { get; set; }
 
     [Column("payment_date")]
-    public DateOnly PaymentDate { get; set; }
+    public required DateOnly PaymentDate { get; set; }
 
     [Column("payout")]
-    public decimal Payout { get; set; }
+    public required decimal Payout { get; set; }
 
     [Column("created_at")]
-    public DateTime CreatedAt { get; set; }
+    public required DateTime CreatedAt { get; set; }
 }

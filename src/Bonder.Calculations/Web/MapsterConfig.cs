@@ -58,9 +58,9 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => CustomMappings.FromTinkoffValue(x));
 
-        TypeAdapterConfig<AnalyzeBondsRequest, AnalyzeBondsCommand>
+        TypeAdapterConfig<AnalyzeBondsRequest, AdviceBondsCommand>
         .ForType()
-        .MapWith(x => new AnalyzeBondsCommand(x.DefaultOptions, x.Bonds.Select(x => new Application.Commands.Analyze.BondToAnalyze(x.Option, new Ticker(x.Ticker)))));
+        .MapWith(x => new AdviceBondsCommand(x.DefaultOptions, x.Bonds.Select(x => new Application.Commands.Analyze.BondToAnalyze(x.Option, new Ticker(x.Ticker)))));
 
         TypeAdapterConfig<Bond, BondItem>
         .ForType()

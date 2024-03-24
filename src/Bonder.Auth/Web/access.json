@@ -1,7 +1,6 @@
 {
   "Access": {
-    "/api/portfolio/import": {
-      "Authorized": true
-    }
+    "/api/portfolio/import": { "Authorized": true },
+    "/api/portfolio/refresh": { "Authorized": true }
   }
 }

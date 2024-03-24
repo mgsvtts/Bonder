@@ -10,27 +10,18 @@ public sealed class User : AggregateRoot<UserId>
 {
     private readonly List<Portfolio> _portfolios = [];
 
-    public TinkoffToken Token { get; private set; }
+    public TinkoffToken? Token { get; private set; }
     public IReadOnlyList<Portfolio> Portfolios => _portfolios.AsReadOnly();
 
-    public User(UserId userId, TinkoffToken token, IEnumerable<Portfolio>? portfolios = null) : base(userId)
+    public User(UserId userId, TinkoffToken? token = null, IEnumerable<Portfolio>? portfolios = null) : base(userId)
     {
         Token = token;
         _portfolios = portfolios is not null ? portfolios.ToList() : _portfolios;
     }
 
-    public User AddImportedPortfolio(decimal bondsPrice, BrokerType brokerType, IEnumerable<Bond>? bonds, IEnumerable<Operation>? operations = null, string? name = null)
+    public User AddPortfolio(Portfolio portfolio)
     {
-        _portfolios.Add(new Portfolio
-        (
-            new PortfolioId(Guid.NewGuid()),
-            bondsPrice,
-            name ?? $"{brokerType}-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}",
-            PortfolioType.Exported,
-            brokerType,
-            bonds,
-            operations
-        ));
+        _portfolios.Add(portfolio);
 
         return this;
     }

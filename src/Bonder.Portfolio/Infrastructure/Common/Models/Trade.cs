@@ -6,17 +6,17 @@ namespace Infrastructure.Common.Models;
 public sealed class Trade
 {
     [Column("id")]
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 
     [Column("operation_id")]
     public Guid OperationId { get; set; }
 
     [Column("date")]
-    public DateTime Date { get; set; }
+    public required DateTime Date { get; set; }
 
     [Column("quantity")]
-    public decimal Quantity { get; set; }
+    public required decimal Quantity { get; set; }
 
     [Column("price")]
-    public decimal Price { get; set; }
+    public required decimal Price { get; set; }
 }

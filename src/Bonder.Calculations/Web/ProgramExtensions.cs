@@ -78,6 +78,8 @@ public static class ProgramExtensions
             return options;
         });
 
+        DbConnection.Bind(builder.Configuration.GetConnectionString("Database"));
+
         builder.Services.AddStackExchangeRedisCache(x =>
         {
             x.Configuration = builder.Configuration.GetConnectionString("Redis");

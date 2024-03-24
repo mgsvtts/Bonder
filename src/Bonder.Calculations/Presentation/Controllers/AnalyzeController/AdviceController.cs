@@ -7,12 +7,12 @@ using Presentation.Controllers.AnalyzeController.Analyze;
 
 namespace Presentation.Controllers.AnalyzeController;
 
-[Route("api/analyze")]
-public sealed class AnalyzeController : ControllerBase
+[Route("api/advice")]
+public sealed class AdviceController : ControllerBase
 {
     private readonly ISender _sender;
 
-    public AnalyzeController(ISender sender)
+    public AdviceController(ISender sender)
     {
         _sender = sender;
     }
@@ -21,7 +21,7 @@ public sealed class AnalyzeController : ControllerBase
     [OutputCache(Duration = 10)]
     public async Task<IEnumerable<AnalyzeBondsResponse>> Analyze([FromBody] AnalyzeBondsRequest request, CancellationToken token)
     {
-        var result = await _sender.Send(request.Adapt<AnalyzeBondsCommand>(), token);
+        var result = await _sender.Send(request.Adapt<AdviceBondsCommand>(), token);
 
         return result.Adapt<IEnumerable<AnalyzeBondsResponse>>();
     }

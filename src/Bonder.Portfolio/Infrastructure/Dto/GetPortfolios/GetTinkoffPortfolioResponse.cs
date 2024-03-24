@@ -8,6 +8,9 @@ public sealed class GetTinkoffPortfolioResponse
     [JsonPropertyName("totalAmountBonds")]
     public TinkoffQuantity TotalBondPrice { get; set; }
 
+    [JsonPropertyName("totalAmountPortfolio")]
+    public TinkoffQuantity TotalPortfolioPrice { get; set; }
+
     [JsonPropertyName("positions")]
     public IEnumerable<TinkoffPosition> Positions { get; set; }
 }

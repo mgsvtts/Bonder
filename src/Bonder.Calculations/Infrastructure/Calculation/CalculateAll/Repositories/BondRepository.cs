@@ -5,48 +5,43 @@ using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Infrastructure.Calculation.Dto.BondRepository;
 using Infrastructure.Common;
-using Infrastructure.Common.Extensions;
 using LinqToDB;
 using LinqToDB.Data;
 using Mapster;
+using Shared.Infrastructure.Extensions;
 
 namespace Infrastructure.Calculation.CalculateAll.Repositories;
 
 public sealed class BondRepository : IBondRepository
 {
-    private readonly DbConnection _db;
-
-    public BondRepository(DbConnection db)
+    public async Task AddAsync(IEnumerable<Bond> bonds, CancellationToken token)
     {
-        _db = db;
-    }
+        using var db = new DbConnection();
 
-    public async Task AddAsync(IEnumerable<Bond> bonds, CancellationToken token = default)
-    {
         var dbBonds = bonds.Adapt<List<Common.Models.Bond>>();
 
         var tasks = dbBonds.Select(x => Task.Run(() => SetBondValues(x))).ToList();
 
         await Task.WhenAll(tasks);
 
-        await _db.BeginTransactionAsync(token);
+        await db.BeginTransactionAsync(token);
 
         try
         {
-            await _db.BulkCopyAsync(dbBonds, cancellationToken: token);
-            await _db.BulkCopyAsync(dbBonds.SelectMany(x => x.Coupons), cancellationToken: token);
-            await _db.BulkCopyAsync(dbBonds.SelectMany(x => x.Amortizations), cancellationToken: token);
+            await db.BulkCopyAsync(dbBonds, cancellationToken: token);
+            await db.BulkCopyAsync(dbBonds.SelectMany(x => x.Coupons), cancellationToken: token);
+            await db.BulkCopyAsync(dbBonds.SelectMany(x => x.Amortizations), cancellationToken: token);
         }
         catch
         {
-            await _db.RollbackTransactionAsync(token);
+            await db.RollbackTransactionAsync(token);
             throw;
         }
 
-        await _db.CommitTransactionAsync(token);
+        await db.CommitTransactionAsync(token);
     }
 
-    public async Task UpdateAsync(Bond bond, CancellationToken token = default)
+    public async Task UpdateAsync(Bond bond, CancellationToken token)
     {
         var dbCoupons = bond.Coupons.Adapt<List<Common.Models.Coupon>>();
         var dbAmortizations = bond.Amortizations.Adapt<List<Common.Models.Amortization>>();
@@ -55,39 +50,44 @@ public sealed class BondRepository : IBondRepository
         var dbBond = bond.Adapt<Common.Models.Bond>();
         dbBond.UpdatedAt = DateTime.Now;
 
+        using var db = new DbConnection();
         try
         {
-            await _db.BeginTransactionAsync(token);
+            await db.BeginTransactionAsync(token);
 
-            await _db.Coupons
+            await db.Coupons
             .Where(x => x.BondId == bond.Identity.InstrumentId)
             .DeleteAsync(token);
 
-            await _db.Amortizations
+            await db.Amortizations
             .Where(x => x.BondId == bond.Identity.InstrumentId)
             .DeleteAsync(token);
 
-            await _db.BulkCopyAsync(dbCoupons, cancellationToken: token);
-            await _db.BulkCopyAsync(dbAmortizations, cancellationToken: token);
+            await db.BulkCopyAsync(dbCoupons, cancellationToken: token);
+            await db.BulkCopyAsync(dbAmortizations, cancellationToken: token);
 
-            await _db.UpdateAsync(dbBond, token: token);
+            await db.UpdateAsync(dbBond, token: token);
 
-            await _db.CommitTransactionAsync(token);
+            await db.CommitTransactionAsync(token);
         }
         catch
         {
-            await _db.RollbackTransactionAsync(token);
+            await db.RollbackTransactionAsync(token);
         }
     }
 
-    public Task<int> CountAsync(CancellationToken token = default)
+    public Task<int> CountAsync(CancellationToken token)
     {
-        return _db.Bonds.CountAsync(token);
+        using var db = new DbConnection();
+
+        return db.Bonds.CountAsync(token);
     }
 
-    public async Task<List<Bond>> TakeRangeAsync(Range range, CancellationToken token = default)
+    public async Task<List<Bond>> TakeRangeAsync(Range range, CancellationToken token)
     {
-        var dbBonds = await _db.Bonds
+        using var db = new DbConnection();
+
+        var dbBonds = await db.Bonds
         .LoadWith(x => x.Coupons)
         .Skip(range.Start.Value)
         .Take(range.End.Value - range.Start.Value)
@@ -96,9 +96,11 @@ public sealed class BondRepository : IBondRepository
         return dbBonds.Adapt<List<Bond>>();
     }
 
-    public async Task<List<Bond>> GetAllFloatingAsync(CancellationToken token = default)
+    public async Task<List<Bond>> GetAllFloatingAsync(CancellationToken token)
     {
-        var dbBonds = await _db.Bonds
+        using var db = new DbConnection();
+
+        var dbBonds = await db.Bonds
         .LoadWith(x => x.Coupons)
         .LoadWith(x => x.Amortizations)
         .Where(x => x.Coupons.Any(x => x.IsFloating))
@@ -107,9 +109,11 @@ public sealed class BondRepository : IBondRepository
         return dbBonds.Adapt<List<Bond>>();
     }
 
-    public async Task<List<Bond>> GetByTickersAsync(IEnumerable<Ticker> tickers, CancellationToken token = default)
+    public async Task<List<Bond>> GetByTickersAsync(IEnumerable<Ticker> tickers, CancellationToken token)
     {
-        var dbBonds = await _db.Bonds
+        using var db = new DbConnection();
+
+        var dbBonds = await db.Bonds
         .LoadWith(x => x.Coupons)
         .LoadWith(x => x.Amortizations)
         .Where(x => tickers.Select(x => x.Value).Contains(x.Ticker))
@@ -118,23 +122,27 @@ public sealed class BondRepository : IBondRepository
         return dbBonds.Adapt<List<Bond>>();
     }
 
-    public async Task RefreshAsync(IEnumerable<Ticker> newBondTickers, CancellationToken token = default)
+    public async Task RefreshAsync(IEnumerable<Ticker> newBondTickers, CancellationToken token)
     {
-        await _db.Bonds
+        using var db = new DbConnection();
+
+        await db.Bonds
         .Where(x => !newBondTickers.Select(x => x.Value).Contains(x.Ticker))
         .DeleteAsync(token: token);
     }
 
-    public async Task<List<Ticker>> UpdateIncomesAsync(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bonds, CancellationToken token = default)
+    public async Task<List<Ticker>> UpdateIncomesAsync(IEnumerable<KeyValuePair<Ticker, StaticIncome>> bonds, CancellationToken token)
     {
-        var notFoundTickers = await _db.Bonds
+        using var db = new DbConnection();
+
+        var notFoundTickers = await db.Bonds
         .Where(x => !bonds.Select(x => x.Key.ToString()).Contains(x.Ticker))
         .Select(x => x.Ticker)
         .ToListAsync(token: token);
 
         var updateParams = CreateUpdateParams(bonds, notFoundTickers);
 
-        await _db.ExecuteAsync
+        await db.ExecuteAsync
         (
             """
                 UPDATE public.bonds AS b
@@ -172,12 +180,14 @@ public sealed class BondRepository : IBondRepository
     }
 
     public async Task<GetPriceSortedResponse> GetPriceSortedAsync(GetPriceSortedRequest filter,
+                                                                  CancellationToken token,
                                                                   IEnumerable<Ticker>? tickers = null,
                                                                   IEnumerable<Guid>? uids = null,
-                                                                  bool takeAll = false,
-                                                                  CancellationToken token = default)
+                                                                  bool takeAll = false)
     {
-        var query = _db.Bonds
+        using var db = new DbConnection();
+
+        var query = db.Bonds
         .WhereIf(tickers != null, x => tickers!.Select(x => x.Value).Contains(x.Ticker))
         .WhereIf(uids != null, x => uids!.Contains(x.Id))
         .Where(x => x.AbsolutePrice >= filter.PriceFrom)

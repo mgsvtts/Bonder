@@ -7,34 +7,34 @@ public sealed class Bond
 {
     [PrimaryKey]
     [Column("id")]
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 
     [Column("ticker")]
-    public string Ticker { get; set; }
+    public required string Ticker { get; set; }
 
     [Column("isin")]
-    public string Isin { get; set; }
+    public required string Isin { get; set; }
 
     [Column("name")]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     [Column("price_percent")]
-    public decimal PricePercent { get; set; }
+    public required decimal PricePercent { get; set; }
 
     [Column("absolute_price")]
-    public decimal AbsolutePrice { get; set; }
+    public required decimal AbsolutePrice { get; set; }
 
     [Column("absolute_nominal")]
-    public decimal AbsoluteNominal { get; set; }
+    public required decimal AbsoluteNominal { get; set; }
 
     [Column("maturity_date")]
-    public DateOnly? MaturityDate { get; set; }
+    public required DateOnly? MaturityDate { get; set; }
 
     [Column("offer_date")]
-    public DateOnly? OfferDate { get; set; }
+    public required DateOnly? OfferDate { get; set; }
 
     [Column("rating")]
-    public int? Rating { get; set; }
+    public required int? Rating { get; set; }
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }

@@ -33,7 +33,7 @@ public class CachedCalculateAllService : ICalculateAllService
         _cache = cache;
     }
 
-    public async Task<CalculateAllResponse> CalculateAllAsync(GetPriceSortedRequest request, CancellationToken token = default)
+    public async Task<CalculateAllResponse> CalculateAllAsync(GetPriceSortedRequest request, CancellationToken token)
     {
         if (!request.IsDefault())
         {

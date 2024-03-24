@@ -7,46 +7,49 @@ namespace Infrastructure.Common.Models;
 public sealed class Operation
 {
     [Column("id")]
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 
     [Column("name")]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     [Column("description")]
-    public string Description { get; set; }
+    public required string Description { get; set; }
 
     [Column("portfolio_id")]
     public Guid PortfolioId { get; set; }
 
+    [Association(ThisKey = nameof(PortfolioId), OtherKey = nameof(Portfolio.Id))]
+    public Portfolio Portfolio { get; set; }
+
     [Column("type")]
-    public OperationType Type { get; set; }
+    public required OperationType Type { get; set; }
 
     [Column("state")]
-    public OperationState State { get; set; }
+    public required OperationState State { get; set; }
 
     [Column("instrument_id")]
-    public Guid? InstrumentId { get; set; }
+    public required Guid? InstrumentId { get; set; }
 
     [Column("instrument_type")]
-    public InstrumentType InstrumentType { get; set; }
+    public required InstrumentType InstrumentType { get; set; }
 
     [Column("quantity")]
-    public int Quantity { get; set; }
+    public required int Quantity { get; set; }
 
     [Column("rest_quantity")]
-    public int RestQuantity { get; set; }
+    public required int RestQuantity { get; set; }
 
     [Column("date")]
-    public DateTime Date { get; set; }
+    public required DateTime Date { get; set; }
 
     [Column("payout")]
-    public decimal Payout { get; set; }
+    public required decimal Payout { get; set; }
 
     [Column("price")]
-    public decimal Price { get; set; }
+    public required decimal Price { get; set; }
 
     [Column("commission")]
-    public decimal Commission { get; set; }
+    public required decimal Commission { get; set; }
 
     [Association(ThisKey = nameof(Id), OtherKey = nameof(Trade.OperationId))]
     public List<Trade> Trades { get; set; }

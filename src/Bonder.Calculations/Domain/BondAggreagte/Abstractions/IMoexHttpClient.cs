@@ -5,5 +5,5 @@ namespace Domain.BondAggreagte.Abstractions;
 
 public interface IMoexHttpClient
 {
-    public Task<MoexResponse> GetMoexResponseAsync(Ticker ticker, CancellationToken token = default);
+    public Task<MoexResponse> GetMoexResponseAsync(Ticker ticker, CancellationToken token);
 }

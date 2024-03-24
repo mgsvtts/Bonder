@@ -7,7 +7,7 @@ public sealed class Coupon
 {
     [PrimaryKey]
     [Column("id")]
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 
     [Column("bond_id")]
     public Guid BondId { get; set; }
@@ -16,17 +16,17 @@ public sealed class Coupon
     public Bond Bond { get; set; }
 
     [Column("payment_date")]
-    public DateOnly PaymentDate { get; set; }
+    public required DateOnly PaymentDate { get; set; }
 
     [Column("payout")]
-    public decimal Payout { get; set; }
+    public required decimal Payout { get; set; }
 
     [Column("dividend_cut_off_date")]
-    public DateOnly? DividendCutOffDate { get; set; }
+    public required DateOnly? DividendCutOffDate { get; set; }
 
     [Column("is_floating")]
-    public bool IsFloating { get; set; }
+    public required bool IsFloating { get; set; }
 
     [Column("created_at")]
-    public DateTime CreatedAt { get; set; }
+    public required DateTime CreatedAt { get; set; }
 }

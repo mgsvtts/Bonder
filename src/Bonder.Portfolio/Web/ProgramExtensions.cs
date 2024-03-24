@@ -1,4 +1,5 @@
-﻿using Bonder.Calculation.Grpc;
+﻿using Application.Commands.ImportPortfolio.Common;
+using Bonder.Calculation.Grpc;
 using Domain.Common.Abstractions;
 using Domain.UserAggregate.Abstractions.Repositories;
 using Infrastructure;
@@ -28,6 +29,8 @@ public static class ProgramExtensions
 
             return options;
         });
+
+        DbConnection.Bind(builder.Configuration.GetConnectionString("Database"));
 
         builder.Services.AddGrpc();
 
@@ -64,13 +67,13 @@ public static class ProgramExtensions
         {
             x.Configuration = builder.Configuration.GetConnectionString("Redis");
         });
-
+        
         return builder;
     }
 
     public static WebApplicationBuilder AddDomain(this WebApplicationBuilder builder)
     {
-        builder.Services.AddTransient<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
 
         var rateLimiter = TimeLimiter.GetFromMaxCountByInterval(1, TimeSpan.FromMilliseconds(201));
         builder.Services.AddSingleton(rateLimiter);
@@ -82,7 +85,7 @@ public static class ProgramExtensions
                                          builder.Configuration.GetValue<string>("TinkoffOperatoinsServerUrl"));
         }).AddHttpMessageHandler(rateLimiter.AsDelegate);
 
-        builder.Services.AddTransient<IUserBuilder, UserBuilder>();
+        builder.Services.AddScoped<IPortfolioImporter, PortfolioImporter>();
 
         return builder;
     }
@@ -96,6 +99,8 @@ public static class ProgramExtensions
         }
 
         app.UseHttpsRedirection();
+
+        app.UseOutputCache();
 
         app.UseAuthorization();
 

@@ -8,7 +8,7 @@ public sealed class Portfolio
 {
     [PrimaryKey]
     [Column("id")]
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 
     [Column("user_id")]
     public Guid UserId { get; set; }
@@ -17,19 +17,22 @@ public sealed class Portfolio
     public User User { get; set; }
 
     [Column("account_id")]
-    public string? AccountId { get; set; }
+    public required string? AccountId { get; set; }
 
     [Column("name")]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     [Column("total_bond_price")]
-    public decimal TotalBondPrice { get; set; }
+    public required decimal TotalBondPrice { get; set; }
+
+    [Column("total_portfolio_price")]
+    public required decimal TotalPortfolioPrice { get; set; }
 
     [Column("type")]
-    public PortfolioType Type { get; set; }
+    public required PortfolioType Type { get; set; }
 
     [Column("broker_type")]
-    public BrokerType BrokerType { get; set; }
+    public required BrokerType BrokerType { get; set; }
 
     [Association(ThisKey = nameof(Id), OtherKey = nameof(PortfolioBonds.PortfolioId))]
     public List<PortfolioBonds> Bonds { get; set; }

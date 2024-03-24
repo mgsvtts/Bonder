@@ -9,5 +9,5 @@ public interface ITinkoffHttpClient
 {
     Task<List<Operation>> GetOperationsAsync(TinkoffToken tinkoffToken, AccountId accountId, CancellationToken token);
 
-    Task<IEnumerable<Portfolio>> GetPortfoliosAsync(TinkoffToken tinkoffToken, CancellationToken token = default);
+    Task<IEnumerable<Portfolio>> GetPortfoliosAsync(TinkoffToken tinkoffToken, CancellationToken token);
 }

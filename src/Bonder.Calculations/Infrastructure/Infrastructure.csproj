@@ -36,6 +36,7 @@
 	</ItemGroup>
 	
   <ItemGroup>
+    <ProjectReference Include="..\..\Bonder.Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 </Project>
