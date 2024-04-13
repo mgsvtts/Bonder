@@ -3,15 +3,13 @@ using Domain.UserAggregate.ValueObjects.Portfolios;
 using Shared.Domain.Common.Models;
 
 namespace Domain.UserAggregate.Entities;
-
 public sealed class Portfolio : Entity<PortfolioId>
 {
     private readonly List<Bond> _bonds = [];
     private readonly List<Operation> _operations = [];
 
     public AccountId? AccountId { get; }
-    public decimal TotalBondPrice { get; }
-    public decimal TotalPortfolioPrice { get; }
+    public Totals Totals { get; }
     public string Name { get; }
     public PortfolioType Type { get; }
     public BrokerType BrokerType { get; }
@@ -19,8 +17,7 @@ public sealed class Portfolio : Entity<PortfolioId>
     public IReadOnlyList<Operation> Operations => _operations.AsReadOnly();
 
     public Portfolio(PortfolioId id,
-                     decimal totalBondPrice,
-                     decimal totalPortfolioPrice,
+                     Totals totals,
                      string name,
                      PortfolioType type,
                      BrokerType brokerType,
@@ -32,8 +29,7 @@ public sealed class Portfolio : Entity<PortfolioId>
         Type = type;
         AccountId = accountId;
         BrokerType = brokerType;
-        TotalBondPrice = totalBondPrice;
-        TotalPortfolioPrice = totalPortfolioPrice;
+        Totals = totals;
 
         _bonds = bonds is not null ? bonds.ToList() : _bonds;
         _operations = operations is not null ? operations.ToList() : _operations;

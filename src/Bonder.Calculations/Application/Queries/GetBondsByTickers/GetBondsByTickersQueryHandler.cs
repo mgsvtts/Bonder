@@ -1,4 +1,5 @@
-﻿using Domain.BondAggreagte.Abstractions;
+﻿using Application.Queries.Common;
+using Domain.BondAggreagte.Abstractions;
 using Mapster;
 using Mediator;
 

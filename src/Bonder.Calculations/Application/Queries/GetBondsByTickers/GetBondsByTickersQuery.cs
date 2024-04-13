@@ -1,4 +1,5 @@
-﻿using Domain.BondAggreagte.ValueObjects.Identities;
+﻿using Application.Queries.Common;
+using Domain.BondAggreagte.ValueObjects.Identities;
 using Mediator;
 
 namespace Application.Queries.GetBondsByTickers;

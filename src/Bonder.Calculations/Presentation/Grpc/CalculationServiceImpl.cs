@@ -1,4 +1,5 @@
-﻿using Application.Queries.GetBondsByTickers;
+﻿using Application.Queries.GetBondsByIds;
+using Application.Queries.GetBondsByTickers;
 using Bonder.Calculation.Grpc;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Grpc.Core;
@@ -16,10 +17,10 @@ public sealed class CalculationServiceImpl : CalculationService.CalculationServi
         _sender = sender;
     }
 
-    public override async Task<GetBondsByTickersResponse> GetBondsByTickers(GetBondsByTickersRequest request, ServerCallContext context)
+    public override async Task<BondsResponse> GetBondsByTickers(GetBondsByTickersRequest request, ServerCallContext context)
     {
         var bonds = await _sender.Send(new GetBondsByTickersQuery(request.Tickers.Select(x => new Ticker(x))), context.CancellationToken);
 
-        return bonds.Adapt<GetBondsByTickersResponse>();
+        return bonds.Adapt<BondsResponse>();
     }
 }

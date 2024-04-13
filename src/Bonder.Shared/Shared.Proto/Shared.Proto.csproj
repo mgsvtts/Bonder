@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <None Remove="calculation_service.proto" />
-    <None Remove="decimal.proto" />
+    <None Remove="Models\Guid\GrpcGuid.proto" />
     <None Remove="portfolio_service.proto" />
   </ItemGroup>
 
@@ -18,7 +18,8 @@
 
   <ItemGroup>
     <Protobuf Include="calculation_service.proto" />
-    <Protobuf Include="decimal.proto" />
+    <Protobuf Include="Models\Decimal\Decimal.proto" />
+    <Protobuf Include="Models\Guid\GrpcGuid.proto" />
     <Protobuf Include="portfolio_service.proto" />
   </ItemGroup>
 

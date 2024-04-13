@@ -1,4 +1,4 @@
-﻿namespace Application.Queries.GetBondsByTickers;
+﻿namespace Application.Queries.Common;
 
 public sealed record BondItem(Guid Id,
                               string Ticker,

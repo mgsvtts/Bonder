@@ -1,7 +1,7 @@
 ﻿using Application.Commands.Analyze;
 using Application.Commands.Analyze.Dto;
 using Application.Commands.Calculation.CalculateTickers;
-using Application.Queries.GetBondsByTickers;
+using Application.Queries.Common;
 using Bonder.Calculation.Grpc;
 using Domain.BondAggreagte;
 using Domain.BondAggreagte.Abstractions.Dto.CalculateAll;
@@ -74,7 +74,7 @@ public static class MapsterConfig
                                    x.Dates.OfferDate,
                                    x.Rating));
 
-        TypeAdapterConfig<IEnumerable<BondItem>, GetBondsByTickersResponse>
+        TypeAdapterConfig<IEnumerable<BondItem>, BondsResponse>
         .ForType()
         .MapWith(x => CustomMappings.FromBondItems(x));
 
@@ -198,9 +198,9 @@ public static class CustomMappings
                                    value.IsAmortized);
     }
 
-    public static GetBondsByTickersResponse FromBondItems(IEnumerable<BondItem> items)
+    public static BondsResponse FromBondItems(IEnumerable<BondItem> items)
     {
-        var response = new GetBondsByTickersResponse();
+        var response = new BondsResponse();
 
         foreach (var item in items)
         {
@@ -209,7 +209,7 @@ public static class CustomMappings
 
             response.Bonds.Add(new GrpcBond
             {
-                Id = item.Id.ToString(),
+                Id = item.Id,
                 Isin = item.Isin,
                 Name = item.Name,
                 Nominal = item.Nominal,

@@ -1,5 +1,7 @@
-﻿using Domain.UserAggregate.ValueObjects.Operations;
+﻿using Bonder.Calculation.Grpc;
+using Domain.UserAggregate.ValueObjects.Operations;
 using Infrastructure.Common;
+using Infrastructure.Common.Models;
 using LinqToDB;
 using Mediator;
 using Shared.Infrastructure.Extensions;
@@ -21,7 +23,6 @@ public sealed class GetStatsQueryHandler : IQueryHandler<GetStatsQuery, GetStats
         var feeTask = GetFeeAsync(query, cancellationToken);
         var taxTask = GetTaxAsync(query, cancellationToken);
         var commissionTask = GetCommissionAsync(query, cancellationToken);
-        var bondsPercentage = GetBondsPercentage(query, cancellationToken);
 
         await Task.WhenAll(fullPriceTask,
                            incomeTask,
@@ -34,37 +35,16 @@ public sealed class GetStatsQueryHandler : IQueryHandler<GetStatsQuery, GetStats
                            taxTask,
                            commissionTask);
 
-        return new GetStatsResult(new PercentItem(incomeTask.Result, fullPriceTask.Result),
-                                  new PercentItem(feeTask.Result, fullPriceTask.Result),
-                                  new PercentItem(commissionTask.Result, fullPriceTask.Result),
-                                  new PercentItem(bondIncomeTask.Result, fullPriceTask.Result),
-                                  new PercentItem(shareIncomeTask.Result, fullPriceTask.Result),
-                                  new PercentItem(couponIncomeTask.Result, fullPriceTask.Result),
-                                  new PercentItem(inputIncomeTask.Result, fullPriceTask.Result),
-                                  new PercentItem(sellIncomeTask.Result, fullPriceTask.Result),
-                                  new PercentItem(taxTask.Result, fullPriceTask.Result));
-    }
-
-    private static async Task<decimal> GetBondsPercentage(GetStatsQuery query, CancellationToken cancellationToken)
-    {
-        using var db = new DbConnection();
-
-        if(query.Type == StatType.Portfolio)
-        {
-            var portfolioBonds = await db.Portfolios
-                .Where(x => x.Id == query.Id)
-                .SelectMany(x => x.Bonds)
-                .ToListAsync(token: cancellationToken);
-
-            return portfolioBonds.Count;
-        }
-
-        var userBonds = await db.Users
-           .Where(x => x.Id == query.Id)
-           .SelectMany(x => x.Portfolios.SelectMany(x=>x.Bonds))
-           .ToListAsync(token: cancellationToken);
-
-        return userBonds.Count;
+        return new GetStatsResult(fullPriceTask.Result,
+                                  incomeTask.Result,
+                                  feeTask.Result,
+                                  commissionTask.Result,
+                                  bondIncomeTask.Result,
+                                  shareIncomeTask.Result,
+                                  couponIncomeTask.Result,
+                                  inputIncomeTask.Result,
+                                  sellIncomeTask.Result,
+                                  taxTask.Result);
     }
 
     private static async Task<decimal> GetCommissionAsync(GetStatsQuery query, CancellationToken cancellationToken)

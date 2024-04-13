@@ -28,6 +28,18 @@ public sealed class Portfolio
     [Column("total_portfolio_price")]
     public required decimal TotalPortfolioPrice { get; set; }
 
+    [Column("total_share_price")]
+    public required decimal TotalSharePrice { get; set; }
+
+    [Column("total_future_price")]
+    public required decimal TotalFuturePrice { get; set; }
+
+    [Column("total_etf_price")]
+    public required decimal TotalEtfPrice { get; set; }
+
+    [Column("total_currency_price")]
+    public required decimal TotalCurrencyPrice { get; set; }
+
     [Column("type")]
     public required PortfolioType Type { get; set; }
 

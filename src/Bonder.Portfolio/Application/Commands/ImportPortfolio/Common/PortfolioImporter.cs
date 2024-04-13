@@ -41,8 +41,7 @@ public sealed partial class PortfolioImporter : IPortfolioImporter
         return new Portfolio
         (
             new PortfolioId(Guid.NewGuid()),
-            0,
-            bondsResult.Bonds.Sum(x => x.Key.Price),
+            new Totals(bondsResult.Bonds.Sum(x => x.Key.Price), 0, 0, 0, 0, 0),
             request.Name ?? $"{request.BrokerType}-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}",
             PortfolioType.Exported,
             request.BrokerType,

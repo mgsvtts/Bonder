@@ -40,8 +40,7 @@ public static class MapsterConfig
         TypeAdapterConfig<Infrastructure.Common.Models.Portfolio, Portfolio>
         .ForType()
         .MapWith(x => new Portfolio(new PortfolioId(x.Id),
-                                    x.TotalBondPrice,
-                                    x.TotalPortfolioPrice,
+                                    new Totals(x.TotalBondPrice, x.TotalSharePrice, x.TotalEtfPrice, x.TotalCurrencyPrice, x.TotalFuturePrice, x.TotalPortfolioPrice),     
                                     x.Name,
                                     x.Type,
                                     x.BrokerType,
@@ -130,8 +129,12 @@ public static class MapsterConfig
         {
             Id = Guid.NewGuid(),
             Name = x.Name,
-            TotalBondPrice = x.TotalBondPrice,
-            TotalPortfolioPrice = x.TotalPortfolioPrice,
+            TotalBondPrice = x.Totals.TotalBondPrice,
+            TotalPortfolioPrice = x.Totals.TotalPortfolioPrice,
+            TotalSharePrice = x.Totals.TotalSharePrice,
+            TotalCurrencyPrice = x.Totals.TotalCurrencyPrice,
+            TotalEtfPrice = x.Totals.TotalEtfPrice,
+            TotalFuturePrice = x.Totals.TotalFuturePrice,
             Type = x.Type,
             BrokerType = x.BrokerType,
             AccountId = x.AccountId != null ? x.AccountId.ToString() : null,
@@ -159,8 +162,12 @@ public static class CustomMappings
         var type = MapPortfolioType(account);
 
         return new Portfolio(new PortfolioId(Guid.NewGuid()),
-                             portfolio.TotalBondPrice.ToDecimal(),
-                             portfolio.TotalPortfolioPrice.ToDecimal(),
+                             new Totals(portfolio.TotalBondPrice.ToDecimal(), 
+                                        portfolio.TotalSharePrice.ToDecimal(),
+                                        portfolio.TotalEtfPrice.ToDecimal(),
+                                        portfolio.TotalCurrencyPrice.ToDecimal(),
+                                        portfolio.TotalFuturePrice.ToDecimal(),
+                                        portfolio.TotalPortfolioPrice.ToDecimal()),
                              account.Name,
                              type,
                              BrokerType.Tinkoff,
@@ -201,14 +208,14 @@ public static class CustomMappings
                              InstrumentType.Bond,
                              (int)operation.Quantity,
                              0,
-                             bond is not null ? Guid.Parse(bond.Id) : null,
+                             bond?.Id,
                              null,
                              $"Импорт от {date:yyyy-MM-dd-HH-mm-ss}");
     }
 
     public static Bond FromImportedBond(KeyValuePair<GrpcBond, int> bond)
     {
-        return new Bond(Guid.Parse(bond.Key.Id), bond.Value);
+        return new Bond(bond.Key.Id, bond.Value);
     }
 
     private static OperationType MapOperationType(string type)
