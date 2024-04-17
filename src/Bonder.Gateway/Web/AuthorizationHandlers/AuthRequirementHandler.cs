@@ -40,7 +40,12 @@ public sealed class AuthRequirementHandler : AuthorizationHandler<AuthRequiremen
             Method = HttpMethod.Post
         };
 
-        var accessToken = context.Request.Headers.FirstOrDefault(x => x.Key == "X-ACCESS-TOKEN");
+        var accessToken = context.Request.Headers.FirstOrDefault(x => x.Key.Equals("X-ACCESS-TOKEN", StringComparison.OrdinalIgnoreCase));
+
+        if(accessToken.Key is null || string.IsNullOrEmpty(accessToken.Value))
+        {
+            throw new InvalidOperationException("Provide an access token");
+        }
 
         content.Headers.Add(accessToken.Key, accessToken.Value.ToString());
 

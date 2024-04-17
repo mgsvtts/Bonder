@@ -78,9 +78,9 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => CustomMappings.FromBondItems(x));
 
-        TypeAdapterConfig<(Bond Bond, FullIncome Income), AnalyzeBondWithIncome>
+        TypeAdapterConfig<(Bond Bond, FullIncome Income), AdviceBondWithIncome>
         .ForType()
-        .MapWith(x => new AnalyzeBondWithIncome(x.Bond.Identity.Ticker, x.Bond.Name, x.Bond.Income.StaticIncome.AbsolutePrice, x.Income.FullIncomePercent));
+        .MapWith(x => new AdviceBondWithIncome(x.Bond.Identity.Ticker, x.Bond.Name, x.Bond.Income.StaticIncome.AbsolutePrice, x.Income.FullIncomePercent));
 
         TypeAdapterConfig<MoexItem, MoexResponse>
         .ForType()
@@ -91,7 +91,7 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new Amortization(x.Date, x.Payment ?? 0));
 
-        TypeAdapterConfig<Dictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>>, IEnumerable<AnalyzeBondsResponse>>
+        TypeAdapterConfig<Dictionary<AdviceBondWithIncome, IEnumerable<AdviceBondWithIncome>>, IEnumerable<AdviceBondsResponse>>
         .ForType()
         .MapWith(x => CustomMappings.FromBondsWithIncome(x));
 
@@ -260,9 +260,9 @@ public static class CustomMappings
                                      results.PageInfo);
     }
 
-    public static IEnumerable<AnalyzeBondsResponse> FromBondsWithIncome(Dictionary<AnalyzeBondWithIncome, IEnumerable<AnalyzeBondWithIncome>> dict)
+    public static IEnumerable<AdviceBondsResponse> FromBondsWithIncome(Dictionary<AdviceBondWithIncome, IEnumerable<AdviceBondWithIncome>> dict)
     {
-        return dict.Select(a => new AnalyzeBondsResponse
+        return dict.Select(a => new AdviceBondsResponse
         (
             a.Key.Id.ToString(),
             a.Key.Income,

@@ -19,10 +19,10 @@ public sealed class AdviceController : ControllerBase
 
     [HttpPost]
     [OutputCache(Duration = 10)]
-    public async Task<IEnumerable<AnalyzeBondsResponse>> Analyze([FromBody] AnalyzeBondsRequest request, CancellationToken token)
+    public async Task<IEnumerable<AdviceBondsResponse>> Analyze([FromBody] AnalyzeBondsRequest request, CancellationToken token)
     {
         var result = await _sender.Send(request.Adapt<AdviceBondsCommand>(), token);
 
-        return result.Adapt<IEnumerable<AnalyzeBondsResponse>>();
+        return result.Adapt<IEnumerable<AdviceBondsResponse>>();
     }
 }

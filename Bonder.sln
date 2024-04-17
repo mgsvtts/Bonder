@@ -57,7 +57,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bonder.Gateway", "Bonder.Ga
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "src\Bonder.Gateway\Web\Web.csproj", "{EA5036AE-458A-4C1D-BDAA-5F44DA096197}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Infrastructure", "src\Bonder.Shared\Shared.Infrastructure\Shared.Infrastructure.csproj", "{5F8CDB0B-7B17-4541-B0F8-82D8A01D9F1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Infrastructure", "src\Bonder.Shared\Shared.Infrastructure\Shared.Infrastructure.csproj", "{5F8CDB0B-7B17-4541-B0F8-82D8A01D9F1B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
