@@ -30,6 +30,7 @@ public record struct CalculationResults
         .ToList();
 
         FullIncomeSortedBonds = bonds.Select(x => new CalculationMoneyResult(x.Bond, x.FullIncome.FullIncomePercent))
+        .OrderByDescending(x => x.Money)
         .ToList();
     }
 

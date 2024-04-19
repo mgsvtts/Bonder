@@ -78,6 +78,10 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => CustomMappings.FromBondItems(x));
 
+        TypeAdapterConfig<CalculateAllResponse, GetCurrentBondsResponse>
+        .ForType()
+        .MapWith(x => CustomMappings.FromCalculateAll(x));
+
         TypeAdapterConfig<(Bond Bond, FullIncome Income), AdviceBondWithIncome>
         .ForType()
         .MapWith(x => new AdviceBondWithIncome(x.Bond.Identity.Ticker, x.Bond.Name, x.Bond.Income.StaticIncome.AbsolutePrice, x.Income.FullIncomePercent));
@@ -218,6 +222,25 @@ public static class CustomMappings
                 Ticker = item.Ticker,
                 OfferDate = Timestamp.FromDateTime(offerDate.ToUniversalTime()),
                 MaturityDate = Timestamp.FromDateTime(maturityDate.ToUniversalTime()),
+            });
+        }
+
+        return response;
+    }
+
+    public static GetCurrentBondsResponse FromCalculateAll(CalculateAllResponse calculationResponse)
+    {
+        var response = new GetCurrentBondsResponse();
+
+        foreach (var result in calculationResponse.Aggregation.FullIncomeSortedBonds)
+        {
+            response.Bonds.Add(new GetCurrentBondsItem
+            {
+                Id = result.Bond.Identity.InstrumentId,
+                Name = result.Bond.Name,
+                Price = result.Bond.Income.StaticIncome.AbsolutePrice,
+                Ticker = result.Bond.Identity.Ticker.ToString(),
+                Income = result.Money,
             });
         }
 

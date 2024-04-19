@@ -1,10 +1,15 @@
-﻿using Application.Queries.GetBondsByIds;
+﻿using Application.Commands.Calculation.CalculateAll.Command;
+using Application.Queries.GetBondsByIds;
 using Application.Queries.GetBondsByTickers;
 using Bonder.Calculation.Grpc;
+using Domain.BondAggreagte.Abstractions.Dto.GetPriceSorted;
+using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects.Identities;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Mapster;
 using Mediator;
+using Shared.Domain.Common;
 
 namespace Presentation.Grpc;
 
@@ -22,5 +27,12 @@ public sealed class CalculationServiceImpl : CalculationService.CalculationServi
         var bonds = await _sender.Send(new GetBondsByTickersQuery(request.Tickers.Select(x => new Ticker(x))), context.CancellationToken);
 
         return bonds.Adapt<BondsResponse>();
+    }
+
+    public override async Task<GetCurrentBondsResponse> GetCurrentBonds(Empty request, ServerCallContext context)
+    {
+        var bonds = await _sender.Send(new CalculateAllCommand(new GetPriceSortedRequest(DateIntervalType.TillOfferDate, PageInfo.Default)), context.CancellationToken);
+
+        return bonds.Adapt<GetCurrentBondsResponse>();
     }
 }

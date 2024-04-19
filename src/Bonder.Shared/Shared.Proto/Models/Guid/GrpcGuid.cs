@@ -14,6 +14,6 @@ public partial class GrpcGuid
 
     public static implicit operator GrpcGuid(Guid value)
     {
-        return new GrpcGuid(value);
+        return new GrpcGuid(value.ToString());
     }
 }

@@ -5,13 +5,19 @@ package bonder.calculation.grpc;
 import "google/protobuf/timestamp.proto";
 import "Models/Decimal/Decimal.proto";
 import "Models/Guid/GrpcGuid.proto";
+import "google/protobuf/empty.proto";
 
 service CalculationService {
 	rpc GetBondsByTickers(GetBondsByTickersRequest) returns (BondsResponse);
+	rpc GetCurrentBonds(google.protobuf.Empty) returns (GetCurrentBondsResponse);
 }
 
 message GetBondsByTickersRequest {
 	repeated string tickers = 1;
+}
+
+message GetCurrentBondsResponse {
+	repeated GetCurrentBondsItem Bonds = 1;
 }
 
 message BondsResponse {
@@ -28,4 +34,12 @@ message GrpcBond {
 	int32 rating = 7;
 	google.protobuf.Timestamp maturity_date = 8;
 	google.protobuf.Timestamp offer_date = 9;
+}
+
+message GetCurrentBondsItem {
+	bonder.protos.custom.GrpcGuid id = 1;
+	string ticker = 2;
+	string name = 3;
+	bonder.protos.custom.Decimal income = 4;
+    bonder.protos.custom.Decimal price = 5;
 }
