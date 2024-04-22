@@ -14,80 +14,26 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using Web.Services.Dto;
 
-namespace Application;
-
-public sealed class Filters
-{
-    public DateTime? StartDate { get; set; }
-    public decimal PriceFrom { get; set; } = 0;
-    public decimal PriceTo { get; set; } = decimal.MaxValue;
-    public decimal RatingFrom { get; set; } = 0;
-    public decimal RatingTo { get; set; } = 10;
-    public DateOnly DateFrom { get; set; } = DateOnly.FromDateTime(DateTime.Now);
-    public DateOnly DateTo { get; set; } = DateOnly.MaxValue;
-    public bool IncludeUnknownRatings { get; set; } = true;
-
-    public bool CanProcess => StartDate != null && StartDate.Value.AddMinutes(1) > DateTime.Now;
-}
-
-public enum State
-{
-    Start,
-    GettingPriceFrom,
-    GettingPriceTo,
-    GettingRatingFrom,
-    GettingRatingTo,
-    GettingDateFrom,
-    GettingDateTo,
-    Finished
-}
-
-public enum Trigger
-{
-    GetPriceFrom,
-    GetPriceTo,
-    GetRatingFrom,
-    GetRatingTo,
-    GetDateFrom,
-    GetDateTo,
-    Finish
-}
+namespace Web.Services;
 
 public sealed class Bot
 {
-    private static readonly char[] _splitters = [',', ' ', '\n'];
-    private static readonly ConcurrentDictionary<string, Filters> _filters = new();
+    private static readonly char[] _splitters = [',', ' ', '\n']; 
+    private static readonly StateDictionary _states = new();
+    private static readonly StateMachineFactory _factory = new(_states);
 
-    private readonly string _token;
     private readonly ITelegramBotClient _bot;
-    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly CalculationService.CalculationServiceClient _grpcService;
 
-    private Message _message;
-    private readonly StateMachine<State, Trigger> _machine;
-
-    public Bot(string token, IServiceScopeFactory scopeFactory)
+    public Bot(ITelegramBotClient bot, CalculationService.CalculationServiceClient grpcService)
     {
-        var machine = new StateMachine<State, Trigger>(State.Start);
-
-        machine.Configure(State.Start)
-            .Permit(Trigger.GetPriceFrom, State.GettingPriceFrom);
-
-        machine.Configure(State.GettingPriceFrom)
-            .OnEntryAsync(x => GetPriceFrom())
-            .Permit(Trigger.GetPriceFrom, State.GettingPriceTo);
-
-        _machine = machine;
-
-        _token = token;
-        _scopeFactory = scopeFactory;
-
-        _bot = new TelegramBotClient(_token);
-
-        _bot.StartReceiving(UpdateAsync, ErrorAsync);
+        _bot = bot;
+        _grpcService = grpcService;
     }
 
-    private async Task UpdateAsync(ITelegramBotClient bot, Update update, CancellationToken token)
+    public async Task HandleUpdateAsync(Update update, CancellationToken token)
     {
         var handler = update switch
         {
@@ -116,9 +62,9 @@ public sealed class Bot
             return;
         }
 
-        if (text.Any(x => !char.IsAscii(x)))
+        if (text.All(char.IsNumber))
         {
-            await HandleFiltersAsync(message, token);
+            await HandleFiltersAsync(message);
 
             return;
         }
@@ -152,34 +98,18 @@ public sealed class Bot
         await action;
     }
 
-    private async Task HandleFiltersAsync(Message message, CancellationToken token)
+    private static async Task HandleFiltersAsync(Message message)
     {
-       var text = 
-    }
+        var state = _states.GetState(message);
 
-    private async Task GetPriceFrom()
-    {
-        await _bot.SendTextMessageAsync
-        (
-            _message.Chat.Id,
-            "Ок"
-        );
+        await state.StateMachine.FireAsync(state.Filters.NextTrigger);
 
-        if(!_filters.TryGetValue(_message.Chat.Username, out var filter))
-        {
-            filter = new Filters();
-        }
-
-        filter.PriceFrom = decimal.Parse(_message.Text.Split(":")[^1]);
+        state.Filters.UpdateNextTrigger(state.Filters.NextTrigger);
     }
 
     private async Task HandleTopBondsNoFilters(Message message, CancellationToken token)
     {
-        await using var scope = _scopeFactory.CreateAsyncScope();
-
-        var grpcClient = scope.ServiceProvider.GetRequiredService<CalculationService.CalculationServiceClient>();
-
-        var bonds = await grpcClient.GetCurrentBondsAsync(new Google.Protobuf.WellKnownTypes.Empty(), cancellationToken: token);
+        var bonds = await _grpcService.GetCurrentBondsAsync(new Google.Protobuf.WellKnownTypes.Empty(), cancellationToken: token);
 
         await _bot.SendTextMessageAsync
         (
@@ -193,35 +123,26 @@ public sealed class Bot
 
     private async Task HandleTopBondsWithFilters(Message message, CancellationToken token)
     {
-        if (!_filters.TryGetValue(message.Chat.Username, out var filters))
-        {
-            filters = new Filters();
-        }
+        var state = _states.GetState(message);
 
-        filters.StartDate = DateTime.Now;
-
-        _filters.TryAdd(message.Chat.Username, filters);
+        state.Filters.StartDate = DateTime.Now;
+        state.StateMachine ??= _factory.Create(_bot, message);
 
         await _bot.SendTextMessageAsync
         (
-            message.Chat.Id, 
-            $"Введите /skip чтобы пропустить фильтр (будет установлено значение по умолчанию)", 
+            message.Chat.Id,
+            $"Введите /skip чтобы пропустить фильтр (будет установлено значение по умолчанию)",
             cancellationToken: token
         );
 
         await _bot.SendTextMessageAsync
         (
             message.Chat.Id,
-            "(Формат \"Цена от: *<b>значение</b>*\")",
-            parseMode: ParseMode.Html,
+            "Введите \"Цену от\":",
             cancellationToken: token
         );
 
-        await _bot.SendTextMessageAsync
-        (
-            message.Chat.Id, "Введите \"Цену от\":",
-            cancellationToken: token
-        );
+        _states.Add(message.Chat.Username, state);
     }
 
     private async Task HandleStartAsync(Message message, CancellationToken token)
@@ -243,19 +164,19 @@ public sealed class Bot
             [InlineKeyboardButton.WithCallbackData("С фильтрами", "/TOP_BONDS_WITH_FILTERS")],
             [InlineKeyboardButton.WithCallbackData("Без фильтров", "/TOP_BONDS_NO_FILTERS")]
         });
-        
+
         await _bot.SendTextMessageAsync
         (
             message.Chat.Id,
             "Выберите действие:",
-            replyToMessageId: message.MessageId, 
+            replyToMessageId: message.MessageId,
             replyMarkup: replyMarkup,
             cancellationToken: token
         );
     }
 
     private static Task DoNothingAsync()
-    { 
+    {
         return Task.CompletedTask;
     }
 

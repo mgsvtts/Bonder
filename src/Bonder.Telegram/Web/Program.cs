@@ -1,6 +1,10 @@
-
-using Application;
 using Bonder.Calculation.Grpc;
+using Telegram.Bot;
+using Telegram.Bot.Polling;
+using Web.Controllers;
+using Web.Extensions;
+using Web.Services;
+using Web.Services.Hosted;
 
 namespace Web;
 
@@ -10,35 +14,47 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddControllers();
+        var botConfigurationSection = builder.Configuration.GetSection(BotConfiguration.Configuration);
+        builder.Services.Configure<BotConfiguration>(botConfigurationSection);
 
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        var botConfiguration = botConfigurationSection.Get<BotConfiguration>();
+
+        builder.Services.AddHttpClient("telegram_bot_client")
+        .AddTypedClient<ITelegramBotClient>((httpClient, sp) =>
+        {
+            var botConfig = sp.GetConfiguration<BotConfiguration>();
+            var options = new TelegramBotClientOptions(botConfig.BotToken);
+            return new TelegramBotClient(options, httpClient);
+        });
+
+        builder.Services.AddScoped<Bot>();
+
+        builder.Services.AddHostedService<ConfigureWebhook>();
+
+        builder.Services.AddControllers()
+                        .AddNewtonsoftJson();
 
         builder.Services.AddGrpc();
 
         var portfolioServerUrl = new Uri(builder.Configuration.GetValue<string>("CalculationServerUrl"));
         builder.Services.AddGrpcClient<CalculationService.CalculationServiceClient>(options => options.Address = portfolioServerUrl);
 
-        builder.Services.AddSingleton(x => new Bot(builder.Configuration.GetValue<string>("TelegramKey"),
-                                                   x.GetRequiredService<IServiceScopeFactory>()));
-
-
-
         var app = builder.Build();
 
-        app.Services.GetRequiredService<Bot>();
-
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
-
-        app.UseHttpsRedirection();
+        app.MapBotWebhookRoute<BotController>(route: botConfiguration.Route);
 
         app.MapControllers();
 
         app.Run();
     }
+}
+
+public class BotConfiguration
+{
+    public static readonly string Configuration = "BotConfiguration";
+
+    public string BotToken { get; init; } = default!;
+    public string HostAddress { get; init; } = default!;
+    public string Route { get; init; } = default!;
+    public string SecretToken { get; init; } = default!;
 }

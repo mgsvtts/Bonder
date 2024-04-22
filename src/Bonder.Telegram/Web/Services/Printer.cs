@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
-namespace Application;
+namespace Web.Services;
 public static class Printer
 {
     public static string GetStartText(Message message)
@@ -24,7 +24,7 @@ public static class Printer
         builder.AppendLine();
 
         var count = 1;
-        foreach(var bond in bonds)
+        foreach (var bond in bonds)
         {
             var income = (decimal)bond.Income;
 
