@@ -3,11 +3,7 @@
 public enum Trigger
 {
     Start,
-    GetPriceFrom,
-    GetPriceTo,
-    GetRatingFrom,
-    GetRatingTo,
-    GetDateFrom,
-    GetDateTo,
-    Finish
+    Next,
+    Reset,
+    Skip,
 }

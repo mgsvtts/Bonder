@@ -2,7 +2,7 @@
 
 public enum State
 {
-    Start,
+    Starting,
     GettingPriceFrom,
     GettingPriceTo,
     GettingRatingFrom,

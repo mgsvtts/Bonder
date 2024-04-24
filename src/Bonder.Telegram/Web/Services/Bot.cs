@@ -39,7 +39,7 @@ public sealed class Bot
         {
             { Message: { } message } => BotOnMessageReceived(message, token),
             { CallbackQuery: { } callbackQuery } => BotOnCallbackQueryReceived(callbackQuery, token),
-            _ => DoNothingAsync()
+            _ => DoNothingAsync(update.Message, token)
         };
 
         await handler;
@@ -73,7 +73,8 @@ public sealed class Bot
         {
             "/START" => HandleStartAsync(message, token),
             "/TOP_BONDS" => HandleTopBondsAsync(message, token),
-            _ => DoNothingAsync()
+            "/DEVS" => HandleDevsAsync(message, token),
+            _ => DoNothingAsync(message, token)
         };
 
         await action;
@@ -92,25 +93,30 @@ public sealed class Bot
         {
             "/TOP_BONDS_NO_FILTERS" => HandleTopBondsNoFilters(query.Message, token),
             "/TOP_BONDS_WITH_FILTERS" => HandleTopBondsWithFilters(query.Message, token),
-            _ => DoNothingAsync()
+            _ => DoNothingAsync(query.Message, token)
         };
 
         await action;
     }
 
-    private static async Task HandleFiltersAsync(Message message)
+    private async Task HandleFiltersAsync(Message message)
     {
         var state = _states.GetState(message);
 
-        await state.StateMachine.FireAsync(state.Filters.NextTrigger);
+        var machine = state.StateMachine;
 
-        state.Filters.UpdateNextTrigger(state.Filters.NextTrigger);
+        if(machine is null)
+        {
+            return;
+        }
+
+        await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Next), message);
     }
 
     private async Task HandleTopBondsNoFilters(Message message, CancellationToken token)
     {
         var bonds = await _grpcService.GetCurrentBondsAsync(new Google.Protobuf.WellKnownTypes.Empty(), cancellationToken: token);
-
+        
         await _bot.SendTextMessageAsync
         (
             chatId: message.Chat.Id,
@@ -126,27 +132,22 @@ public sealed class Bot
         var state = _states.GetState(message);
 
         state.Filters.StartDate = DateTime.Now;
-        state.StateMachine ??= _factory.Create(_bot, message);
+        state.StateMachine ??= _factory.Create(_bot);
 
-        await _bot.SendTextMessageAsync
-        (
-            message.Chat.Id,
-            $"Введите /skip чтобы пропустить фильтр (будет установлено значение по умолчанию)",
-            cancellationToken: token
-        );
-
-        await _bot.SendTextMessageAsync
-        (
-            message.Chat.Id,
-            "Введите \"Цену от\":",
-            cancellationToken: token
-        );
-
+        await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Start), message);
+        
         _states.Add(message.Chat.Username, state);
     }
 
     private async Task HandleStartAsync(Message message, CancellationToken token)
     {
+        await _bot.SendStickerAsync
+        (
+            chatId: message.Chat.Id,
+            InputFile.FromFileId(Stickers.Start),
+            cancellationToken: token
+        );
+
         await _bot.SendTextMessageAsync
         (
             chatId: message.Chat.Id,
@@ -157,8 +158,36 @@ public sealed class Bot
         );
     }
 
+    private async Task HandleDevsAsync(Message message, CancellationToken token)
+    {
+        await _bot.SendTextMessageAsync
+        (
+            chatId: message.Chat.Id,
+            text: Printer.GetDevsText(),
+            parseMode: ParseMode.Html,
+            replyToMessageId: message.MessageId,
+            disableWebPagePreview: true,
+            cancellationToken: token
+        );
+
+        await _bot.SendStickerAsync
+        (
+            chatId: message.Chat.Id,
+            InputFile.FromFileId(Stickers.Devs),
+            cancellationToken: token
+        );
+
+    }
+
     private async Task HandleTopBondsAsync(Message message, CancellationToken token)
     {
+        await _bot.SendStickerAsync
+        (
+            message.Chat.Id,
+            InputFile.FromFileId(Stickers.StartOfBonds),
+            cancellationToken: token
+        );
+
         var replyMarkup = new InlineKeyboardMarkup(new InlineKeyboardButton[][]
         {
             [InlineKeyboardButton.WithCallbackData("С фильтрами", "/TOP_BONDS_WITH_FILTERS")],
@@ -175,9 +204,22 @@ public sealed class Bot
         );
     }
 
-    private static Task DoNothingAsync()
+    private async Task DoNothingAsync(Message message, CancellationToken token)
     {
-        return Task.CompletedTask;
+        await _bot.SendStickerAsync
+        (
+            message.Chat.Id, 
+            InputFile.FromFileId(Stickers.DoNothing),
+            cancellationToken: token
+        );
+
+        await _bot.SendTextMessageAsync
+        (
+            message.Chat.Id,
+            "Кажется, я не знаю что это значит",
+            replyToMessageId: message.MessageId,
+            cancellationToken: token
+        );
     }
 
     private async Task ErrorAsync(ITelegramBotClient bot, Exception exception, CancellationToken token)
