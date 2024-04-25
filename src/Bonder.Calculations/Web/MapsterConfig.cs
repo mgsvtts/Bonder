@@ -1,5 +1,6 @@
 ﻿using Application.Commands.Analyze;
 using Application.Commands.Analyze.Dto;
+using Application.Commands.Calculation.CalculateAll.Command;
 using Application.Commands.Calculation.CalculateTickers;
 using Application.Queries.Common;
 using Bonder.Calculation.Grpc;
@@ -131,6 +132,10 @@ public static class MapsterConfig
             AbsoluteNominal = x.Income.StaticIncome.AbsoluteNominal,
             AbsolutePrice = x.Income.StaticIncome.AbsolutePrice
         });
+
+        TypeAdapterConfig<Filters, CalculateAllCommand>
+        .ForType()
+        .MapWith(x => CustomMappings.FromFilters(x));
 
         TypeAdapterConfig<CalculateAllResponse, CalculateResponse>
         .ForType()
@@ -268,6 +273,19 @@ public static class CustomMappings
                            rating,
                            couponsToAdd,
                            amortizationsToAdd);
+    }
+
+    public static CalculateAllCommand FromFilters(Filters filters)
+    {
+        return new CalculateAllCommand(new GetPriceSortedRequest(DateIntervalType.TillCustomDate,
+                                                PageInfo.Default,
+                                                priceFrom: filters.PriceFrom,
+                                                priceTo: filters.PriceTo,
+                                                ratingFrom: filters.RatingFrom,
+                                                ratingTo: filters.RatingTo,
+                                                dateFrom: DateOnly.FromDateTime(filters.DateFrom.ToDateTime()),
+                                                dateTo: DateOnly.FromDateTime(filters.DateTo.ToDateTime()),
+                                                includeUnknownRatings: filters.IncludeUnknownRatings));
     }
 
     public static CalculateResponse FromCalculateAllResponse(CalculateAllResponse results)

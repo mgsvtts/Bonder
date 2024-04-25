@@ -1,4 +1,5 @@
 ﻿using Bonder.Calculation.Grpc;
+using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Stateless;
 using System;
@@ -47,22 +48,38 @@ public sealed class Bot
 
     private async Task BotOnMessageReceived(Message message, CancellationToken token)
     {
-        var text = message?.Text?.ToUpper();
         var sticker = message?.Sticker?.FileId;
 
         if (!string.IsNullOrEmpty(sticker))
         {
-            await _bot.SendStickerAsync(message.Chat.Id, InputFile.FromFileId(sticker), cancellationToken: token);
+            await _bot.SendStickerAsync
+            (
+                message.Chat.Id,
+                InputFile.FromFileId(sticker),
+                replyToMessageId: message.MessageId,
+                cancellationToken: token);
 
             return;
         }
 
-        if (string.IsNullOrEmpty(text))
+        var text = message?.Text?.ToUpper();
+        var state = _states.GetState(message);
+        if (text == "/EXIT")
         {
+            await _bot.SendTextMessageAsync
+            (
+                message.Chat.Id,
+                "Выход из режима фильтрации",
+                replyToMessageId: message.MessageId,
+                cancellationToken: token
+            );
+
+            state.Filters = BondFilters.Default;
+
             return;
         }
 
-        if (text.All(char.IsNumber))
+        if (state.Filters != BondFilters.Default)
         {
             await HandleFiltersAsync(message);
 
@@ -103,19 +120,12 @@ public sealed class Bot
     {
         var state = _states.GetState(message);
 
-        var machine = state.StateMachine;
-
-        if(machine is null)
-        {
-            return;
-        }
-
-        await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Next), message);
+        await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Next), message, state.StateMachine);
     }
 
     private async Task HandleTopBondsNoFilters(Message message, CancellationToken token)
     {
-        var bonds = await _grpcService.GetCurrentBondsAsync(new Google.Protobuf.WellKnownTypes.Empty(), cancellationToken: token);
+        var bonds = await _grpcService.GetCurrentBondsAsync(BondFilters.Default.Adapt<Filters>(), cancellationToken: token);
         
         await _bot.SendTextMessageAsync
         (
@@ -132,9 +142,9 @@ public sealed class Bot
         var state = _states.GetState(message);
 
         state.Filters.StartDate = DateTime.Now;
-        state.StateMachine ??= _factory.Create(_bot);
+        state.StateMachine = _factory.Create(_bot, _grpcService);
 
-        await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Start), message);
+        await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Start), message, state.StateMachine);
         
         _states.Add(message.Chat.Username, state);
     }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
+using Web.Services.Dto;
 
 namespace Web.Services;
 public static class Printer
@@ -49,10 +50,22 @@ public static class Printer
         return $"Этот бот (как и весь проект <b>Bonder</b>) был создан двумя людьми:\n\n" +
                $"https://t.me/mgsvtts - backend разработчик\n" +
                $"https://t.me/EvpatiyKaloed - создатель идеи и духовный наставник разработчика\n\n" +
-               $"Пишите нам если у вас есть:\n" +
-               $"    - Идеи и предложения\n" +
-               $"    - Отчеты о багах\n" +
-               $"    - Если вы мощный и уверенный <b>C#, DOTNET, .NET, ASP NET, ASP NET CORE, DOTNET CORE</b> разработчик и желаете поработать за еду (мы студенты у нас нет денег)\n\n" +
+               $"Пишите нам если:\n" +
+               $"    - У вас есть идея или предложение\n" +
+               $"    - Вы нашли баг\n" +
+               $"    - Вы мощный и уверенный <b>C#, DOTNET, .NET, ASP NET, ASP NET CORE, DOTNET CORE</b> разработчик и желаете поработать за еду (мы студенты у нас нет денег)\n\n" +
                $"<b>Спасибо вам, что пользуетесь :3</b>";
+    }
+
+    public static string GetBondsFinish(BondFilters filters)
+    {
+        return $"Итоговые фильтры:\n" +
+               $"    - <b>Цена от: </b> {(filters.PriceFrom > 0 ? filters.PriceFrom.ToString() : "не указана")}\n" +
+               $"    - <b>Цена до: </b> {(filters.PriceTo > 0 ? filters.PriceTo.ToString() : "не указана")}\n" +
+               $"    - <b>Рейтинг от: </b> {(filters.RatingFrom > 0 ? filters.RatingFrom.ToString() : "не указана")}\n" +
+               $"    - <b>Рейтинг до: </b> {(filters.RatingTo > 0 ? filters.RatingTo.ToString() : "не указана")}\n" +
+               $"    - <b>Дата от: </b> {(filters.DateFrom is not null ? filters.DateFrom.ToString() : "не указана")}\n" +
+               $"    - <b>Дата до: </b> {(filters.DateTo != DateOnly.MaxValue ? filters.DateTo.ToString() : "не указана")}\n" +
+               $"    - <b>Неизвестные эмитенты: </b> {(filters.IncludeUnknownRatings == true ? "да" : "нет")}\n";
     }
 }

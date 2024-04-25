@@ -9,7 +9,7 @@ import "google/protobuf/empty.proto";
 
 service CalculationService {
 	rpc GetBondsByTickers(GetBondsByTickersRequest) returns (BondsResponse);
-	rpc GetCurrentBonds(google.protobuf.Empty) returns (GetCurrentBondsResponse);
+	rpc GetCurrentBonds(Filters) returns (GetCurrentBondsResponse);
 }
 
 message GetBondsByTickersRequest {
@@ -42,4 +42,14 @@ message GetCurrentBondsItem {
 	string name = 3;
 	bonder.protos.custom.Decimal income = 4;
     bonder.protos.custom.Decimal price = 5;
+}
+
+message Filters {
+	bonder.protos.custom.Decimal price_from = 1;
+    bonder.protos.custom.Decimal price_to = 2;
+    int32 rating_from = 3;
+    int32 rating_to = 4;
+	google.protobuf.Timestamp date_from = 5;
+	google.protobuf.Timestamp date_to = 6;
+	bool include_unknown_ratings = 7; 
 }

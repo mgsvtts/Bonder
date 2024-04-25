@@ -29,9 +29,9 @@ public sealed class CalculationServiceImpl : CalculationService.CalculationServi
         return bonds.Adapt<BondsResponse>();
     }
 
-    public override async Task<GetCurrentBondsResponse> GetCurrentBonds(Empty request, ServerCallContext context)
+    public override async Task<GetCurrentBondsResponse> GetCurrentBonds(Bonder.Calculation.Grpc.Filters request, ServerCallContext context)
     {
-        var bonds = await _sender.Send(new CalculateAllCommand(new GetPriceSortedRequest(DateIntervalType.TillOfferDate, PageInfo.Default)), context.CancellationToken);
+        var bonds = await _sender.Send(request.Adapt<CalculateAllCommand>(), context.CancellationToken);
 
         return bonds.Adapt<GetCurrentBondsResponse>();
     }

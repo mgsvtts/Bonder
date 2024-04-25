@@ -12,7 +12,7 @@ using Web.Services;
 
 namespace Web.Controllers;
 
-public class BotController : ControllerBase
+public sealed class BotController : ControllerBase
 {
     private readonly Bot _bot;
 

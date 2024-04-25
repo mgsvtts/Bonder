@@ -39,6 +39,8 @@ public class Program
         var portfolioServerUrl = new Uri(builder.Configuration.GetValue<string>("CalculationServerUrl"));
         builder.Services.AddGrpcClient<CalculationService.CalculationServiceClient>(options => options.Address = portfolioServerUrl);
 
+        builder.Services.RegisterMapsterConfiguration();
+
         var app = builder.Build();
 
         app.MapBotWebhookRoute<BotController>(route: botConfiguration.Route);

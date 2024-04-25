@@ -7,6 +7,7 @@ public enum State
     GettingPriceTo,
     GettingRatingFrom,
     GettingRatingTo,
+    GettingUnknownRatings,
     GettingDateFrom,
     GettingDateTo,
     Finished
