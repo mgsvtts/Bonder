@@ -62,31 +62,15 @@ public sealed class Bot
             return;
         }
 
-        var text = message?.Text?.ToUpper();
         var state = _states.GetState(message);
-        if (text == "/EXIT")
-        {
-            await _bot.SendTextMessageAsync
-            (
-                message.Chat.Id,
-                "Выход из режима фильтрации",
-                replyToMessageId: message.MessageId,
-                cancellationToken: token
-            );
-
-            state.Filters = BondFilters.Default;
-
-            return;
-        }
-
         if (state.Filters != BondFilters.Default)
         {
-            await HandleFiltersAsync(message);
+            await HandleFiltersAsync(message, state);
 
             return;
         }
 
-        var action = text.Split(_splitters)[0] switch
+        var action = message?.Text?.ToUpper().Split(_splitters)[0] switch
         {
             "/START" => HandleStartAsync(message, token),
             "/TOP_BONDS" => HandleTopBondsAsync(message, token),
@@ -116,15 +100,41 @@ public sealed class Bot
         await action;
     }
 
-    private async Task HandleFiltersAsync(Message message)
+    private async Task HandleFiltersAsync(Message message, UserState state)
     {
-        var state = _states.GetState(message);
+        if (message.Text.Contains("/EXIT", StringComparison.CurrentCultureIgnoreCase))
+        {
+            await _bot.SendTextMessageAsync
+            (
+                message.Chat.Id,
+                "Выход из режима фильтрации",
+                replyToMessageId: message.MessageId
+            );
 
-        await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Next), message, state.StateMachine);
+            state.Filters = BondFilters.Default;
+
+            return;
+        }
+
+        if (message.Text.Contains("/SKIP", StringComparison.CurrentCultureIgnoreCase))
+        {
+            await _factory.FireSkipAsync(message, state.StateMachine);
+        }
+        else
+        {
+            await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Next), message, state.StateMachine);
+        }
     }
 
     private async Task HandleTopBondsNoFilters(Message message, CancellationToken token)
     {
+        await _bot.SendChatActionAsync
+        (
+            message.Chat.Id,
+            ChatAction.Typing,
+            cancellationToken: token
+        );
+
         var bonds = await _grpcService.GetCurrentBondsAsync(BondFilters.Default.Adapt<Filters>(), cancellationToken: token);
         
         await _bot.SendTextMessageAsync
@@ -142,7 +152,7 @@ public sealed class Bot
         var state = _states.GetState(message);
 
         state.Filters.StartDate = DateTime.Now;
-        state.StateMachine = _factory.Create(_bot, _grpcService);
+        state.StateMachine = _factory.Create(_bot, message.Chat.Id, _grpcService);
 
         await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Start), message, state.StateMachine);
         

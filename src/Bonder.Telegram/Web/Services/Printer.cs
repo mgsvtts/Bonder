@@ -62,8 +62,8 @@ public static class Printer
         return $"Итоговые фильтры:\n" +
                $"    - <b>Цена от: </b> {(filters.PriceFrom > 0 ? filters.PriceFrom.ToString() : "не указана")}\n" +
                $"    - <b>Цена до: </b> {(filters.PriceTo > 0 ? filters.PriceTo.ToString() : "не указана")}\n" +
-               $"    - <b>Рейтинг от: </b> {(filters.RatingFrom > 0 ? filters.RatingFrom.ToString() : "не указана")}\n" +
-               $"    - <b>Рейтинг до: </b> {(filters.RatingTo > 0 ? filters.RatingTo.ToString() : "не указана")}\n" +
+               $"    - <b>Рейтинг от: </b> {(filters.RatingFrom > 0 ? filters.RatingFrom.ToString() : "не указан")}\n" +
+               $"    - <b>Рейтинг до: </b> {(filters.RatingTo > 0 ? filters.RatingTo.ToString() : "не указан")}\n" +
                $"    - <b>Дата от: </b> {(filters.DateFrom is not null ? filters.DateFrom.ToString() : "не указана")}\n" +
                $"    - <b>Дата до: </b> {(filters.DateTo != DateOnly.MaxValue ? filters.DateTo.ToString() : "не указана")}\n" +
                $"    - <b>Неизвестные эмитенты: </b> {(filters.IncludeUnknownRatings == true ? "да" : "нет")}\n";

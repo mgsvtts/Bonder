@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 using Web.Services.Dto;
 
 namespace Web.Services;
@@ -20,53 +21,89 @@ public sealed class StateMachineFactory
         _states = states;
     }
 
-    public StateMachine<State, Trigger> Create(ITelegramBotClient bot, CalculationService.CalculationServiceClient grpcClient)
+    public StateMachine<State, Trigger> Create(ITelegramBotClient bot, long chatId, CalculationService.CalculationServiceClient grpcClient)
     {
         var machine = new StateMachine<State, Trigger>(State.Starting);
 
         var nextTrigger = machine.SetTriggerParameters<Message>(Trigger.Next);
+        var skipTrigger = machine.SetTriggerParameters<Message>(Trigger.Skip);
         var resetTrigger = machine.SetTriggerParameters<ResetContext>(Trigger.Reset);
         var startTrigger = machine.SetTriggerParameters<Message>(Trigger.Start);
 
         machine.Configure(State.Starting)
             .Permit(Trigger.Next, State.GettingPriceFrom)
+            .Permit(Trigger.Skip, State.GettingPriceFrom)
             .PermitReentry(Trigger.Start)
-            .OnEntryFromAsync(startTrigger, message => StartAsync(bot, message))
-            .OnEntryFromAsync(resetTrigger, context => ResetAsync(bot, context));
+            .OnEntryFromAsync(startTrigger, async message =>
+            {
+                await StartAsync(bot, message);
+                await PrintEnterPriceFrom(bot, chatId);
+            })
+            .OnEntryFromAsync(resetTrigger, context => ResetAsync(bot, context))
+            .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context));
 
         machine.Configure(State.GettingPriceFrom)
              .Permit(Trigger.Next, State.GettingPriceTo)
              .Permit(Trigger.Reset, State.Starting)
-             .OnEntryFromAsync(nextTrigger, message => GetPriceFromAsync(bot, message));
+             .Permit(Trigger.Skip, State.GettingPriceTo)
+             .OnEntryFromAsync(nextTrigger, message => GetPriceFromAsync(bot, message))
+             .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
+             .OnEntryAsync(x => PrintEnterPriceTo(bot, chatId));
 
         machine.Configure(State.GettingPriceTo)
              .Permit(Trigger.Next, State.GettingRatingFrom)
              .Permit(Trigger.Reset, State.Starting)
-             .OnEntryFromAsync(nextTrigger, message => GetPriceToAsync(bot, message));
+             .Permit(Trigger.Skip, State.GettingRatingFrom)
+             .OnEntryFromAsync(nextTrigger, message => GetPriceToAsync(bot, message))
+             .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
+             .OnEntryAsync(x => PrintEnterRatingFrom(bot, chatId));
 
         machine.Configure(State.GettingRatingFrom)
              .Permit(Trigger.Next, State.GettingRatingTo)
              .Permit(Trigger.Reset, State.Starting)
-             .OnEntryFromAsync(nextTrigger, message => GetRatingFromAsync(bot, message));
+             .Permit(Trigger.Skip, State.GettingRatingTo)
+             .OnEntryFromAsync(nextTrigger, message => GetRatingFromAsync(bot, message))
+             .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
+             .OnEntryAsync(x => PrintEnterRatingTo(bot, chatId));
 
         machine.Configure(State.GettingRatingTo)
              .Permit(Trigger.Next, State.GettingUnknownRatings)
              .Permit(Trigger.Reset, State.Starting)
-             .OnEntryFromAsync(nextTrigger, message => GetRatingToAsync(bot, message));
+             .Permit(Trigger.Skip, State.GettingUnknownRatings)
+             .OnEntryFromAsync(nextTrigger, message => GetRatingToAsync(bot, message))
+             .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
+             .OnEntryAsync(x => PrintEnterUnknownRatings(bot, chatId));
 
         machine.Configure(State.GettingUnknownRatings)
              .Permit(Trigger.Next, State.GettingDateFrom)
              .Permit(Trigger.Reset, State.Starting)
-             .OnEntryFromAsync(nextTrigger, message => GetUnknownRatingsAsync(bot, message));
+             .Permit(Trigger.Skip, State.GettingDateFrom)
+             .OnEntryFromAsync(nextTrigger, message => GetUnknownRatingsAsync(bot, message))
+             .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
+             .OnEntryAsync( x => PrintEnterDateFrom(bot, chatId));
 
         machine.Configure(State.GettingDateFrom)
+             .Permit(Trigger.Next, State.GettingDateTo)
+             .Permit(Trigger.Reset, State.Starting)
+             .Permit(Trigger.Skip, State.GettingDateTo)
+             .OnEntryFromAsync(nextTrigger, message => GetDateFromAsync(bot, message))
+             .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
+             .OnEntryAsync(x => PrintEnterDateTo(bot, chatId));
+
+        machine.Configure(State.GettingDateTo)
              .Permit(Trigger.Next, State.Finished)
              .Permit(Trigger.Reset, State.Starting)
-             .OnEntryFromAsync(nextTrigger, message => GetDateFromAsync(bot, message));
+             .Permit(Trigger.Skip, State.Finished)
+             .OnEntryFromAsync(nextTrigger, message => GetDateToAsync(bot, message))
+             .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
+             .InitialTransition(State.Finished);
 
         machine.Configure(State.Finished)
              .Permit(Trigger.Reset, State.Starting)
-             .OnEntryFromAsync(nextTrigger, message => GetDateToAsync(bot, message));
+             .OnEntryFromAsync(skipTrigger, message => FinishAsync(bot, message))
+             .OnEntryFromAsync(nextTrigger, message => FinishAsync(bot, message))
+             .OnEntryFromAsync(resetTrigger, context => ResetAsync(bot, context))
+             .SubstateOf(State.GettingDateTo);
 
         _grpcClient = grpcClient;
 
@@ -81,8 +118,13 @@ public sealed class StateMachineFactory
         }
         catch(Exception ex)
         {
-            await machine.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<ResetContext>(Trigger.Reset), new ResetContext(message, machine, ex));
+            await machine.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<ResetContext>(Trigger.Reset), new ResetContext(message, ex));
         }
+    }
+
+    public async Task FireSkipAsync(Message message, StateMachine<State, Trigger> machine)
+    {
+        await machine.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Skip), message);
     }
 
     private static async Task StartAsync(ITelegramBotClient bot, Message message)
@@ -92,12 +134,6 @@ public sealed class StateMachineFactory
             message.Chat.Id,
             $"/skip - пропустить фильтр (будет установлено значение по умолчанию)\n" +
             $"/exit - выйти из режима фильтрации"
-        );
-
-        await bot.SendTextMessageAsync
-        (
-            message.Chat.Id,
-            "Введите \"Цену от\":"
         );
     }
 
@@ -111,12 +147,6 @@ public sealed class StateMachineFactory
         {
             throw new ValidationException("\"Цена от\" не может быть меньше 0");
         }
-
-        await bot.SendTextMessageAsync
-        (
-            message.Chat.Id,
-            "Введите \"Цену до\":"
-       );
     }
 
     private async Task GetPriceToAsync(ITelegramBotClient bot, Message message)
@@ -129,12 +159,6 @@ public sealed class StateMachineFactory
         {
             throw new ValidationException("\"Цена до\" не может быть меньше 0");
         }
-
-        await bot.SendTextMessageAsync
-        (
-            message.Chat.Id,
-            "Введите \"Рейтинг от\" (от 1 до 10 включительно):"
-        );
     }
 
     private async Task GetRatingFromAsync(ITelegramBotClient bot, Message message)
@@ -147,12 +171,6 @@ public sealed class StateMachineFactory
         {
             throw new ValidationException("\"Рейтинг от\" не может быть меньше 0 или больше 10");
         }
-
-        await bot.SendTextMessageAsync
-        (
-            message.Chat.Id,
-            "Введите \"Рейтинг до\" (от 1 до 10 включительно):"
-        );
     }
 
     private async Task GetRatingToAsync(ITelegramBotClient bot, Message message)
@@ -165,12 +183,6 @@ public sealed class StateMachineFactory
         {
             throw new ValidationException("\"Рейтинг до\" не может быть меньше 0 или больше 10");
         }
-
-        await bot.SendTextMessageAsync
-        (
-            message.Chat.Id,
-            "Включать ли эмитентов с неизвестным рейтингом (да|нет)?"
-        );
     }
 
     private async Task GetUnknownRatingsAsync(ITelegramBotClient bot, Message message)
@@ -192,12 +204,6 @@ public sealed class StateMachineFactory
         }
 
         state.Filters.IncludeUnknownRatings = value;
-
-        await bot.SendTextMessageAsync
-        (
-            message.Chat.Id,
-            "Введите \"Дата от\" (в формате \"20/12/2023\" или напишите \"сейчас\" чтобы взять сегодняшную дату):"
-        );
     }
 
 
@@ -213,33 +219,23 @@ public sealed class StateMachineFactory
         {
             state.Filters.DateFrom = DateOnly.ParseExact(message.Text, "d/M/yyyy");
         }
-
-        await bot.SendTextMessageAsync
-        (
-            message.Chat.Id,
-            "Введите \"Дата до\" (в формате \"20/12/2023\" или напишите \"сейчас\" чтобы взять сегодняшную дату):"
-        );
     }
 
     private async Task GetDateToAsync(ITelegramBotClient bot, Message message)
     {
         var state = _states.GetState(message);
 
-        if (message.Text.Contains("СЕЙЧАС", StringComparison.CurrentCultureIgnoreCase))
-        {
-            state.Filters.DateTo = DateOnly.FromDateTime(DateTime.Now);
-        }
-        else
-        {
-            state.Filters.DateTo = DateOnly.ParseExact(message.Text, "d/M/yyyy");
-        }
+        state.Filters.DateTo = DateOnly.ParseExact(message.Text, "d/M/yyyy");
 
-        if(state.Filters.DateTo <= state.Filters.DateFrom)
+        if (state.Filters.DateTo <= state.Filters.DateFrom)
         {
             throw new ValidationException("\"Дата от\" не может быть больше или равна \"Дате до\"");
         }
 
-        await FinishAsync(bot, message);
+        if(state.Filters.DateTo < DateOnly.FromDateTime(DateTime.Now))
+        {
+            throw new ValidationException("\"Дата от\" не может быть в прошлом");
+        }
     }
 
     private async Task FinishAsync(ITelegramBotClient bot, Message message)
@@ -283,7 +279,7 @@ public sealed class StateMachineFactory
         await bot.SendTextMessageAsync
         (
             context.Message.Chat.Id,
-            "Произошла ошибка ввода, состояние фильтров сброшено"
+            "Произошла ошибка ввода, состояние фильтров сброшено\n/exit - выйти из режима фильтрации"
         );
 
         if(context.Exception is ValidationException)
@@ -298,6 +294,124 @@ public sealed class StateMachineFactory
 
         await bot.SendStickerAsync(context.Message.Chat.Id, InputFile.FromFileId(Stickers.FiltersError));
 
-        await FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Start), context.Message, context.Machine);
+        await FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Start), context.Message, state.StateMachine);
     }
+
+    private async Task SkipAsync(ITelegramBotClient bot, Message message)
+    {
+        var state = _states.GetState(message);
+        var filters = state.Filters;
+        var machine = state.StateMachine;
+
+        string setted = "";
+        if (machine.State == State.GettingPriceFrom)
+        {
+            filters.PriceFrom = 0;
+            setted = "0";
+        }
+        else if (machine.State == State.GettingPriceTo)
+        {
+            filters.PriceTo = int.MaxValue;
+            setted = "Очень большое число";
+        }
+        else if (machine.State == State.GettingRatingFrom)
+        {
+            filters.RatingFrom = 0; 
+            setted = "0";
+        }
+        else if (machine.State == State.GettingRatingTo)
+        {
+            filters.RatingTo = 10;
+            setted = "10";
+        }
+        else if (machine.State == State.GettingUnknownRatings)
+        {
+            filters.IncludeUnknownRatings = true;
+            setted = "Да";
+        }
+        else if (machine.State == State.GettingDateFrom)
+        {
+            filters.DateFrom = DateOnly.FromDateTime(DateTime.Now);
+            setted = filters.DateFrom.ToString();
+        }
+        else if (machine.State == State.GettingDateTo)
+        {
+            filters.DateTo = DateOnly.MaxValue;
+            setted = "Начало времён";
+        }
+
+        await bot.SendTextMessageAsync
+        (
+            message.Chat.Id,
+            $"Фильтр пропущен, установлено значение: <b>{setted}</b>",
+            replyToMessageId:message.MessageId,
+            parseMode: ParseMode.Html
+        );
+    }
+    private static async Task PrintEnterPriceFrom(ITelegramBotClient bot, long chatId)
+    {
+        await bot.SendTextMessageAsync
+        (
+            chatId,
+            "Введите \"Цену от\":"
+        );
+    }
+    private static async Task PrintEnterPriceTo(ITelegramBotClient bot, long chatId)
+    {
+        await bot.SendTextMessageAsync
+        (
+            chatId,
+            "Введите \"Цену до\":"
+        );
+    }
+    private static async Task PrintEnterRatingFrom(ITelegramBotClient bot, long chatId)
+    {
+        await bot.SendTextMessageAsync
+        (
+            chatId,
+            "Введите \"Рейтинг от\" (от 1 до 10 включительно):"
+        );
+    }
+    private static async Task PrintEnterRatingTo(ITelegramBotClient bot, long chatId)
+    {
+        await bot.SendTextMessageAsync
+        (
+            chatId,
+            "Введите \"Рейтинг до\" (от 1 до 10 включительно):"
+        );
+    }
+    private static async Task PrintEnterUnknownRatings(ITelegramBotClient bot, long chatId)
+    {
+        var replyMarkup = new InlineKeyboardMarkup(new InlineKeyboardButton[][]
+        {
+            [InlineKeyboardButton.WithCallbackData("Да", "/BONDS_WITH_UNKNOWN_RATINGS")],
+            [InlineKeyboardButton.WithCallbackData("Нет", "/BONDS_WITHOUT_UNKNOWN_RATINGS")]
+        });
+
+        await bot.SendTextMessageAsync
+        (
+            chatId,
+            "Включать ли эмитентов с неизвестным рейтингом (да|нет)?",
+            replyMarkup: replyMarkup
+        );
+    }
+
+    private static async Task PrintEnterDateFrom(ITelegramBotClient bot, long chatId)
+    {
+        await bot.SendTextMessageAsync
+        (
+            chatId,
+            "Введите \"Дата от\" (в формате \"20/12/2023\" или напишите \"сейчас\" чтобы взять сегодняшную дату):"
+        );
+    }
+
+    private static async Task PrintEnterDateTo(ITelegramBotClient bot, long chatId)
+    {
+        await bot.SendTextMessageAsync
+        (
+            chatId,
+            "Введите \"Дата до\" (в формате \"20/12/2023\":"
+        );
+    }
+
 }
