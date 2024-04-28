@@ -1,7 +1,6 @@
 ﻿using Bonder.Calculation.Grpc;
 using Mapster;
 using Stateless;
-using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -33,6 +32,7 @@ public sealed class StateMachineFactory
         machine.Configure(State.Starting)
             .Permit(Trigger.Next, State.GettingPriceFrom)
             .Permit(Trigger.Skip, State.GettingPriceFrom)
+            .PermitReentry(Trigger.Reset)
             .PermitReentry(Trigger.Start)
             .OnEntryFromAsync(startTrigger, async message =>
             {
@@ -44,9 +44,9 @@ public sealed class StateMachineFactory
 
         machine.Configure(State.GettingPriceFrom)
              .Permit(Trigger.Next, State.GettingPriceTo)
-             .Permit(Trigger.Reset, State.Starting)
+             .PermitReentry(Trigger.Reset)
              .Permit(Trigger.Skip, State.GettingPriceTo)
-             .OnEntryFromAsync(nextTrigger, message => GetPriceFromAsync(bot, message))
+             .OnEntryFromAsync(nextTrigger, GetPriceFromAsync)
              .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
              .OnEntryAsync(x => PrintEnterPriceTo(bot, chatId));
 
@@ -54,7 +54,7 @@ public sealed class StateMachineFactory
              .Permit(Trigger.Next, State.GettingRatingFrom)
              .Permit(Trigger.Reset, State.Starting)
              .Permit(Trigger.Skip, State.GettingRatingFrom)
-             .OnEntryFromAsync(nextTrigger, message => GetPriceToAsync(bot, message))
+             .OnEntryFromAsync(nextTrigger, GetPriceToAsync)
              .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
              .OnEntryAsync(x => PrintEnterRatingFrom(bot, chatId));
 
@@ -62,7 +62,7 @@ public sealed class StateMachineFactory
              .Permit(Trigger.Next, State.GettingRatingTo)
              .Permit(Trigger.Reset, State.Starting)
              .Permit(Trigger.Skip, State.GettingRatingTo)
-             .OnEntryFromAsync(nextTrigger, message => GetRatingFromAsync(bot, message))
+             .OnEntryFromAsync(nextTrigger, GetRatingFromAsync)
              .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
              .OnEntryAsync(x => PrintEnterRatingTo(bot, chatId));
 
@@ -70,7 +70,7 @@ public sealed class StateMachineFactory
              .Permit(Trigger.Next, State.GettingUnknownRatings)
              .Permit(Trigger.Reset, State.Starting)
              .Permit(Trigger.Skip, State.GettingUnknownRatings)
-             .OnEntryFromAsync(nextTrigger, message => GetRatingToAsync(bot, message))
+             .OnEntryFromAsync(nextTrigger, GetRatingToAsync)
              .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
              .OnEntryAsync(x => PrintEnterUnknownRatings(bot, chatId));
 
@@ -78,15 +78,14 @@ public sealed class StateMachineFactory
              .Permit(Trigger.Next, State.GettingDateFrom)
              .Permit(Trigger.Reset, State.Starting)
              .Permit(Trigger.Skip, State.GettingDateFrom)
-             .OnEntryFromAsync(nextTrigger, message => GetUnknownRatingsAsync(bot, message))
              .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
-             .OnEntryAsync( x => PrintEnterDateFrom(bot, chatId));
+             .OnEntryAsync(x => PrintEnterDateFrom(bot, chatId));
 
         machine.Configure(State.GettingDateFrom)
              .Permit(Trigger.Next, State.GettingDateTo)
              .Permit(Trigger.Reset, State.Starting)
              .Permit(Trigger.Skip, State.GettingDateTo)
-             .OnEntryFromAsync(nextTrigger, message => GetDateFromAsync(bot, message))
+             .OnEntryFromAsync(nextTrigger, GetDateFromAsync)
              .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
              .OnEntryAsync(x => PrintEnterDateTo(bot, chatId));
 
@@ -94,7 +93,7 @@ public sealed class StateMachineFactory
              .Permit(Trigger.Next, State.Finished)
              .Permit(Trigger.Reset, State.Starting)
              .Permit(Trigger.Skip, State.Finished)
-             .OnEntryFromAsync(nextTrigger, message => GetDateToAsync(bot, message))
+             .OnEntryFromAsync(nextTrigger, GetDateToAsync)
              .OnEntryFromAsync(skipTrigger, context => SkipAsync(bot, context))
              .InitialTransition(State.Finished);
 
@@ -110,13 +109,13 @@ public sealed class StateMachineFactory
         return machine;
     }
 
-    public async Task FireAsync(StateMachine<State,Trigger>.TriggerWithParameters<Message> trigger, Message message, StateMachine<State, Trigger> machine)
+    public async Task FireAsync(StateMachine<State, Trigger>.TriggerWithParameters<Message> trigger, Message message, StateMachine<State, Trigger> machine)
     {
         try
         {
             await machine.FireAsync(trigger, message);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             await machine.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<ResetContext>(Trigger.Reset), new ResetContext(message, ex));
         }
@@ -137,7 +136,7 @@ public sealed class StateMachineFactory
         );
     }
 
-    private async Task GetPriceFromAsync(ITelegramBotClient bot, Message message)
+    private async Task GetPriceFromAsync(Message message)
     {
         var state = _states.GetState(message);
 
@@ -149,7 +148,7 @@ public sealed class StateMachineFactory
         }
     }
 
-    private async Task GetPriceToAsync(ITelegramBotClient bot, Message message)
+    private async Task GetPriceToAsync(Message message)
     {
         var state = _states.GetState(message);
 
@@ -161,7 +160,7 @@ public sealed class StateMachineFactory
         }
     }
 
-    private async Task GetRatingFromAsync(ITelegramBotClient bot, Message message)
+    private async Task GetRatingFromAsync(Message message)
     {
         var state = _states.GetState(message);
 
@@ -173,7 +172,7 @@ public sealed class StateMachineFactory
         }
     }
 
-    private async Task GetRatingToAsync(ITelegramBotClient bot, Message message)
+    private async Task GetRatingToAsync(Message message)
     {
         var state = _states.GetState(message);
 
@@ -185,56 +184,52 @@ public sealed class StateMachineFactory
         }
     }
 
-    private async Task GetUnknownRatingsAsync(ITelegramBotClient bot, Message message)
+    private async Task GetDateFromAsync(Message message)
     {
+        if (message.From.Username.Contains("BONDER", StringComparison.CurrentCultureIgnoreCase))
+        {
+            return;
+        }
+
         var state = _states.GetState(message);
 
-        bool value;
-        if (message.Text.Contains("ДА", StringComparison.CurrentCultureIgnoreCase))
+        if (!DateOnly.TryParseExact(message.Text, "d/M/yyyy", out var result))
         {
-            value = true;
-        }
-        else if (message.Text.Contains("НЕТ", StringComparison.CurrentCultureIgnoreCase))
-        {
-            value = false;
-        }
-        else
-        {
-            throw new ValidationException("Сообщение не содержит слова \"да\" или \"нет\"");
+            throw new ValidationException("Некорректный формат даты");
         }
 
-        state.Filters.IncludeUnknownRatings = value;
+        state.Filters.DateFrom = result;
     }
 
-
-    private async Task GetDateFromAsync(ITelegramBotClient bot, Message message)
+    private async Task GetDateToAsync(Message message)
     {
+        if (message.From.Username.Contains("BONDER", StringComparison.CurrentCultureIgnoreCase))
+        {
+            return;
+        }
+
         var state = _states.GetState(message);
 
-        if (message.Text.Contains("СЕЙЧАС", StringComparison.CurrentCultureIgnoreCase))
+        if (message.Text.ToUpper() == "СЕЙЧАС")
         {
-            state.Filters.DateFrom = DateOnly.FromDateTime(DateTime.Now);
+            throw new ValidationException("\"Дата до\" должна быть больше чем сегодня");
         }
-        else
+
+        if (!DateOnly.TryParseExact(message.Text, "d/M/yyyy", out var result))
         {
-            state.Filters.DateFrom = DateOnly.ParseExact(message.Text, "d/M/yyyy");
+            throw new ValidationException("Некорректный формат даты");
         }
-    }
 
-    private async Task GetDateToAsync(ITelegramBotClient bot, Message message)
-    {
-        var state = _states.GetState(message);
-
-        state.Filters.DateTo = DateOnly.ParseExact(message.Text, "d/M/yyyy");
+        state.Filters.DateTo = result;
 
         if (state.Filters.DateTo <= state.Filters.DateFrom)
         {
-            throw new ValidationException("\"Дата от\" не может быть больше или равна \"Дате до\"");
+            throw new ValidationException("\"Дата до\" должна быть больше, чем \"Дата от\"");
         }
 
-        if(state.Filters.DateTo < DateOnly.FromDateTime(DateTime.Now))
+        if (state.Filters.DateTo <= DateOnly.FromDateTime(DateTime.Now))
         {
-            throw new ValidationException("\"Дата от\" не может быть в прошлом");
+            throw new ValidationException($"\"Дата до\" не может меньше или равна {DateTime.Now:dd.MMMM.yyyy}");
         }
     }
 
@@ -279,10 +274,10 @@ public sealed class StateMachineFactory
         await bot.SendTextMessageAsync
         (
             context.Message.Chat.Id,
-            "Произошла ошибка ввода, состояние фильтров сброшено\n/exit - выйти из режима фильтрации"
+            "Произошла ошибка ввода, состояние фильтров сброшено\n"
         );
 
-        if(context.Exception is ValidationException)
+        if (context.Exception is ValidationException)
         {
             await bot.SendTextMessageAsync
             (
@@ -316,7 +311,7 @@ public sealed class StateMachineFactory
         }
         else if (machine.State == State.GettingRatingFrom)
         {
-            filters.RatingFrom = 0; 
+            filters.RatingFrom = 0;
             setted = "0";
         }
         else if (machine.State == State.GettingRatingTo)
@@ -337,17 +332,18 @@ public sealed class StateMachineFactory
         else if (machine.State == State.GettingDateTo)
         {
             filters.DateTo = DateOnly.MaxValue;
-            setted = "Начало времён";
+            setted = "Конец времён";
         }
 
         await bot.SendTextMessageAsync
         (
             message.Chat.Id,
             $"Фильтр пропущен, установлено значение: <b>{setted}</b>",
-            replyToMessageId:message.MessageId,
+            replyToMessageId: message.MessageId,
             parseMode: ParseMode.Html
         );
     }
+
     private static async Task PrintEnterPriceFrom(ITelegramBotClient bot, long chatId)
     {
         await bot.SendTextMessageAsync
@@ -356,6 +352,7 @@ public sealed class StateMachineFactory
             "Введите \"Цену от\":"
         );
     }
+
     private static async Task PrintEnterPriceTo(ITelegramBotClient bot, long chatId)
     {
         await bot.SendTextMessageAsync
@@ -364,35 +361,41 @@ public sealed class StateMachineFactory
             "Введите \"Цену до\":"
         );
     }
+
     private static async Task PrintEnterRatingFrom(ITelegramBotClient bot, long chatId)
     {
         await bot.SendTextMessageAsync
         (
             chatId,
-            "Введите \"Рейтинг от\" (от 1 до 10 включительно):"
+            Printer.EnterRatingFrom(),
+            parseMode: ParseMode.Html
         );
     }
+
     private static async Task PrintEnterRatingTo(ITelegramBotClient bot, long chatId)
     {
         await bot.SendTextMessageAsync
         (
             chatId,
-            "Введите \"Рейтинг до\" (от 1 до 10 включительно):"
+            "Введите \"Рейтинг до\" (от 1 до 10 включительно):",
+            parseMode: ParseMode.Html
         );
     }
+
     private static async Task PrintEnterUnknownRatings(ITelegramBotClient bot, long chatId)
     {
-        var replyMarkup = new InlineKeyboardMarkup(new InlineKeyboardButton[][]
-        {
-            [InlineKeyboardButton.WithCallbackData("Да", "/BONDS_WITH_UNKNOWN_RATINGS")],
-            [InlineKeyboardButton.WithCallbackData("Нет", "/BONDS_WITHOUT_UNKNOWN_RATINGS")]
-        });
-
         await bot.SendTextMessageAsync
         (
             chatId,
-            "Включать ли эмитентов с неизвестным рейтингом (да|нет)?",
-            replyMarkup: replyMarkup
+            "Включать ли эмитентов с неизвестным рейтингом?\n\n" +
+            "<b>\"Неизвестный\"</b> - значит этих эмитентов нет на сайте https://www.dohod.ru",
+            parseMode: ParseMode.Html,
+            disableWebPagePreview: true,
+            replyMarkup: new InlineKeyboardMarkup(new InlineKeyboardButton[][]
+            {
+                [InlineKeyboardButton.WithCallbackData("Да", "/BONDS_WITH_UNKNOWN_RATINGS")],
+                [InlineKeyboardButton.WithCallbackData("Нет", "/BONDS_WITHOUT_UNKNOWN_RATINGS")]
+            })
         );
     }
 
@@ -401,7 +404,11 @@ public sealed class StateMachineFactory
         await bot.SendTextMessageAsync
         (
             chatId,
-            "Введите \"Дата от\" (в формате \"20/12/2023\" или напишите \"сейчас\" чтобы взять сегодняшную дату):"
+            $"Введите \"Дата от\" (в формате \"{DateTime.Now:dd/MM/yyyy}\")\nИли:",
+            replyMarkup: new InlineKeyboardMarkup(new InlineKeyboardButton[][]
+            {
+                [InlineKeyboardButton.WithCallbackData("Взять сегодняшнюю дату", "/DATEFROM_IS_TODAY")],
+            })
         );
     }
 
@@ -410,8 +417,17 @@ public sealed class StateMachineFactory
         await bot.SendTextMessageAsync
         (
             chatId,
-            "Введите \"Дата до\" (в формате \"20/12/2023\":"
+            Printer.EnterDateFrom(),
+            parseMode: ParseMode.Html,
+            replyMarkup: new InlineKeyboardMarkup(new InlineKeyboardButton[][]
+            {
+                [InlineKeyboardButton.WithCallbackData("До погашения", "/DATETO_IS_MATURITY")],
+                [InlineKeyboardButton.WithCallbackData("До оферты", "/DATETO_IS_OFFER")],
+                [InlineKeyboardButton.WithCallbackData("На 1 год вперёд", "/DATETO_ONE_YEAR")],
+                [InlineKeyboardButton.WithCallbackData("На 3 года вперед", "/DATETO_THREE_YEARS")],
+                [InlineKeyboardButton.WithCallbackData("На 5 лет вперед", "/DATETO_FIVE_YEARS")],
+                [InlineKeyboardButton.WithCallbackData("На 10 лет вперед", "/DATETO_TEN_YEARS")],
+            })
         );
     }
-
 }

@@ -1,5 +1,4 @@
-﻿using Stateless;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot.Types;
 
 namespace Web.Services.Dto;
 

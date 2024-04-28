@@ -11,5 +11,6 @@ public sealed record BondFilters
     public int RatingTo { get; set; } = 10;
     public DateOnly? DateFrom { get; set; } = null;
     public DateOnly DateTo { get; set; } = DateOnly.MaxValue;
+    public DateToType DateToType { get; set; } = DateToType.Custom;
     public bool IncludeUnknownRatings { get; set; } = true;
 }

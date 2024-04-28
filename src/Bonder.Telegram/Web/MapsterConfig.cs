@@ -13,16 +13,7 @@ public static class MapsterConfig
     {
         TypeAdapterConfig<BondFilters, Filters>
         .ForType()
-        .MapWith(x => new Filters
-        {
-            DateFrom = x.DateFrom != null ? Timestamp.FromDateTime(new DateTime(x.DateFrom.Value, TimeOnly.MinValue, DateTimeKind.Utc)) : Timestamp.FromDateTime(DateTime.UtcNow),
-            DateTo = Timestamp.FromDateTime(new DateTime(x.DateTo, TimeOnly.MinValue, DateTimeKind.Utc)),
-            PriceFrom = x.PriceFrom,
-            PriceTo = x.PriceTo,
-            RatingFrom = x.RatingFrom,
-            RatingTo = x.RatingTo,
-            IncludeUnknownRatings = x.IncludeUnknownRatings
-        });
+        .MapWith(x => CustomMappings.MapFilters(x));
 
         TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 
@@ -33,5 +24,31 @@ public static class MapsterConfig
         services.AddSingleton<IMapper>(mapperConfig);
 
         return services;
+    }
+}
+
+public static class CustomMappings
+{
+    public static Filters MapFilters(BondFilters source)
+    {
+        var type = source.DateToType switch
+        {
+            DateToType.Custom => GrpcDateIntervalType.Custom,
+            DateToType.Maturity => GrpcDateIntervalType.Maturity,
+            DateToType.Offer => GrpcDateIntervalType.Offer,
+            _ => throw new NotImplementedException(),
+        };
+
+        return new Filters
+        {
+            DateIntervalType = type,
+            DateFrom = source.DateFrom != null ? Timestamp.FromDateTime(new DateTime(source.DateFrom.Value, TimeOnly.MinValue, DateTimeKind.Utc)) : Timestamp.FromDateTime(DateTime.UtcNow),
+            DateTo = Timestamp.FromDateTime(new DateTime(source.DateTo, TimeOnly.MinValue, DateTimeKind.Utc)),
+            PriceFrom = source.PriceFrom,
+            PriceTo = source.PriceTo,
+            RatingFrom = source.RatingFrom,
+            RatingTo = source.RatingTo,
+            IncludeUnknownRatings = source.IncludeUnknownRatings
+        };
     }
 }

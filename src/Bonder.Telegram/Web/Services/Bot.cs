@@ -1,17 +1,7 @@
 ﻿using Bonder.Calculation.Grpc;
 using Mapster;
-using Microsoft.Extensions.DependencyInjection;
 using Stateless;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Telegram.Bot;
-using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -21,7 +11,7 @@ namespace Web.Services;
 
 public sealed class Bot
 {
-    private static readonly char[] _splitters = [',', ' ', '\n']; 
+    private static readonly char[] _splitters = [',', ' ', '\n'];
     private static readonly StateDictionary _states = new();
     private static readonly StateMachineFactory _factory = new(_states);
 
@@ -38,15 +28,15 @@ public sealed class Bot
     {
         var handler = update switch
         {
-            { Message: { } message } => BotOnMessageReceived(message, token),
-            { CallbackQuery: { } callbackQuery } => BotOnCallbackQueryReceived(callbackQuery, token),
+            { Message: { } message } => ReceiveMessage(message, token),
+            { CallbackQuery: { } callbackQuery } => ReceivedCallback(callbackQuery, token),
             _ => DoNothingAsync(update.Message, token)
         };
 
         await handler;
     }
 
-    private async Task BotOnMessageReceived(Message message, CancellationToken token)
+    private async Task ReceiveMessage(Message message, CancellationToken token)
     {
         var sticker = message?.Sticker?.FileId;
 
@@ -81,7 +71,7 @@ public sealed class Bot
         await action;
     }
 
-    private async Task BotOnCallbackQueryReceived(CallbackQuery query, CancellationToken token)
+    private async Task ReceivedCallback(CallbackQuery query, CancellationToken token)
     {
         var text = query?.Data?.ToUpper();
 
@@ -92,12 +82,72 @@ public sealed class Bot
 
         var action = text.Split(_splitters)[0] switch
         {
-            "/TOP_BONDS_NO_FILTERS" => HandleTopBondsNoFilters(query.Message, token),
-            "/TOP_BONDS_WITH_FILTERS" => HandleTopBondsWithFilters(query.Message, token),
+            "/TOP_BONDS_NO_FILTERS" => HandleTopBondsNoFiltersAsync(query.Message, token),
+            "/TOP_BONDS_WITH_FILTERS" => HandleTopBondsWithFiltersAsync(query.Message, token),
+            "/BONDS_WITH_UNKNOWN_RATINGS" => HandleBondsWithUnknownRatingsAsync(query.Message, true),
+            "/BONDS_WITHOUT_UNKNOWN_RATINGS" => HandleBondsWithUnknownRatingsAsync(query.Message, false),
+            "/DATEFROM_IS_TODAY" => HandleDateFromAsync(query.Message),
+            "/DATETO_IS_MATURITY" => HandleDateToAsync(query.Message, DateToType.Maturity),
+            "/DATETO_IS_OFFER" => HandleDateToAsync(query.Message, DateToType.Offer),
+            "/DATETO_ONE_YEAR" => HandleDateToAsync(query.Message, DateToType.OneYear),
+            "/DATETO_THREE_YEARS" => HandleDateToAsync(query.Message, DateToType.ThreeYears),
+            "/DATETO_FIVE_YEARS" => HandleDateToAsync(query.Message, DateToType.FiveYears),
+            "/DATETO_TEN_YEARS" => HandleDateToAsync(query.Message, DateToType.TenYears),
             _ => DoNothingAsync(query.Message, token)
         };
 
         await action;
+    }
+
+    private static async Task HandleDateFromAsync(Message message)
+    {
+        var state = _states.GetState(message);
+
+        if (state.Filters == BondFilters.Default)
+        {
+            return;
+        }
+
+        state.Filters.DateFrom = DateOnly.FromDateTime(DateTime.Now);
+
+        await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Next), message, state.StateMachine);
+    }
+
+    private static async Task HandleDateToAsync(Message message, DateToType type)
+    {
+        var state = _states.GetState(message);
+
+        if (state.Filters == BondFilters.Default)
+        {
+            return;
+        }
+
+        if (type == DateToType.Maturity)
+        {
+            state.Filters.DateToType = DateToType.Maturity;
+        }
+        else if (type == DateToType.Offer)
+        {
+            state.Filters.DateToType = DateToType.Offer;
+        }
+        else if (type == DateToType.OneYear)
+        {
+            state.Filters.DateTo = DateOnly.FromDateTime(DateTime.Now.AddYears(1));
+        }
+        else if (type == DateToType.ThreeYears)
+        {
+            state.Filters.DateTo = DateOnly.FromDateTime(DateTime.Now.AddYears(3));
+        }
+        else if (type == DateToType.FiveYears)
+        {
+            state.Filters.DateTo = DateOnly.FromDateTime(DateTime.Now.AddYears(5));
+        }
+        else if (type == DateToType.TenYears)
+        {
+            state.Filters.DateTo = DateOnly.FromDateTime(DateTime.Now.AddYears(10));
+        }
+
+        await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Next), message, state.StateMachine);
     }
 
     private async Task HandleFiltersAsync(Message message, UserState state)
@@ -126,7 +176,7 @@ public sealed class Bot
         }
     }
 
-    private async Task HandleTopBondsNoFilters(Message message, CancellationToken token)
+    private async Task HandleTopBondsNoFiltersAsync(Message message, CancellationToken token)
     {
         await _bot.SendChatActionAsync
         (
@@ -136,7 +186,7 @@ public sealed class Bot
         );
 
         var bonds = await _grpcService.GetCurrentBondsAsync(BondFilters.Default.Adapt<Filters>(), cancellationToken: token);
-        
+
         await _bot.SendTextMessageAsync
         (
             chatId: message.Chat.Id,
@@ -147,7 +197,21 @@ public sealed class Bot
         );
     }
 
-    private async Task HandleTopBondsWithFilters(Message message, CancellationToken token)
+    private static async Task HandleBondsWithUnknownRatingsAsync(Message message, bool value)
+    {
+        var state = _states.GetState(message);
+
+        if (state.Filters == BondFilters.Default)
+        {
+            return;
+        }
+
+        state.Filters.IncludeUnknownRatings = value;
+
+        await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Next), message, state.StateMachine);
+    }
+
+    private async Task HandleTopBondsWithFiltersAsync(Message message, CancellationToken token)
     {
         var state = _states.GetState(message);
 
@@ -155,7 +219,7 @@ public sealed class Bot
         state.StateMachine = _factory.Create(_bot, message.Chat.Id, _grpcService);
 
         await _factory.FireAsync(new StateMachine<State, Trigger>.TriggerWithParameters<Message>(Trigger.Start), message, state.StateMachine);
-        
+
         _states.Add(message.Chat.Username, state);
     }
 
@@ -196,7 +260,6 @@ public sealed class Bot
             InputFile.FromFileId(Stickers.Devs),
             cancellationToken: token
         );
-
     }
 
     private async Task HandleTopBondsAsync(Message message, CancellationToken token)
@@ -208,18 +271,16 @@ public sealed class Bot
             cancellationToken: token
         );
 
-        var replyMarkup = new InlineKeyboardMarkup(new InlineKeyboardButton[][]
-        {
-            [InlineKeyboardButton.WithCallbackData("С фильтрами", "/TOP_BONDS_WITH_FILTERS")],
-            [InlineKeyboardButton.WithCallbackData("Без фильтров", "/TOP_BONDS_NO_FILTERS")]
-        });
-
         await _bot.SendTextMessageAsync
         (
             message.Chat.Id,
             "Выберите действие:",
             replyToMessageId: message.MessageId,
-            replyMarkup: replyMarkup,
+            replyMarkup: new InlineKeyboardMarkup(new InlineKeyboardButton[][]
+            {
+                [InlineKeyboardButton.WithCallbackData("С фильтрами", "/TOP_BONDS_WITH_FILTERS")],
+                [InlineKeyboardButton.WithCallbackData("Без фильтров", "/TOP_BONDS_NO_FILTERS")]
+            }),
             cancellationToken: token
         );
     }
@@ -228,7 +289,7 @@ public sealed class Bot
     {
         await _bot.SendStickerAsync
         (
-            message.Chat.Id, 
+            message.Chat.Id,
             InputFile.FromFileId(Stickers.DoNothing),
             cancellationToken: token
         );
@@ -244,6 +305,5 @@ public sealed class Bot
 
     private async Task ErrorAsync(ITelegramBotClient bot, Exception exception, CancellationToken token)
     {
-
     }
 }

@@ -239,13 +239,26 @@ public static class CustomMappings
 
         foreach (var result in calculationResponse.Aggregation.FullIncomeSortedBonds)
         {
+            var offerDate = result.Bond.Dates.OfferDate is not null ? result.Bond.Dates.OfferDate.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue;
+            var maturityDate = result.Bond.Dates.MaturityDate is not null ? result.Bond.Dates.MaturityDate.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue;
             response.Bonds.Add(new GetCurrentBondsItem
             {
-                Id = result.Bond.Identity.InstrumentId,
-                Name = result.Bond.Name,
-                Price = result.Bond.Income.StaticIncome.AbsolutePrice,
-                Ticker = result.Bond.Identity.Ticker.ToString(),
+                Item = new GrpcBond
+                {
+                    Id = result.Bond.Identity.InstrumentId,
+                    Name = result.Bond.Name,
+                    Rating = result.Bond.Rating ?? 0,
+                    Price = result.Bond.Income.StaticIncome.AbsolutePrice,
+                    Ticker = result.Bond.Identity.Ticker.ToString(),
+                    Isin = result.Bond.Identity.Isin.ToString(),
+                    Nominal = result.Bond.Income.StaticIncome.AbsoluteNominal,
+                    OfferDate = Timestamp.FromDateTime(offerDate.ToUniversalTime()),
+                    MaturityDate = Timestamp.FromDateTime(maturityDate.ToUniversalTime()),
+                },
                 Income = result.Money,
+                CouponIncome = result.Bond.Income.CouponIncome.CouponPercent,
+                AmortizationIncome = result.Bond.Income.AmortizationIncome.AmortizationPercent,
+                PricePercent = result.Bond.Income.StaticIncome.PricePercent
             });
         }
 
@@ -277,15 +290,23 @@ public static class CustomMappings
 
     public static CalculateAllCommand FromFilters(Filters filters)
     {
-        return new CalculateAllCommand(new GetPriceSortedRequest(DateIntervalType.TillCustomDate,
-                                                PageInfo.Default,
-                                                priceFrom: filters.PriceFrom,
-                                                priceTo: filters.PriceTo,
-                                                ratingFrom: filters.RatingFrom,
-                                                ratingTo: filters.RatingTo,
-                                                dateFrom: DateOnly.FromDateTime(filters.DateFrom.ToDateTime()),
-                                                dateTo: DateOnly.FromDateTime(filters.DateTo.ToDateTime()),
-                                                includeUnknownRatings: filters.IncludeUnknownRatings));
+        var interval = filters.DateIntervalType switch
+        {
+            GrpcDateIntervalType.Maturity => DateIntervalType.TillMaturityDate,
+            GrpcDateIntervalType.Offer => DateIntervalType.TillOfferDate,
+            GrpcDateIntervalType.Custom => DateIntervalType.TillCustomDate,
+            _ => throw new NotImplementedException(),
+        };
+
+        return new CalculateAllCommand(new GetPriceSortedRequest(interval,
+                                       PageInfo.Default,
+                                       priceFrom: filters.PriceFrom,
+                                       priceTo: filters.PriceTo,
+                                       ratingFrom: filters.RatingFrom,
+                                       ratingTo: filters.RatingTo,
+                                       dateFrom: DateOnly.FromDateTime(filters.DateFrom.ToDateTime()),
+                                       dateTo: DateOnly.FromDateTime(filters.DateTo.ToDateTime()),
+                                       includeUnknownRatings: filters.IncludeUnknownRatings));
     }
 
     public static CalculateResponse FromCalculateAllResponse(CalculateAllResponse results)

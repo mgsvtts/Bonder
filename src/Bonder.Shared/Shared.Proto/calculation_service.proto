@@ -37,11 +37,11 @@ message GrpcBond {
 }
 
 message GetCurrentBondsItem {
-	bonder.protos.custom.GrpcGuid id = 1;
-	string ticker = 2;
-	string name = 3;
-	bonder.protos.custom.Decimal income = 4;
-    bonder.protos.custom.Decimal price = 5;
+	GrpcBond item = 1;
+	bonder.protos.custom.Decimal income = 2;
+	bonder.protos.custom.Decimal coupon_income = 3;
+	bonder.protos.custom.Decimal amortization_income = 4;
+	bonder.protos.custom.Decimal price_percent = 5;
 }
 
 message Filters {
@@ -52,4 +52,11 @@ message Filters {
 	google.protobuf.Timestamp date_from = 5;
 	google.protobuf.Timestamp date_to = 6;
 	bool include_unknown_ratings = 7; 
+	GrpcDateIntervalType DateIntervalType = 8;
+}
+
+enum GrpcDateIntervalType {
+  MATURITY = 0;
+  OFFER = 1;
+  CUSTOM = 2;
 }
