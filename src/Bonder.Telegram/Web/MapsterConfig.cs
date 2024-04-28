@@ -1,9 +1,9 @@
-﻿using Bonder.Calculation.Grpc;
+﻿using Application.Bot.Dto;
+using Bonder.Calculation.Grpc;
 using Google.Protobuf.WellKnownTypes;
 using Mapster;
 using MapsterMapper;
 using System.Reflection;
-using Web.Services.Dto;
 
 namespace Web;
 

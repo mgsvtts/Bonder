@@ -1,9 +1,9 @@
-﻿using Bonder.Calculation.Grpc;
+﻿using Application.Bot.Dto;
+using Bonder.Calculation.Grpc;
 using System.Text;
 using Telegram.Bot.Types;
-using Web.Services.Dto;
 
-namespace Web.Services;
+namespace Application.Helpers;
 
 public static class Printer
 {

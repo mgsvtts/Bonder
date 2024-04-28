@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Application.BackgroundServices;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Options;
 using System.Net;
 
-namespace Web.FilterAttributes;
+namespace Presentation.Filters;
 
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class ValidateTelegramBotAttribute : TypeFilterAttribute

@@ -1,4 +1,4 @@
-﻿namespace Web.Services.Dto;
+﻿namespace Application.Bot.Dto;
 
 public sealed record BondFilters
 {

@@ -1,9 +1,9 @@
+using Application.BackgroundServices;
+using Application.Bot;
 using Bonder.Calculation.Grpc;
+using Presentation;
 using Telegram.Bot;
-using Web.Controllers;
 using Web.Extensions;
-using Web.Services;
-using Web.Services.Hosted;
 
 namespace Web;
 
@@ -26,7 +26,7 @@ public class Program
             return new TelegramBotClient(options, httpClient);
         });
 
-        builder.Services.AddScoped<Bot>();
+        builder.Services.AddScoped<TelegramBot>();
 
         builder.Services.AddHostedService<ConfigureWebhook>();
 
@@ -48,14 +48,4 @@ public class Program
 
         app.Run();
     }
-}
-
-public class BotConfiguration
-{
-    public static readonly string Configuration = "BotConfiguration";
-
-    public string BotToken { get; init; } = default!;
-    public string HostAddress { get; init; } = default!;
-    public string Route { get; init; } = default!;
-    public string SecretToken { get; init; } = default!;
 }

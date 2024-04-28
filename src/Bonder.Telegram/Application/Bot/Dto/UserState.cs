@@ -1,6 +1,6 @@
 ﻿using Stateless;
 
-namespace Web.Services.Dto;
+namespace Application.Bot.Dto;
 
 public sealed class UserState
 {

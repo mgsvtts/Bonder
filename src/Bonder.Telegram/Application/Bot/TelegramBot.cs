@@ -1,15 +1,16 @@
-﻿using Bonder.Calculation.Grpc;
+﻿using Application.Bot.Dto;
+using Application.Helpers;
+using Bonder.Calculation.Grpc;
 using Mapster;
 using Stateless;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Web.Services.Dto;
 
-namespace Web.Services;
+namespace Application.Bot;
 
-public sealed class Bot
+public sealed class TelegramBot
 {
     private static readonly char[] _splitters = [',', ' ', '\n'];
     private static readonly StateDictionary _states = new();
@@ -18,7 +19,7 @@ public sealed class Bot
     private readonly ITelegramBotClient _bot;
     private readonly CalculationService.CalculationServiceClient _grpcService;
 
-    public Bot(ITelegramBotClient bot, CalculationService.CalculationServiceClient grpcService)
+    public TelegramBot(ITelegramBotClient bot, CalculationService.CalculationServiceClient grpcService)
     {
         _bot = bot;
         _grpcService = grpcService;

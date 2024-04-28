@@ -1,4 +1,4 @@
-﻿namespace Web.Services;
+﻿namespace Application.Helpers;
 
 public static class Stickers
 {

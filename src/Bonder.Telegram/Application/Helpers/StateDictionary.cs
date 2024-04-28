@@ -1,8 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using Application.Bot.Dto;
+using System.Collections.Concurrent;
 using Telegram.Bot.Types;
-using Web.Services.Dto;
 
-namespace Web.Services;
+namespace Application.Helpers;
 
 public sealed class StateDictionary
 {

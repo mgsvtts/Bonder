@@ -5,18 +5,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Stateless" Version="5.15.0" />
-    <PackageReference Include="Telegram.Bot" Version="19.0.0" />
-  </ItemGroup>
-
 	<ItemGroup>
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="Mapster" Version="7.4.0" />
+		<PackageReference Include="Stateless" Version="5.15.0" />
+		<PackageReference Include="Telegram.Bot" Version="19.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.4" />
 	</ItemGroup>
-
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Bonder.Shared\Shared.Proto\Shared.Proto.csproj" />
 	</ItemGroup>
-
+	
 </Project>

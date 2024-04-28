@@ -1,5 +1,5 @@
 ﻿using Telegram.Bot.Types;
 
-namespace Web.Services.Dto;
+namespace Application.Bot.Dto;
 
 public readonly record struct ResetContext(Message Message, Exception Exception);

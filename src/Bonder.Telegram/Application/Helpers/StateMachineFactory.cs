@@ -1,4 +1,5 @@
-﻿using Bonder.Calculation.Grpc;
+﻿using Application.Bot.Dto;
+using Bonder.Calculation.Grpc;
 using Mapster;
 using Stateless;
 using System.ComponentModel.DataAnnotations;
@@ -6,9 +7,8 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Web.Services.Dto;
 
-namespace Web.Services;
+namespace Application.Helpers;
 
 public sealed class StateMachineFactory
 {
