@@ -26,7 +26,8 @@ public sealed class UserRepository : IUserRepository
         {
             await _db.BeginTransactionAsync(token);
 
-            await _db.Portfolios.Where(x => x.UserId == dbUser.Id)
+            await _db.Portfolios.Where(x => x.User.Token == dbUser.Token ||
+                                            x.UserId == dbUser.Id)
             .DeleteAsync(token: token);
 
             await _db.InsertOrReplaceAsync(dbUser, token: token);

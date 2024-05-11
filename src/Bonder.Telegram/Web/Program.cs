@@ -1,6 +1,7 @@
 using Application.BackgroundServices;
 using Application.Bot;
 using Bonder.Calculation.Grpc;
+using Bonder.Portfolio.Grpc;
 using Presentation;
 using Telegram.Bot;
 using Web.Extensions;
@@ -35,8 +36,10 @@ public class Program
 
         builder.Services.AddGrpc();
 
-        var portfolioServerUrl = new Uri(builder.Configuration.GetValue<string>("CalculationServerUrl"));
-        builder.Services.AddGrpcClient<CalculationService.CalculationServiceClient>(options => options.Address = portfolioServerUrl);
+        var calculationServerUrl = new Uri(builder.Configuration.GetValue<string>("CalculationServerUrl"));
+        var portfolioServerUrl = new Uri(builder.Configuration.GetValue<string>("PortfolioServerUrl"));
+        builder.Services.AddGrpcClient<CalculationService.CalculationServiceClient>(options => options.Address = calculationServerUrl);
+        builder.Services.AddGrpcClient<PortfolioService.PortfolioServiceClient>(options => options.Address = portfolioServerUrl);
 
         builder.Services.RegisterMapsterConfiguration();
 

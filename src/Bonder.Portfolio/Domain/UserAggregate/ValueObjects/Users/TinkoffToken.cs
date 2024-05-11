@@ -11,7 +11,7 @@ public readonly record struct TinkoffToken
             throw new ArgumentException("Tinkoff token cannot be null or empty", nameof(value));
         }
 
-        Value = value;
+        Value = value.Trim();
     }
 
     public override string ToString()

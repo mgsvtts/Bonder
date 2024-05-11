@@ -312,7 +312,7 @@ public sealed class StateMachineFactory
         else if (machine.State == State.GettingRatingFrom)
         {
             filters.RatingFrom = 0;
-            setted = "0";
+            setted = "1";
         }
         else if (machine.State == State.GettingRatingTo)
         {

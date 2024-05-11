@@ -10,10 +10,25 @@ public static class Printer
     public static string GetStartText(Message message)
     {
         return $"Привет, <b>{message.From.FirstName}</b>, добро пожаловать в <b>Bonder-bot</b>\n\n" +
-               $"Доступные команды:\n" +
-               $"/start - начало работы\n" +
-               $"/top_bonds - показать топ облигаций\n" +
+               $"<b>Доступные команды:</b>\n\n" +
+               $"/start - начало работы\n\n" +
+               $"<b>Облигации:</b>\n" +
+               $"    /top_bonds - топ доходных облигаций на данный момент\n\n" +
+               $"<b>Мой портфель:</b>\n" +
+               $"    /attach_user - синхронизировать бота с основным аккаунтом\n" +
+               $"    /attach_token - привязать Тинькофф токен\n" +
+               $"    /attach_file - привязать портфель через файл\n" +
+               $"    /operations - история операций вашего портфеля\n" +
+               $"    /stats - статистика вашего портфеля\n\n" +
                $"/devs - кто же эти гении, создавшие бота";
+    }
+
+    public static string GetAttachToken()
+    {
+         return $"<b>ВНИМАНИЕ:</b> используйте только readonly Тинькофф токен для вашей же безопасности\n\n" +
+                $"Привязывая Тинькофф токен, вы даете нашему серверу доступ к информации о вашем портфеле (например колличество бумаг, история операций и т.д.)\n" +
+                $"Функционал покупки/продажи активов не предусмотрен\n\n" +
+                $"Введите токен (в формате \"Токен: <i>значение</i>\"): ";
     }
 
     public static string GetTopBondsText(IEnumerable<GetCurrentBondsItem> bonds)
@@ -64,7 +79,7 @@ public static class Printer
                $"    - <b>Цена до: </b> {(filters.PriceTo > 0 ? filters.PriceTo.ToString() : "не указана")}\n" +
                $"    - <b>Рейтинг от: </b> {(filters.RatingFrom > 0 ? filters.RatingFrom.ToString() : "1")}\n" +
                $"    - <b>Рейтинг до: </b> {(filters.RatingTo > 0 ? filters.RatingTo.ToString() : "10")}\n" +
-               $"    - <b>Дата от: </b> {(filters.DateFrom is not null ? filters.DateFrom.ToString() : "не указана")}\n" +
+               $"    - <b>Дата от: </b> {(filters.DateFrom is not null ? filters.DateFrom.ToString() : "конец времён")}\n" +
                $"    - <b>Дата до: </b> {GetDateToString(filters)}\n" +
                $"    - <b>Неизвестные эмитенты: </b> {(filters.IncludeUnknownRatings == true ? "да" : "нет")}\n";
     }

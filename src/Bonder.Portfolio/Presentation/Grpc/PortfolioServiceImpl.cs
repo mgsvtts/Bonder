@@ -1,4 +1,5 @@
 ﻿using Application.Commands.DeleteUser;
+using Application.Commands.RefreshPortfolio;
 using Bonder.Portfolio.Grpc;
 using Domain.UserAggregate.ValueObjects.Users;
 using Grpc.Core;
@@ -21,5 +22,12 @@ public sealed class PortfolioServiceImpl : PortfolioService.PortfolioServiceBase
         await _sender.Send(new DeleteUserCommand(new UserId(Guid.Parse(request.UserName))));
 
         return new Void();
+    }
+
+    public override async Task<Void> RefreshToken(RefreshTokenRequest request, ServerCallContext context)
+    {
+        await _sender.Send(new RefreshPortfolioCommand(new UserId(request.UserId), new TinkoffToken(request.Token)));
+
+        return new Void();  
     }
 }

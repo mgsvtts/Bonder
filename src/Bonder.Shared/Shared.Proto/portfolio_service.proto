@@ -2,12 +2,20 @@ syntax = "proto3";
 
 package bonder.portfolio.grpc;
 
+import "Models/Guid/GrpcGuid.proto";
+
 service PortfolioService {
 	rpc DeleteUser(DeleteUserRequest) returns (Void);
+	rpc RefreshToken(RefreshTokenRequest) returns (Void);
 }
 
 message DeleteUserRequest {
 	string user_name = 1;
+}
+
+message RefreshTokenRequest {
+	string token = 1;
+	bonder.protos.custom.GrpcGuid user_id = 2;
 }
 
 message Void{}
