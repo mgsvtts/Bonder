@@ -1,12 +1,13 @@
 ﻿using Domain.UserAggregate.ValueObjects.Trades;
+using Shared.Domain.Common.ValueObjects;
 
 namespace Domain.UserAggregate.ValueObjects.Operations;
 
 public readonly record struct Operation
 {
     private readonly List<Trade> _trades = [];
-    public string Name { get; }
-    public string? Description { get; }
+    public ValidatedString Name { get; }
+    public ValidatedString? Description { get; }
     public OperationType Type { get; }
     public OperationState State { get; }
     public DateTime Date { get; }
@@ -19,7 +20,7 @@ public readonly record struct Operation
     public int RestQuantity { get; }
     public IReadOnlyList<Trade> Trades => _trades.AsReadOnly();
 
-    public Operation(string name,
+    public Operation(ValidatedString name,
                      OperationType type,
                      OperationState state,
                      DateTime date,
@@ -31,7 +32,7 @@ public readonly record struct Operation
                      int restQuantity = 0,
                      Guid? instrumentId = null,
                      IEnumerable<Trade>? trades = null,
-                     string? description = null)
+                     ValidatedString? description = null)
     {
         Name = name;
         Description = description;

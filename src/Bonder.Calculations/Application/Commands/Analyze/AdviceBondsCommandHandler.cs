@@ -117,7 +117,7 @@ public sealed class AdviceBondsCommandHandler : ICommandHandler<AdviceBondsComma
         .OrderByDescending(x => x.GetIncomeOnDate(incomeRequest).FullIncomePercent)
         .Take(_topFive)
         .Select(x => new AdviceBondWithIncome(x.Identity.Ticker,
-                                        x.Name,
+                                        x.Name.ToString(),
                                         x.Income.StaticIncome.AbsolutePrice,
                                         x.GetIncomeOnDate(incomeRequest).FullIncomePercent))
         .ToList();

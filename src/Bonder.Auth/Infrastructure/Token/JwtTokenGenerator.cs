@@ -1,6 +1,7 @@
 using Domain.Common.Abstractions;
 using Domain.UserAggregate.ValueObjects;
 using Microsoft.IdentityModel.Tokens;
+using Shared.Domain.Common.ValueObjects;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -23,13 +24,13 @@ public sealed class JwtTokenGenerator : IJWTTokenGenerator
         _key = Encoding.UTF8.GetBytes(key);
     }
 
-    public Tokens? Generate(UserName userName)
+    public Tokens? Generate(ValidatedString userName)
     {
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new List<Claim>
             {
-                new(ClaimTypes.Name, userName.Name),
+                new(ClaimTypes.Name, userName.ToString()),
                 new(JwtRegisteredClaimNames.Aud, _audience),
                 new(JwtRegisteredClaimNames.Iss, _issuer)
             }),

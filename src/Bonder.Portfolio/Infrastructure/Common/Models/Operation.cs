@@ -13,7 +13,7 @@ public sealed class Operation
     public required string Name { get; set; }
 
     [Column("description")]
-    public required string Description { get; set; }
+    public required string? Description { get; set; }
 
     [Column("portfolio_id")]
     public Guid PortfolioId { get; set; }

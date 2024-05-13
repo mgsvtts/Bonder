@@ -3,6 +3,7 @@ using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Domain.BondAggreagte.ValueObjects.Incomes;
 using Shared.Domain.Common.Models;
+using Shared.Domain.Common.ValueObjects;
 
 namespace Domain.BondAggreagte;
 
@@ -11,7 +12,7 @@ public sealed class Bond : AggregateRoot<BondId>
     private List<Coupon> _coupons = [];
     private readonly List<Amortization> _amortizations = [];
 
-    public string Name { get; private set; }
+    public ValidatedString Name { get; private set; }
     public FullIncome Income { get; private set; }
     public Dates Dates { get; private set; }
     public int? Rating { get; private set; }
@@ -20,7 +21,7 @@ public sealed class Bond : AggregateRoot<BondId>
     public IReadOnlyList<Amortization> Amortizations => _amortizations.AsReadOnly();
 
     private Bond(BondId id,
-                 string name,
+                 ValidatedString name,
                  Dates dates,
                  int? rating,
                  IEnumerable<Coupon> coupons,
@@ -37,7 +38,7 @@ public sealed class Bond : AggregateRoot<BondId>
     }
 
     public static Bond Create(BondId id,
-                              string name,
+                              ValidatedString name,
                               StaticIncome income,
                               Dates dates,
                               int? rating,
@@ -208,6 +209,6 @@ public sealed class Bond : AggregateRoot<BondId>
 
     public override string ToString()
     {
-        return Name;
+        return Name.ToString();
     }
 }

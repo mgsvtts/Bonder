@@ -32,7 +32,7 @@ public sealed class AddClaimsCommandHandler : ICommandHandler<AddClaimsCommand, 
         var existingClaims = request.Claims.Where(x => user.Claims.Select(x => x.Type).Contains(x.Type));
         if (existingClaims.Any())
         {
-            throw new InvalidOperationException($"User {request.AddTo.Name} already has claims: {string.Join(", ", existingClaims.Select(x => x.Value))}");
+            throw new InvalidOperationException($"User {request.AddTo} already has claims: {string.Join(", ", existingClaims.Select(x => x.Value))}");
         }
 
         return await _userRepository.AddClaimsAsync(request.AddTo, request.Claims, token);

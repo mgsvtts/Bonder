@@ -1,6 +1,7 @@
-﻿using Application.Commands.ImportPortfolio;
-using Application.Commands.ImportPortfolio.Dto;
-using Application.Commands.RefreshPortfolio;
+﻿using Application.Commands.Operations.Create;
+using Application.Commands.Portfolios.ImportPortfolio;
+using Application.Commands.Portfolios.ImportPortfolio.Dto;
+using Application.Commands.Portfolios.RefreshPortfolio;
 using Application.Queries.GetStats;
 using Bonder.Calculation.Grpc;
 using Domain.Common.Abstractions.Dto;
@@ -9,14 +10,16 @@ using Domain.UserAggregate.Entities;
 using Domain.UserAggregate.ValueObjects.Operations;
 using Domain.UserAggregate.ValueObjects.Portfolios;
 using Domain.UserAggregate.ValueObjects.Users;
-using Infrastructure.Dto.GetAccounts;
-using Infrastructure.Dto.GetOperations;
-using Infrastructure.Dto.GetPortfolios;
+using Infrastructure.HttpClients.Dto.GetAccounts;
+using Infrastructure.HttpClients.Dto.GetOperations;
+using Infrastructure.HttpClients.Dto.GetPortfolios;
 using Mapster;
 using MapsterMapper;
 using Presentation.Controllers;
-using Presentation.Controllers.Dto.GetStats;
-using Presentation.Controllers.Dto.RefreshPortfolio;
+using Presentation.Controllers.Operations.Dto.Create;
+using Presentation.Controllers.Portfolios.Dto.GetStats;
+using Presentation.Controllers.Portfolios.Dto.RefreshPortfolio;
+using Shared.Domain.Common.ValueObjects;
 using System.Reflection;
 
 namespace Web;
@@ -41,7 +44,7 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => new Portfolio(new PortfolioId(x.Id),
                                     new Totals(x.TotalBondPrice, x.TotalSharePrice, x.TotalEtfPrice, x.TotalCurrencyPrice, x.TotalFuturePrice, x.TotalPortfolioPrice),     
-                                    x.Name,
+                                    new ValidatedString(x.Name),
                                     x.Type,
                                     x.BrokerType,
                                     x.Bonds.Select(x => new Bond(x.BondId, x.Count)),
@@ -58,7 +61,7 @@ public static class MapsterConfig
 
         TypeAdapterConfig<Infrastructure.Common.Models.Operation, Operation>
         .ForType()
-        .MapWith(x => new Operation(x.Name,
+        .MapWith(x => new Operation(new ValidatedString(x.Name),
                                     x.Type,
                                     x.State,
                                     x.Date,
@@ -70,7 +73,7 @@ public static class MapsterConfig
                                     x.RestQuantity,
                                     x.InstrumentId,
                                     x.Trades.Adapt<IEnumerable<Domain.UserAggregate.ValueObjects.Trades.Trade>>(),
-                                    x.Description));
+                                    new ValidatedString(x.Description)));
 
         TypeAdapterConfig<Operation, Infrastructure.Common.Models.Operation>
         .ForType()
@@ -81,16 +84,55 @@ public static class MapsterConfig
             State = x.State,
             Type = x.Type,
             Commission = x.Commisison,
-            Description = x.Description,
+            Description = x.Description != null ? x.Description.ToString() : null,
             Id = Guid.NewGuid(),
             InstrumentId = x.InstrumentId,
             InstrumentType = x.InstrumentType,
-            Name = x.Name,
+            Name = x.Name.ToString(),
             Price = x.Price,
             Quantity = x.Quantity,
             RestQuantity = x.RestQuantity,
             Trades = x.Trades.Adapt<List<Infrastructure.Common.Models.Trade>>(),
         });
+
+        TypeAdapterConfig<CreateOperationRequest, CreateOperationCommand>
+        .ForType()
+        .MapWith(x => new CreateOperationCommand
+        (
+            new PortfolioId(x.PortfolioId),
+            new ValidatedString(x.Name),
+            x.Description != null ? new ValidatedString(x.Description) : null,
+            x.Type,
+            x.State,
+            x.Date,
+            x.Payout,
+            x.Price,
+            x.Commission,
+            x.InstrumentType,
+            x.InstrumentId,
+            x.Quantity,
+            x.RestQuantity,
+            x.Trades != null ? x.Trades.Select(x => new Domain.UserAggregate.ValueObjects.Trades.Trade(x.Date, x.Quantity, x.Price)) : null
+        ));
+
+        TypeAdapterConfig<CreateOperationCommand, Operation>
+           .ForType()
+           .MapWith(x => new Operation
+           (
+               x.Name,
+               x.Type,
+               x.State,
+               x.Date,
+               x.Payout,
+               x.Price,
+               x.Commission,
+               x.InstrumentType,
+               x.Quantity,
+               x.RestQuantity,
+               x.InstrumentId,
+               x.Trades,
+               x.Description
+           ));
 
         TypeAdapterConfig<TinkoffOperation, Operation>
         .ForType()
@@ -128,7 +170,7 @@ public static class MapsterConfig
         .MapWith(x => new Infrastructure.Common.Models.Portfolio
         {
             Id = Guid.NewGuid(),
-            Name = x.Name,
+            Name = x.Name.ToString(),
             TotalBondPrice = x.Totals.TotalBondPrice,
             TotalPortfolioPrice = x.Totals.TotalPortfolioPrice,
             TotalSharePrice = x.Totals.TotalSharePrice,
@@ -168,7 +210,7 @@ public static class CustomMappings
                                         portfolio.TotalCurrencyPrice.ToDecimal(),
                                         portfolio.TotalFuturePrice.ToDecimal(),
                                         portfolio.TotalPortfolioPrice.ToDecimal()),
-                             account.Name,
+                             new ValidatedString(account.Name),
                              type,
                              BrokerType.Tinkoff,
                              portfolio.Positions.Select(x => new Bond(Guid.Parse(x.InstrumentId), x.Quantity.ToDecimal())),
@@ -178,7 +220,7 @@ public static class CustomMappings
 
     public static Operation FromTinkoffOperation(TinkoffOperation operation)
     {
-        return new Operation(operation.Name,
+        return new Operation(new ValidatedString(operation.Name),
                              MapOperationType(operation),
                              MapOperationState(operation),
                              operation.Date,
@@ -190,7 +232,7 @@ public static class CustomMappings
                              operation.RestQuantity,
                              string.IsNullOrEmpty(operation.InstrumentId) ? null : Guid.Parse(operation.InstrumentId),
                              operation.TradeInfo is not null ? operation.TradeInfo.Trades.Adapt<IEnumerable<Domain.UserAggregate.ValueObjects.Trades.Trade>>() : Enumerable.Empty<Domain.UserAggregate.ValueObjects.Trades.Trade>(),
-                             operation.Description);
+                             new ValidatedString(operation.Description));
     }
 
     public static Operation FromImportedOperation(ImportedOperation operation, GrpcBond? bond)
@@ -198,7 +240,7 @@ public static class CustomMappings
         var type = MapOperationType(operation.Type);
         var date = operation.Date.ToDateTime(operation.Time);
 
-        return new Operation(operation.Name,
+        return new Operation(new ValidatedString(operation.Name),
                              type,
                              OperationState.Executed,
                              date,
@@ -210,7 +252,7 @@ public static class CustomMappings
                              0,
                              bond?.Id,
                              null,
-                             $"Импорт от {date:yyyy-MM-dd-HH-mm-ss}");
+                             new ValidatedString($"Импорт от {date:yyyy-MM-dd-HH-mm-ss}"));
     }
 
     public static Bond FromImportedBond(KeyValuePair<GrpcBond, int> bond)

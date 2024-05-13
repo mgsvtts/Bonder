@@ -1,4 +1,4 @@
-namespace Presentation.Controllers.AnalyzeController.Analyze;
+namespace Presentation.Controllers.AdviceController.Advice;
 
 public sealed record AdviceBondsResponse(string Ticker, decimal Income, IEnumerable<AnalyzeBondsResponseBond> BetterBonds);
 

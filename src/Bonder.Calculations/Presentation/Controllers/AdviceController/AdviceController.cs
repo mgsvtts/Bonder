@@ -3,9 +3,9 @@ using Mapster;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
-using Presentation.Controllers.AnalyzeController.Analyze;
+using Presentation.Controllers.AdviceController.Advice;
 
-namespace Presentation.Controllers.AnalyzeController;
+namespace Presentation.Controllers.AdviceController;
 
 [Route("api/advice")]
 public sealed class AdviceController : ControllerBase

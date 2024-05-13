@@ -2,8 +2,9 @@
 using Bonder.Calculation.Grpc;
 using Domain.Common.Abstractions;
 using Domain.UserAggregate.Abstractions.Repositories;
-using Infrastructure;
 using Infrastructure.Common;
+using Infrastructure.HttpClients;
+using Infrastructure.Repositories;
 using LinqToDB;
 using LinqToDB.AspNet;
 using LinqToDB.AspNet.Logging;

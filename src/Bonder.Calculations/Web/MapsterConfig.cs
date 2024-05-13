@@ -17,10 +17,11 @@ using Infrastructure.Calculation.Dto.GetAmortization;
 using Infrastructure.Calculation.Dto.GetBonds.TInkoffApiData;
 using Mapster;
 using MapsterMapper;
-using Presentation.Controllers.AnalyzeController.Analyze;
+using Presentation.Controllers.AdviceController.Advice;
 using Presentation.Controllers.BondController.Calculate.Request;
 using Presentation.Controllers.BondController.Calculate.Response;
 using Shared.Domain.Common;
+using Shared.Domain.Common.ValueObjects;
 using System.Reflection;
 
 namespace Web;
@@ -68,7 +69,7 @@ public static class MapsterConfig
         .MapWith(x => new BondItem(x.Identity.InstrumentId,
                                    x.Identity.Ticker.ToString(),
                                    x.Identity.Isin.ToString(),
-                                   x.Name,
+                                   x.Name.ToString(),
                                    x.Income.StaticIncome.AbsolutePrice,
                                    x.Income.StaticIncome.AbsoluteNominal,
                                    x.Dates.MaturityDate,
@@ -85,7 +86,7 @@ public static class MapsterConfig
 
         TypeAdapterConfig<(Bond Bond, FullIncome Income), AdviceBondWithIncome>
         .ForType()
-        .MapWith(x => new AdviceBondWithIncome(x.Bond.Identity.Ticker, x.Bond.Name, x.Bond.Income.StaticIncome.AbsolutePrice, x.Income.FullIncomePercent));
+        .MapWith(x => new AdviceBondWithIncome(x.Bond.Identity.Ticker, x.Bond.Name.ToString(), x.Bond.Income.StaticIncome.AbsolutePrice, x.Income.FullIncomePercent));
 
         TypeAdapterConfig<MoexItem, MoexResponse>
         .ForType()
@@ -120,7 +121,7 @@ public static class MapsterConfig
         .MapWith(x => new Infrastructure.Common.Models.Bond
         {
             Id = x.Identity.InstrumentId,
-            Name = x.Name,
+            Name = x.Name.ToString(),
             Ticker = x.Identity.Ticker.Value,
             Isin = x.Identity.Isin.Value,
             Coupons = x.Coupons.Adapt<List<Infrastructure.Common.Models.Coupon>>(),
@@ -144,7 +145,7 @@ public static class MapsterConfig
         TypeAdapterConfig<Infrastructure.Common.Models.Bond, Bond>
         .ForType()
         .MapWith(x => Bond.Create(new BondId(x.Id, new Ticker(x.Ticker), new Isin(x.Isin)),
-                                                    x.Name,
+                                                    new ValidatedString(x.Name),
                                                     StaticIncome.FromPercents(x.PricePercent, x.AbsolutePrice, x.AbsoluteNominal),
                                                     new Dates(x.MaturityDate, x.OfferDate),
                                                     x.Rating,
@@ -246,7 +247,7 @@ public static class CustomMappings
                 Item = new GrpcBond
                 {
                     Id = result.Bond.Identity.InstrumentId,
-                    Name = result.Bond.Name,
+                    Name = result.Bond.Name.ToString(),
                     Rating = result.Bond.Rating ?? 0,
                     Price = result.Bond.Income.StaticIncome.AbsolutePrice,
                     Ticker = result.Bond.Identity.Ticker.ToString(),
@@ -280,7 +281,7 @@ public static class CustomMappings
         }
 
         return Bond.Create(bond.BondId,
-                           bond.Name,
+                           new ValidatedString(bond.Name),
                            bond.Income,
                            bond.Dates,
                            rating,
@@ -311,14 +312,14 @@ public static class CustomMappings
 
     public static CalculateResponse FromCalculateAllResponse(CalculateAllResponse results)
     {
-        return new CalculateResponse(CalculatedBonds: results.Aggregation.PrioritySortedBonds.Select(x => new CalculatedBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Priority)),
-                                     PriceSortedBonds: results.Aggregation.PriceSortedBonds.Select(x => new PriceBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
-                                     CouponIncomeSortedBonds: results.Aggregation.BondsWithIncome.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.FullIncome.CouponIncome.CouponPercent)).OrderByDescending(x => x.Income),
-                                     AmortizationIncomeSortedBonds: results.Aggregation.BondsWithIncome.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.FullIncome.AmortizationIncome.AmortizationPercent)).OrderByDescending(x => x.Income),
-                                     FullIncomeSortedBonds: results.Aggregation.FullIncomeSortedBonds.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name, x.Money)),
+        return new CalculateResponse(CalculatedBonds: results.Aggregation.PrioritySortedBonds.Select(x => new CalculatedBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name.ToString(), x.Priority)),
+                                     PriceSortedBonds: results.Aggregation.PriceSortedBonds.Select(x => new PriceBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name.ToString(), x.Money)),
+                                     CouponIncomeSortedBonds: results.Aggregation.BondsWithIncome.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name.ToString(), x.FullIncome.CouponIncome.CouponPercent)).OrderByDescending(x => x.Income),
+                                     AmortizationIncomeSortedBonds: results.Aggregation.BondsWithIncome.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name.ToString(), x.FullIncome.AmortizationIncome.AmortizationPercent)).OrderByDescending(x => x.Income),
+                                     FullIncomeSortedBonds: results.Aggregation.FullIncomeSortedBonds.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name.ToString(), x.Money)),
                                      CreditRatingSortedBonds: results.Aggregation.PriceSortedBonds.GroupBy(x => x.Bond.Rating)
                                                                                               .OrderBy(x => x.Key)
-                                                                                              .Select(x => new CreditRatingBondResponse(x.Key, x.Select(x => new CreditRatingBond(x.Bond.Identity.Ticker.ToString(), x.Bond.Name)))),
+                                                                                              .Select(x => new CreditRatingBondResponse(x.Key, x.Select(x => new CreditRatingBond(x.Bond.Identity.Ticker.ToString(), x.Bond.Name.ToString())))),
                                      results.PageInfo);
     }
 

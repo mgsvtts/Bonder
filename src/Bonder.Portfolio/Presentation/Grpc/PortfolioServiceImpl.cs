@@ -1,5 +1,5 @@
-﻿using Application.Commands.DeleteUser;
-using Application.Commands.RefreshPortfolio;
+﻿using Application.Commands.Portfolios.RefreshPortfolio;
+using Application.Commands.Users.DeleteUser;
 using Bonder.Portfolio.Grpc;
 using Domain.UserAggregate.ValueObjects.Users;
 using Grpc.Core;

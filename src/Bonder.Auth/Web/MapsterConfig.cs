@@ -8,6 +8,7 @@ using MapsterMapper;
 using Presentation.Controllers.Dto.AddClaims;
 using Presentation.Controllers.Dto.Login;
 using Presentation.Controllers.Dto.RemoveClaims;
+using Shared.Domain.Common.ValueObjects;
 using System.Reflection;
 using System.Security.Claims;
 
@@ -22,17 +23,17 @@ public static class MapsterConfig
         .MapWith(x => new Infrastructure.Common.Models.User
         {
             Id = x.Identity.Value.ToString(),
-            UserName = x.UserName.Name,
+            UserName = x.UserName.ToString(),
             RefreshToken = x.Tokens.RefreshToken
         });
 
         TypeAdapterConfig<AddClaimRequest, AddClaimsCommand>
         .ForType()
-        .MapWith(x => new AddClaimsCommand(new UserId(x.CurrentUserId), new UserName(x.AddTo), x.Claims.Adapt<IEnumerable<Claim>>()));
+        .MapWith(x => new AddClaimsCommand(new UserId(x.CurrentUserId), new ValidatedString(x.AddTo), x.Claims.Adapt<IEnumerable<Claim>>()));
 
         TypeAdapterConfig<(string CurrentUser, RemoveClaimRequest Request), RemoveClaimsCommand>
         .ForType()
-        .MapWith(x => new RemoveClaimsCommand(new UserName(x.CurrentUser), new UserName(x.Request.UserName), x.Request.Claims));
+        .MapWith(x => new RemoveClaimsCommand(new ValidatedString(x.CurrentUser), new ValidatedString(x.Request.UserName), x.Request.Claims));
 
         TypeAdapterConfig<UserClaim, Claim>
         .ForType()
@@ -40,7 +41,7 @@ public static class MapsterConfig
 
         TypeAdapterConfig<User, AddClaimResponse>
         .ForType()
-        .MapWith(x => new AddClaimResponse(x.UserName.Name, x.Claims.Adapt<IEnumerable<UserClaim>>()));
+        .MapWith(x => new AddClaimResponse(x.UserName.ToString(), x.Claims.Adapt<IEnumerable<UserClaim>>()));
 
         TypeAdapterConfig<Claim, UserClaim>
         .ForType()
@@ -48,12 +49,12 @@ public static class MapsterConfig
 
         TypeAdapterConfig<LoginRequest, LoginCommand>
         .ForType()
-        .MapWith(x => new LoginCommand(new UserName(x.UserName), x.Password));
+        .MapWith(x => new LoginCommand(new ValidatedString(x.UserName), x.Password));
 
         TypeAdapterConfig<(Infrastructure.Common.Models.User User, IList<Claim> Claims), User>
                 .ForType()
                 .MapWith(x => new User(new UserId(Guid.Parse(x.User.Id)),
-                                       new UserName(x.User.UserName),
+                                       new ValidatedString(x.User.UserName),
                                        x.Claims,
                                        new Tokens(x.User.RefreshToken, null)));
 

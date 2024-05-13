@@ -4,6 +4,7 @@ using Domain.UserAggregate;
 using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using Mediator;
+using Shared.Domain.Common.ValueObjects;
 
 namespace Application.Commands.CheckAccess;
 public sealed class CheckAccessCommandHandler : ICommandHandler<CheckAccessCommand, AccessResult>
@@ -52,9 +53,7 @@ public sealed class CheckAccessCommandHandler : ICommandHandler<CheckAccessComma
         {
             var principal = await _tokenGenerator.ValidateTokenAsync(request.AccessToken, true);
 
-            var userName = new UserName(principal.Identity?.Name);
-
-            return (false, await _userRepository.GetByUserNameAsync(userName, token));
+            return (false, await _userRepository.GetByUserNameAsync(new ValidatedString(principal.Identity?.Name), token));
         }
         catch
         {

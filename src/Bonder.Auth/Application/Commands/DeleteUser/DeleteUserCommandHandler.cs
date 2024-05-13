@@ -20,7 +20,7 @@ public sealed class DeleteUserCommandHandler : ICommandHandler<DeleteUserCommand
         var deletedUser = await _userRepository.DeleteAsync(request.UserId, token);
         await _grpcClient.DeleteUserAsync(new DeleteUserRequest
         {
-            UserName = deletedUser.UserName.Name
+            UserName = deletedUser.UserName.ToString()
         }, cancellationToken: token);
 
         return Unit.Value;

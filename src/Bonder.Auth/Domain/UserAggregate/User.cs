@@ -1,5 +1,6 @@
 using Domain.UserAggregate.ValueObjects;
 using Shared.Domain.Common.Models;
+using Shared.Domain.Common.ValueObjects;
 using System.Security.Claims;
 
 namespace Domain.UserAggregate;
@@ -10,13 +11,13 @@ public sealed class User : AggregateRoot<UserId>
 
     private readonly List<Claim> _claims = [];
 
-    public UserName UserName { get; }
+    public ValidatedString UserName { get; }
     public Tokens Tokens { get; }
     public IReadOnlyList<Claim> Claims => _claims.AsReadOnly();
     public bool IsAdmin => _claims.Any(x => x.Type == _adminClaim.Type && x.Value == _adminClaim.Value);
 
     public User(UserId id,
-                UserName userName,
+                ValidatedString userName,
                 IEnumerable<Claim>? claims = null,
                 Tokens? tokens = null) : base(id)
     {

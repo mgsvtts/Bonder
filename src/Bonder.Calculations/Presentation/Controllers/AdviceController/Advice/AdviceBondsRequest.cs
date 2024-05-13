@@ -1,6 +1,6 @@
 using Application.Commands.Analyze;
 
-namespace Presentation.Controllers.AnalyzeController.Analyze;
+namespace Presentation.Controllers.AdviceController.Advice;
 
 public sealed record AnalyzeBondsRequest(AdviceOptions DefaultOptions, IEnumerable<BondToAdvice> Bonds);
 
