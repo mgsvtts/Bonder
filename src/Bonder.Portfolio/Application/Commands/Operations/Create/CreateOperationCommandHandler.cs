@@ -1,15 +1,7 @@
 ﻿using Domain.UserAggregate.Abstractions.Repositories;
 using Domain.UserAggregate.ValueObjects.Operations;
-using Domain.UserAggregate.ValueObjects.Trades;
-using Infrastructure;
 using Mapster;
 using Mediator;
-using Shared.Domain.Common.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Commands.Operations.Create;
 public sealed class CreateOperationCommandHandler : IRequestHandler<CreateOperationCommand>

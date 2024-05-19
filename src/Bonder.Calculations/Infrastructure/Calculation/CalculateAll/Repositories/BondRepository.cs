@@ -73,6 +73,7 @@ public sealed class BondRepository : IBondRepository
         catch
         {
             await db.RollbackTransactionAsync(token);
+            throw;
         }
     }
 

@@ -1,7 +1,7 @@
+using Ardalis.GuardClauses;
 using Domain.Common.Abstractions;
 using Domain.UserAggregate.ValueObjects;
 using Microsoft.IdentityModel.Tokens;
-using Shared.Domain.Common.ValueObjects;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -24,7 +24,7 @@ public sealed class JwtTokenGenerator : IJWTTokenGenerator
         _key = Encoding.UTF8.GetBytes(key);
     }
 
-    public Tokens? Generate(ValidatedString userName)
+    public Tokens? Generate(UserName userName)
     {
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -47,10 +47,7 @@ public sealed class JwtTokenGenerator : IJWTTokenGenerator
 
     public async Task<ClaimsPrincipal> ValidateTokenAsync(string? token, bool validateLifetime = false)
     {
-        if (string.IsNullOrEmpty(token))
-        {
-            throw new ArgumentException($"Token cannot be null or empty", nameof(token));
-        }
+        Guard.Against.NullOrEmpty(token);
 
         var validationParams = new TokenValidationParameters
         {

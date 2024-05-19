@@ -1,14 +1,13 @@
-﻿namespace Domain.UserAggregate.ValueObjects.Portfolios;
+﻿using Ardalis.GuardClauses;
+
+namespace Domain.UserAggregate.ValueObjects.Portfolios;
 
 public readonly record struct AccountId
 {
     public string Value { get; }
     public AccountId(string value)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            throw new ArgumentException("AccountId cannot be null or empty", nameof(value));
-        }
+        Guard.Against.NullOrEmpty(value, message: "AccountId cannot be null or empty");
 
         Value = value;
     }

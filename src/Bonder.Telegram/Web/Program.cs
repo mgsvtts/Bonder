@@ -3,6 +3,7 @@ using Application.Bot;
 using Bonder.Calculation.Grpc;
 using Bonder.Portfolio.Grpc;
 using Presentation;
+using Serilog;
 using Telegram.Bot;
 using Web.Extensions;
 
@@ -40,6 +41,10 @@ public class Program
         var portfolioServerUrl = new Uri(builder.Configuration.GetValue<string>("PortfolioServerUrl"));
         builder.Services.AddGrpcClient<CalculationService.CalculationServiceClient>(options => options.Address = calculationServerUrl);
         builder.Services.AddGrpcClient<PortfolioService.PortfolioServiceClient>(options => options.Address = portfolioServerUrl);
+
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console(outputTemplate: "[{Level}] {Timestamp:HH:mm:ss:ff} {Message}{NewLine}{Exception}")
+            .CreateLogger();
 
         builder.Services.RegisterMapsterConfiguration();
 

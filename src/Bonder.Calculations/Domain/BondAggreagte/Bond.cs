@@ -1,9 +1,10 @@
-﻿using Domain.BondAggreagte.Dto;
+﻿using Ardalis.GuardClauses;
+using Domain.BondAggreagte.Dto;
 using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Domain.BondAggreagte.ValueObjects.Incomes;
+using Shared.Domain.Common.Guards;
 using Shared.Domain.Common.Models;
-using Shared.Domain.Common.ValueObjects;
 
 namespace Domain.BondAggreagte;
 
@@ -12,18 +13,18 @@ public sealed class Bond : AggregateRoot<BondId>
     private List<Coupon> _coupons = [];
     private readonly List<Amortization> _amortizations = [];
 
-    public ValidatedString Name { get; private set; }
+    public BondName Name { get; private set; }
     public FullIncome Income { get; private set; }
     public Dates Dates { get; private set; }
-    public int? Rating { get; private set; }
+    public Rating? Rating { get; private set; }
     public bool IsAmortized => _amortizations.Count != 0;
     public IReadOnlyList<Coupon> Coupons => _coupons.AsReadOnly();
     public IReadOnlyList<Amortization> Amortizations => _amortizations.AsReadOnly();
 
     private Bond(BondId id,
-                 ValidatedString name,
+                 BondName name,
                  Dates dates,
-                 int? rating,
+                 Rating? rating,
                  IEnumerable<Coupon> coupons,
                  IEnumerable<Amortization>? amortizations,
                  FullIncome fullIncome = default) : base(id)
@@ -38,10 +39,10 @@ public sealed class Bond : AggregateRoot<BondId>
     }
 
     public static Bond Create(BondId id,
-                              ValidatedString name,
+                              BondName name,
                               StaticIncome income,
                               Dates dates,
-                              int? rating,
+                              Rating? rating,
                               IEnumerable<Coupon> coupons,
                               IEnumerable<Amortization>? amortizations = null)
     {
@@ -50,13 +51,8 @@ public sealed class Bond : AggregateRoot<BondId>
         return bond.WithIncome(income);
     }
 
-    public Bond UpdateRating(int? rating)
+    public Bond UpdateRating(Rating? rating)
     {
-        if (rating < 0)
-        {
-            throw new ArgumentException("Rating cannot be less than 0", nameof(rating));
-        }
-
         Rating = rating;
 
         return this;

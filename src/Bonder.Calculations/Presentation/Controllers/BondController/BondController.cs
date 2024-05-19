@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.Routing;
 using Presentation.Controllers.BondController.Calculate.Request;
 using Presentation.Controllers.BondController.Calculate.Response;
+using Presentation.Controllers.BondController.CalculateByIds;
 using Presentation.Filters;
 using Shared.Domain.Common;
 using System.Runtime.CompilerServices;
@@ -30,11 +31,11 @@ public sealed class BondController : ControllerBase
 
     [HttpPost]
     [OutputCache(Duration = _cacheTime)]
-    public async Task<CalculateResponse> Calculate([FromBody] CalculateBondsRequest request, CancellationToken token)
+    public async Task<CalculateByIdsResponse> Calculate([FromBody] CalculateBondsRequest request, CancellationToken token)
     {
-        var result = await _sender.Send(request.Adapt<CalculateBondsCommand>(), token);
+        var result = await _sender.Send(request.Adapt<CalculateBondsByIdsCommand>(), token);
 
-        return result.Adapt<CalculateResponse>();
+        return result.Adapt<CalculateByIdsResponse>();
     }
 
     [HttpGet("{currentPage:int?}")]

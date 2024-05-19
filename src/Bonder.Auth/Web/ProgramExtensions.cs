@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -51,6 +52,10 @@ public static class ProgramExtensions
         {
             config.ServiceLifetime = ServiceLifetime.Scoped;
         });
+
+        Log.Logger = new LoggerConfiguration()
+           .WriteTo.Console(outputTemplate: "[{Level}] {Timestamp:HH:mm:ss:ff} {Message}{NewLine}{Exception}")
+           .CreateLogger();
 
         builder.Services.RegisterMapsterConfiguration();
 

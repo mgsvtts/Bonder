@@ -27,10 +27,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="linq2db.AspNet" Version="5.4.0" />
-    <PackageReference Include="linq2db.PostgreSQL" Version="5.4.0" />
+    <PackageReference Include="linq2db.AspNet" Version="5.4.1" />
+    <PackageReference Include="linq2db.PostgreSQL" Version="5.4.1" />
     <PackageReference Include="Mapster" Version="7.4.0" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.5" />
   </ItemGroup>
 
   <ItemGroup>

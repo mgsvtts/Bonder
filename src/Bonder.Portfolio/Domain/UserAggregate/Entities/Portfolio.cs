@@ -1,7 +1,6 @@
 ﻿using Domain.UserAggregate.ValueObjects.Operations;
 using Domain.UserAggregate.ValueObjects.Portfolios;
 using Shared.Domain.Common.Models;
-using Shared.Domain.Common.ValueObjects;
 
 namespace Domain.UserAggregate.Entities;
 public sealed class Portfolio : Entity<PortfolioId>
@@ -11,7 +10,7 @@ public sealed class Portfolio : Entity<PortfolioId>
 
     public AccountId? AccountId { get; }
     public Totals Totals { get; }
-    public ValidatedString Name { get; }
+    public PortfolioName Name { get; }
     public PortfolioType Type { get; }
     public BrokerType BrokerType { get; }
     public IReadOnlyList<Bond> Bonds => _bonds.AsReadOnly();
@@ -19,7 +18,7 @@ public sealed class Portfolio : Entity<PortfolioId>
 
     public Portfolio(PortfolioId id,
                      Totals totals,
-                     ValidatedString name,
+                     PortfolioName name,
                      PortfolioType type,
                      BrokerType brokerType,
                      IEnumerable<Bond>? bonds,

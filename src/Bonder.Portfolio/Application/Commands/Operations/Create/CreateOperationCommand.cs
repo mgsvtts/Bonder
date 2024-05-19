@@ -2,18 +2,12 @@
 using Domain.UserAggregate.ValueObjects.Portfolios;
 using Domain.UserAggregate.ValueObjects.Trades;
 using Mediator;
-using Shared.Domain.Common.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Commands.Operations.Create;
 
 public sealed record CreateOperationCommand(PortfolioId PortfolioId,
-                                            ValidatedString Name,
-                                            ValidatedString? Description,
+                                            OperationName Name,
+                                            string? Description,
                                             OperationType Type,
                                             OperationState State,
                                             DateTime Date,

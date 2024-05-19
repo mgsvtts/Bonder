@@ -20,8 +20,8 @@ using MapsterMapper;
 using Presentation.Controllers.AdviceController.Advice;
 using Presentation.Controllers.BondController.Calculate.Request;
 using Presentation.Controllers.BondController.Calculate.Response;
+using Presentation.Controllers.BondController.CalculateByIds;
 using Shared.Domain.Common;
-using Shared.Domain.Common.ValueObjects;
 using System.Reflection;
 
 namespace Web;
@@ -30,9 +30,9 @@ public static class MapsterConfig
 {
     public static void RegisterMapsterConfiguration(this IServiceCollection services)
     {
-        TypeAdapterConfig<CalculateBondsRequest, CalculateBondsCommand>
+        TypeAdapterConfig<CalculateBondsRequest, CalculateBondsByIdsCommand>
         .ForType()
-        .MapWith(x => new CalculateBondsCommand(x.Options.Adapt<GetPriceSortedRequest>(),
+        .MapWith(x => new CalculateBondsByIdsCommand(x.Options.Adapt<GetPriceSortedRequest>(),
                                                 x.IdType,
                                                 x.Ids));
 
@@ -60,6 +60,10 @@ public static class MapsterConfig
         .ForType()
         .MapWith(x => CustomMappings.FromTinkoffValue(x));
 
+        TypeAdapterConfig<CalculateBondsByIdsResponse, CalculateByIdsResponse>
+        .ForType()
+        .MapWith(x => new CalculateByIdsResponse(x.CalculateResponse.Adapt<CalculateResponse>(), x.NotFoundBonds));
+
         TypeAdapterConfig<AnalyzeBondsRequest, AdviceBondsCommand>
         .ForType()
         .MapWith(x => new AdviceBondsCommand(x.DefaultOptions, x.Bonds.Select(x => new Application.Commands.Analyze.BondToAnalyze(x.Option, new Ticker(x.Ticker)))));
@@ -74,7 +78,7 @@ public static class MapsterConfig
                                    x.Income.StaticIncome.AbsoluteNominal,
                                    x.Dates.MaturityDate,
                                    x.Dates.OfferDate,
-                                   x.Rating));
+                                   x.Rating != null ? x.Rating.Value.Value : null));
 
         TypeAdapterConfig<IEnumerable<BondItem>, BondsResponse>
         .ForType()
@@ -129,7 +133,7 @@ public static class MapsterConfig
             MaturityDate = x.Dates.MaturityDate,
             OfferDate = x.Dates.OfferDate,
             PricePercent = x.Income.StaticIncome.PricePercent,
-            Rating = x.Rating,
+            Rating = x.Rating != null ? x.Rating.Value.Value : null,
             AbsoluteNominal = x.Income.StaticIncome.AbsoluteNominal,
             AbsolutePrice = x.Income.StaticIncome.AbsolutePrice
         });
@@ -145,10 +149,10 @@ public static class MapsterConfig
         TypeAdapterConfig<Infrastructure.Common.Models.Bond, Bond>
         .ForType()
         .MapWith(x => Bond.Create(new BondId(x.Id, new Ticker(x.Ticker), new Isin(x.Isin)),
-                                                    new ValidatedString(x.Name),
+                                                    new BondName(x.Name),
                                                     StaticIncome.FromPercents(x.PricePercent, x.AbsolutePrice, x.AbsoluteNominal),
                                                     new Dates(x.MaturityDate, x.OfferDate),
-                                                    x.Rating,
+                                                    x.Rating != null ? new Rating(x.Rating.Value) : null,
                                                     x.Coupons.Adapt<List<Coupon>>(),
                                                     x.Amortizations.Adapt<List<Amortization>>()));
 
@@ -248,7 +252,7 @@ public static class CustomMappings
                 {
                     Id = result.Bond.Identity.InstrumentId,
                     Name = result.Bond.Name.ToString(),
-                    Rating = result.Bond.Rating ?? 0,
+                    Rating = result.Bond.Rating != null ? result.Bond.Rating.Value.Value : 0,
                     Price = result.Bond.Income.StaticIncome.AbsolutePrice,
                     Ticker = result.Bond.Identity.Ticker.ToString(),
                     Isin = result.Bond.Identity.Isin.ToString(),
@@ -281,10 +285,10 @@ public static class CustomMappings
         }
 
         return Bond.Create(bond.BondId,
-                           new ValidatedString(bond.Name),
+                           new BondName(bond.Name),
                            bond.Income,
                            bond.Dates,
-                           rating,
+                           rating != null ? new Rating(rating.Value) : null,
                            couponsToAdd,
                            amortizationsToAdd);
     }
@@ -319,7 +323,7 @@ public static class CustomMappings
                                      FullIncomeSortedBonds: results.Aggregation.FullIncomeSortedBonds.Select(x => new IncomeBondResponse(x.Bond.Identity.Ticker.Value, x.Bond.Name.ToString(), x.Money)),
                                      CreditRatingSortedBonds: results.Aggregation.PriceSortedBonds.GroupBy(x => x.Bond.Rating)
                                                                                               .OrderBy(x => x.Key)
-                                                                                              .Select(x => new CreditRatingBondResponse(x.Key, x.Select(x => new CreditRatingBond(x.Bond.Identity.Ticker.ToString(), x.Bond.Name.ToString())))),
+                                                                                              .Select(x => new CreditRatingBondResponse(x.Key?.Value, x.Select(x => new CreditRatingBond(x.Bond.Identity.Ticker.ToString(), x.Bond.Name.ToString())))),
                                      results.PageInfo);
     }
 

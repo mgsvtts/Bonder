@@ -1,4 +1,6 @@
-﻿namespace Domain.UserAggregate.ValueObjects.Users;
+﻿using Ardalis.GuardClauses;
+
+namespace Domain.UserAggregate.ValueObjects.Users;
 
 public readonly record struct TinkoffToken
 {
@@ -6,10 +8,7 @@ public readonly record struct TinkoffToken
 
     public TinkoffToken(string value)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            throw new ArgumentException("Tinkoff token cannot be null or empty", nameof(value));
-        }
+        Guard.Against.NullOrEmpty(value, "Tinkoff token cannot be null or empty");
 
         Value = value.Trim();
     }

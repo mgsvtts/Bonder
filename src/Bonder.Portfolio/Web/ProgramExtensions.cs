@@ -8,8 +8,10 @@ using Infrastructure.Repositories;
 using LinqToDB;
 using LinqToDB.AspNet;
 using LinqToDB.AspNet.Logging;
+using NPOI.SS.Formula.Functions;
 using Presentation.Grpc;
 using RateLimiter;
+using Serilog;
 using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 using Web.Extensions;
 
@@ -49,6 +51,10 @@ public static class ProgramExtensions
         {
             config.ServiceLifetime = ServiceLifetime.Scoped;
         });
+
+        Serilog.Log.Logger = new LoggerConfiguration()
+               .WriteTo.Console(outputTemplate: "[{Level}] {Timestamp:HH:mm:ss:ff} {Message}{NewLine}{Exception}")
+               .CreateLogger();
 
         return builder;
     }

@@ -3,6 +3,7 @@ using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Grpc.Core;
 using Quartz;
+using Serilog;
 
 namespace Application.Commands.Calculation.CalculateAll.Jobs;
 
@@ -30,8 +31,10 @@ public sealed class UpdateBondPriceJob : IJob
 
             await ProcessBondsAsync(bondsToUpdate, context.CancellationToken);
         }
-        catch
-        { }
+        catch(Exception ex)
+        {
+            Log.Error(ex, "Error in UpdateBondPriceJob");
+        }
     }
 
     private async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> TryReceiveAsync(CancellationToken token)
@@ -40,8 +43,10 @@ public sealed class UpdateBondPriceJob : IJob
         {
             return await _bondReceiver.ReceiveAsync(token);
         }
-        catch (RpcException)
+        catch (RpcException ex)
         {
+            Log.Error(ex, "RpcException in UpdateBondPriceJob, starting retries...");
+
             return await TryRetryAsync(token);
         }
     }
@@ -61,17 +66,19 @@ public sealed class UpdateBondPriceJob : IJob
 
     private async Task<IEnumerable<KeyValuePair<Ticker, StaticIncome>>> TryRetryAsync(CancellationToken token)
     {
-        var retries = 5;
-        while (retries > 0)
+        var retries = 0;
+        while (retries <= 5)
         {
             try
             {
                 return await _bondReceiver.ReceiveAsync(token);
             }
             catch
-            { }
+            {
+                Log.Warning("Retry {retry} failed", retries);
+            }
 
-            retries--;
+            retries++;
         }
 
         return Enumerable.Empty<KeyValuePair<Ticker, StaticIncome>>();

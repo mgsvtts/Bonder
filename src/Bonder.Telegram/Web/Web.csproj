@@ -6,6 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+  </ItemGroup>
+
 	<ItemGroup>
     <ProjectReference Include="..\Presentation\Presentation.csproj" />
   </ItemGroup>

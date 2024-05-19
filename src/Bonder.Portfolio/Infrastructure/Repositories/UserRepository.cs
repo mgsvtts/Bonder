@@ -36,7 +36,6 @@ public sealed class UserRepository : IUserRepository
         catch
         {
             await db.RollbackTransactionAsync(token);
-
             throw;
         }
     }
@@ -50,7 +49,7 @@ public sealed class UserRepository : IUserRepository
         .DeleteAsync(token: token);
     }
 
-    public async Task<Domain.UserAggregate.User?> GetOrCreateByIdAsync(UserId id, CancellationToken token)
+    public async Task<Domain.UserAggregate.User> GetOrCreateByIdAsync(UserId id, CancellationToken token)
     {
         using var db = new DbConnection();
 
@@ -71,7 +70,7 @@ public sealed class UserRepository : IUserRepository
             await db.InsertAsync(user, token: token);
         }
 
-        return user.Adapt<Domain.UserAggregate.User?>();
+        return user.Adapt<Domain.UserAggregate.User>();
     }
 
     public async Task<string> GetTokenAsync(UserId id, CancellationToken token)

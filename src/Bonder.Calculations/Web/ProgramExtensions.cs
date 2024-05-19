@@ -15,6 +15,7 @@ using Presentation.Filters;
 using Presentation.Grpc;
 using Quartz;
 using RateLimiter;
+using Serilog;
 using System.Threading.RateLimiting;
 using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 using Web.Extensions;
@@ -103,13 +104,17 @@ public static class ProgramExtensions
                 var bondKey = new JobKey(nameof(BackgroundBondUpdater));
 
                 configure.AddJob<UpdateBondPriceJob>(priceKey)
-                .AddTrigger(trigger => trigger.ForJob(priceKey).WithSimpleSchedule(schedule => schedule.WithInterval(TimeSpan.FromTicks(1))
+                .AddTrigger(trigger => trigger.ForJob(priceKey).WithSimpleSchedule(schedule => schedule.WithInterval(TimeSpan.FromMicroseconds(1))
                                                                                                        .RepeatForever()));
                 configure.AddJob<BackgroundBondUpdater>(bondKey)
                 .AddTrigger(trigger => trigger.ForJob(bondKey).WithCronSchedule("0 0 5 ? * * *"));
             });
             builder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
         }
+
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console(outputTemplate: "[{Level}] {Timestamp:HH:mm:ss:ff} {Message}{NewLine}{Exception}")
+            .CreateLogger();
 
         builder.Services.RegisterMapsterConfiguration();
 

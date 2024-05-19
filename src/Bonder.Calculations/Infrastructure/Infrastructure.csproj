@@ -25,10 +25,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Mapster" Version="7.4.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.3" />
-    <PackageReference Include="Tinkoff.InvestApi" Version="0.6.9" />
-	<PackageReference Include="linq2db.PostgreSQL" Version="5.4.0" />
-    <PackageReference Include="linq2db.AspNet" Version="5.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.5" />
+    <PackageReference Include="Tinkoff.InvestApi" Version="0.6.12" />
+	<PackageReference Include="linq2db.PostgreSQL" Version="5.4.1" />
+    <PackageReference Include="linq2db.AspNet" Version="5.4.1" />
   </ItemGroup>
 	
     <ItemGroup>

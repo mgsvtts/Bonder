@@ -1,5 +1,7 @@
-﻿using Domain.Exceptions;
+﻿using Ardalis.GuardClauses;
+using Domain.Exceptions;
 using Domain.UserAggregate;
+using Domain.UserAggregate.Guards;
 using Domain.UserAggregate.Repositories;
 using Mediator;
 
@@ -19,10 +21,7 @@ public sealed class RemoveClaimsCommandHandler : ICommandHandler<RemoveClaimsCom
         var requestedBy = await _userRepository.GetByUserNameAsync(request.RequestedBy, token)
         ?? throw new UserNotFoundException(request.RequestedBy.ToString());
 
-        if (!requestedBy.IsAdmin)
-        {
-            throw new AuthorizationException("You must be an admin to delete claims");
-        }
+        Guard.Against.NotAdmin(requestedBy);
 
         request = request with { Claims = request.Claims.Distinct() };
 

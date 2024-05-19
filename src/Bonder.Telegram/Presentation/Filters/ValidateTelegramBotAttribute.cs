@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Options;
+using Serilog;
 using System.Net;
 
 namespace Presentation.Filters;
@@ -30,10 +31,13 @@ public sealed class ValidateTelegramBotAttribute : TypeFilterAttribute
 
         public void OnActionExecuting(ActionExecutingContext context)
         {
-            if (IsValidRequest(context.HttpContext.Request))
+            var (token, isValid) = IsValidRequest(context.HttpContext.Request);
+            if (isValid)
             {
                 return;
             }
+
+            Log.Error("Invalid telegram token passed {telegramToken}", token);
 
             context.Result = new ObjectResult("\"X-Telegram-Bot-Api-Secret-Token\" is invalid")
             {
@@ -41,12 +45,15 @@ public sealed class ValidateTelegramBotAttribute : TypeFilterAttribute
             };
         }
 
-        private bool IsValidRequest(HttpRequest request)
+        private (string Token, bool IsValid) IsValidRequest(HttpRequest request)
         {
             var isSecretTokenProvided = request.Headers.TryGetValue("X-Telegram-Bot-Api-Secret-Token", out var secretTokenHeader);
-            if (!isSecretTokenProvided) return false;
+            if (!isSecretTokenProvided)
+            {
+                return ("", false);
+            }
 
-            return string.Equals(secretTokenHeader, _secretToken, StringComparison.Ordinal);
+            return (secretTokenHeader, string.Equals(secretTokenHeader, _secretToken, StringComparison.Ordinal));
         }
     }
 }

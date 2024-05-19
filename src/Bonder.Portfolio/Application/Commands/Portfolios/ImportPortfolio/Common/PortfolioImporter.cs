@@ -2,21 +2,13 @@
 using Bonder.Calculation.Grpc;
 using Domain.Common.Abstractions;
 using Domain.Common.Abstractions.Dto;
-using Domain.UserAggregate;
-using Domain.UserAggregate.Abstractions.Repositories;
 using Domain.UserAggregate.Entities;
 using Domain.UserAggregate.ValueObjects.Operations;
 using Domain.UserAggregate.ValueObjects.Portfolios;
 using Mapster;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
-using Shared.Domain.Common.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Application.Commands.ImportPortfolio.Common;
 public sealed partial class PortfolioImporter : IPortfolioImporter
@@ -43,7 +35,7 @@ public sealed partial class PortfolioImporter : IPortfolioImporter
         (
             new PortfolioId(Guid.NewGuid()),
             new Totals(bondsResult.Bonds.Sum(x => x.Key.Price), 0, 0, 0, 0, 0),
-            new ValidatedString(request.Name ?? $"{request.BrokerType}-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}"),
+            new PortfolioName(request.Name ?? $"{request.BrokerType}-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}"),
             PortfolioType.Exported,
             request.BrokerType,
             bondsResult.Bonds.Adapt<IEnumerable<Bond>>(),

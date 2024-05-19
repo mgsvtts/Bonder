@@ -27,7 +27,7 @@ public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, Tokens>
         }
 
         var jwtToken = _tokenGenerator.Generate(request.UserName)
-        ?? throw new AuthorizationException("Invalid Attempt!");
+        ?? throw new AuthorizationException("Invalid Attempt");
 
         await _userRepository.SetRefreshTokenAsync(request.UserName, jwtToken.RefreshToken, token);
 

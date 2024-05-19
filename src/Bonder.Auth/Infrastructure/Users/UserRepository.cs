@@ -5,7 +5,6 @@ using Infrastructure.Common;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Shared.Domain.Common.ValueObjects;
 using System.Security.Claims;
 
 namespace Infrastructure.Users;
@@ -44,7 +43,7 @@ public sealed class UserRepository : IUserRepository
         return (user, claims).Adapt<Domain.UserAggregate.User>();
     }
 
-    public async Task SetRefreshTokenAsync(ValidatedString userName, string refreshToken, CancellationToken token)
+    public async Task SetRefreshTokenAsync(UserName userName, string refreshToken, CancellationToken token)
     {
         await _db.Users
         .Where(x => x.UserName == userName.ToString())
@@ -53,7 +52,7 @@ public sealed class UserRepository : IUserRepository
         await _db.SaveChangesAsync(token);
     }
 
-    public async Task<Domain.UserAggregate.User?> GetByUserNameAsync(ValidatedString userName, CancellationToken token)
+    public async Task<Domain.UserAggregate.User?> GetByUserNameAsync(UserName userName, CancellationToken token)
     {
         var user = await _db.Users.FirstOrDefaultAsync(x => x.UserName == userName.ToString(), cancellationToken: token);
 
@@ -81,14 +80,14 @@ public sealed class UserRepository : IUserRepository
         return (user, claims).Adapt<Domain.UserAggregate.User>();
     }
 
-    public async Task<bool> IsValidUserAsync(ValidatedString userName, string password, CancellationToken token)
+    public async Task<bool> IsValidUserAsync(UserName userName, string password, CancellationToken token)
     {
         var user = await GetByUserNameInternalAsync(userName, token);
 
         return await _userManager.CheckPasswordAsync(user, password);
     }
 
-    public async Task<Domain.UserAggregate.User> AddClaimsAsync(ValidatedString userName, IEnumerable<Claim> claims, CancellationToken token)
+    public async Task<Domain.UserAggregate.User> AddClaimsAsync(UserName userName, IEnumerable<Claim> claims, CancellationToken token)
     {
         var user = await GetByUserNameInternalAsync(userName, token);
 
@@ -104,7 +103,7 @@ public sealed class UserRepository : IUserRepository
         return (user, actualClaims).Adapt<Domain.UserAggregate.User>();
     }
 
-    public async Task<Domain.UserAggregate.User> RemoveClaimsAsync(ValidatedString userName, IEnumerable<string> claims, CancellationToken token)
+    public async Task<Domain.UserAggregate.User> RemoveClaimsAsync(UserName userName, IEnumerable<string> claims, CancellationToken token)
     {
         var user = await GetByUserNameInternalAsync(userName, token);
 
@@ -117,7 +116,7 @@ public sealed class UserRepository : IUserRepository
         return (user, actualClaims).Adapt<Domain.UserAggregate.User>();
     }
 
-    private async Task<Common.Models.User> GetByUserNameInternalAsync(ValidatedString userName, CancellationToken token)
+    private async Task<Common.Models.User> GetByUserNameInternalAsync(UserName userName, CancellationToken token)
     {
         return await _db.Users.FirstOrDefaultAsync(x => x.UserName == userName.ToString(), cancellationToken: token)
         ?? throw new UserNotFoundException(userName.ToString());

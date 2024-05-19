@@ -1,7 +1,11 @@
+using Ardalis.GuardClauses;
 using Domain.Exceptions;
 using Domain.UserAggregate;
+using Domain.UserAggregate.Guards;
 using Domain.UserAggregate.Repositories;
 using Mediator;
+using Shared.Domain.Common.Guards;
+using System.Runtime.CompilerServices;
 
 namespace Application.Commands.Claims.Add;
 
@@ -19,10 +23,7 @@ public sealed class AddClaimsCommandHandler : ICommandHandler<AddClaimsCommand, 
         var requestedBy = await _userRepository.GetByIdAsync(request.RequestedBy, token)
         ?? throw new UserNotFoundException(request.RequestedBy.ToString());
 
-        if (!requestedBy.IsAdmin)
-        {
-            throw new AuthorizationException("You must be an admin to set claims");
-        }
+        Guard.Against.NotAdmin(requestedBy);
 
         request = request with { Claims = request.Claims.DistinctBy(x => x.Type) };
 
@@ -30,10 +31,8 @@ public sealed class AddClaimsCommandHandler : ICommandHandler<AddClaimsCommand, 
         ?? throw new UserNotFoundException(request.AddTo.ToString());
 
         var existingClaims = request.Claims.Where(x => user.Claims.Select(x => x.Type).Contains(x.Type));
-        if (existingClaims.Any())
-        {
-            throw new InvalidOperationException($"User {request.AddTo} already has claims: {string.Join(", ", existingClaims.Select(x => x.Value))}");
-        }
+
+        Guard.Against.Any(existingClaims, message: $"User {request.AddTo} already has claims: {string.Join(", ", existingClaims.Select(x => x.Value))}");
 
         return await _userRepository.AddClaimsAsync(request.AddTo, request.Claims, token);
     }

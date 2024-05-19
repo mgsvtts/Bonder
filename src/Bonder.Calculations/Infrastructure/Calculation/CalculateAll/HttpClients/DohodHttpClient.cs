@@ -1,4 +1,5 @@
 ﻿using Domain.BondAggreagte.Abstractions;
+using Domain.BondAggreagte.ValueObjects;
 using Domain.BondAggreagte.ValueObjects.Identities;
 using Infrastructure.Calculation.Dto.GetRating;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -17,7 +18,7 @@ public sealed class DohodHttpClient : IDohodHttpClient
         _serverUrl = serverUrl;
     }
 
-    public async Task<int?> GetBondRatingAsync(Isin isin, CancellationToken token)
+    public async Task<Rating?> GetBondRatingAsync(Isin isin, CancellationToken token)
     {
         var content = new HttpRequestMessage
         {
@@ -34,7 +35,7 @@ public sealed class DohodHttpClient : IDohodHttpClient
 
         var item = serializedResponse.FirstOrDefault(x => x?.Isin?.ToUpper() == isin.Value);
 
-        return item?.Rating != null ? int.Parse(item.Rating) : null;
+        return item?.Rating != null ? new Rating(int.Parse(item.Rating)) : null;
     }
 
     private string BuildQuery(Isin isin)

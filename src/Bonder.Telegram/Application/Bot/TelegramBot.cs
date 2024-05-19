@@ -4,6 +4,7 @@ using Application.Helpers;
 using Bonder.Calculation.Grpc;
 using Bonder.Portfolio.Grpc;
 using Mapster;
+using Serilog;
 using Stateless;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -38,5 +39,6 @@ public sealed class TelegramBot
 
     private async Task ErrorAsync(ITelegramBotClient bot, Exception exception, CancellationToken token)
     {
+        Log.Error(exception, "Error in telegram bot");
     }
 }

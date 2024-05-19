@@ -3,7 +3,6 @@ using Domain.Exceptions;
 using Domain.UserAggregate.Repositories;
 using Domain.UserAggregate.ValueObjects;
 using Mediator;
-using Shared.Domain.Common.ValueObjects;
 
 namespace Application.Commands.Refresh;
 
@@ -21,7 +20,7 @@ public sealed class RefreshTokensCommandHandler : ICommandHandler<RefreshTokensC
     public async ValueTask<Tokens> Handle(RefreshTokensCommand request, CancellationToken token)
     {
         var principal = await _tokenGenerator.ValidateTokenAsync(request.ExpiredTokens.AccessToken);
-        var userName = new ValidatedString(principal.Identity?.Name);
+        var userName = new UserName(principal.Identity?.Name);
 
         var saved = await _userRepository.GetByUserNameAsync(userName, token)
         ?? throw new UserNotFoundException(userName.ToString());

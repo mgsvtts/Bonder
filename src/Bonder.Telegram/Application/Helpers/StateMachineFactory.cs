@@ -1,8 +1,10 @@
 ﻿using Application.Bot.Dto;
+using Ardalis.GuardClauses;
 using Bonder.Calculation.Grpc;
 using Mapster;
 using Stateless;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.InteropServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -142,10 +144,7 @@ public sealed class StateMachineFactory
 
         state.Filters.PriceFrom = decimal.Parse(message.Text);
 
-        if (state.Filters.PriceFrom < 0)
-        {
-            throw new ValidationException("\"Цена от\" не может быть меньше 0");
-        }
+        Guard.Against.Negative(state.Filters.PriceFrom, message: "\"Цена от\" не может быть меньше 0");
     }
 
     private async Task GetPriceToAsync(Message message)
@@ -154,10 +153,7 @@ public sealed class StateMachineFactory
 
         state.Filters.PriceTo = decimal.Parse(message.Text);
 
-        if (state.Filters.PriceTo < 0)
-        {
-            throw new ValidationException("\"Цена до\" не может быть меньше 0");
-        }
+        Guard.Against.Negative(state.Filters.PriceTo, message: "\"Цена до\" не может быть меньше 0");
     }
 
     private async Task GetRatingFromAsync(Message message)
@@ -166,10 +162,7 @@ public sealed class StateMachineFactory
 
         state.Filters.RatingFrom = int.Parse(message.Text);
 
-        if (state.Filters.RatingFrom <= 0 || state.Filters.RatingFrom > 10)
-        {
-            throw new ValidationException("\"Рейтинг от\" не может быть меньше 0 или больше 10");
-        }
+        Guard.Against.OutOfRange(state.Filters.RatingFrom, "ratingFrom", 1, 10, "\"Рейтинг от\" не может быть меньше 0 или больше 10");
     }
 
     private async Task GetRatingToAsync(Message message)
@@ -178,10 +171,7 @@ public sealed class StateMachineFactory
 
         state.Filters.RatingTo = int.Parse(message.Text);
 
-        if (state.Filters.RatingTo <= 0 || state.Filters.RatingTo > 10)
-        {
-            throw new ValidationException("\"Рейтинг до\" не может быть меньше 0 или больше 10");
-        }
+        Guard.Against.OutOfRange(state.Filters.RatingTo, "ratingTo", 1, 10, "\"Рейтинг до\" не может быть меньше 0 или больше 10");
     }
 
     private async Task GetDateFromAsync(Message message)

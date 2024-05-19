@@ -1,6 +1,6 @@
-﻿using Domain.Common.Abstractions;
+﻿using Ardalis.GuardClauses;
+using Domain.Common.Abstractions;
 using Domain.UserAggregate.Entities;
-using Domain.UserAggregate.Exceptions;
 using Domain.UserAggregate.ValueObjects.Operations;
 using Domain.UserAggregate.ValueObjects.Portfolios;
 using Domain.UserAggregate.ValueObjects.Users;
@@ -8,6 +8,7 @@ using Infrastructure.HttpClients.Dto.GetAccounts;
 using Infrastructure.HttpClients.Dto.GetOperations;
 using Infrastructure.HttpClients.Dto.GetPortfolios;
 using Mapster;
+using Shared.Domain.Common.Guards;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
@@ -43,10 +44,7 @@ public sealed class TinkoffHttpClient : ITinkoffHttpClient
 
         var response = await _client.SendAsync(content, token);
 
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            throw new InvalidTokenException();
-        }
+        Guard.Against.Equal(response.StatusCode, HttpStatusCode.Unauthorized, "Token is invalid");
 
         response.EnsureSuccessStatusCode();
 
@@ -100,10 +98,7 @@ public sealed class TinkoffHttpClient : ITinkoffHttpClient
 
         var response = await _client.SendAsync(content, token);
 
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            throw new InvalidTokenException();
-        }
+        Guard.Against.Equal(response.StatusCode, HttpStatusCode.Unauthorized, "Token is invalid");
 
         response.EnsureSuccessStatusCode();
 

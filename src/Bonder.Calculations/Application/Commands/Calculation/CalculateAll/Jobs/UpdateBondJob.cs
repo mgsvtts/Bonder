@@ -1,5 +1,6 @@
 using Domain.BondAggreagte.Abstractions;
 using Quartz;
+using Serilog;
 
 namespace Application.Commands.Calculation.CalculateAll.Jobs;
 
@@ -21,10 +22,17 @@ public sealed class BackgroundBondUpdater : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        var couponTask = UpdateFloatingCoupons(context.CancellationToken);
-        var ratingTask = UpdateRatingAsync(context.CancellationToken);
+        try
+        {
+            var couponTask = UpdateFloatingCoupons(context.CancellationToken);
+            var ratingTask = UpdateRatingAsync(context.CancellationToken);
 
-        await Task.WhenAll(couponTask, ratingTask);
+            await Task.WhenAll(couponTask, ratingTask);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error in BackgroundBondUpdater");
+        }
     }
 
     private async Task UpdateRatingAsync(CancellationToken token)

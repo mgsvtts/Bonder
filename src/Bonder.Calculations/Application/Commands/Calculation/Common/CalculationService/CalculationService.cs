@@ -1,13 +1,12 @@
 ﻿using Application.Commands.Calculation.Common.CalculationService.Extensions;
 using Domain.BondAggreagte.Abstractions;
 using Domain.BondAggreagte.Abstractions.Dto.CalculateAll;
+using Domain.BondAggreagte.ValueObjects;
 
 namespace Application.Commands.Calculation.Common.CalculationService;
 
 public sealed class CalculationService : ICalculationService
 {
-    private const int _mixRating = 10;
-
     public CalculationResults Calculate(CalculationRequest request)
     {
         var results = new CalculationResults(request);
@@ -50,13 +49,13 @@ public sealed class CalculationService : ICalculationService
         return priceIndex + fullIncomeIndex + ratingIndex;
     }
 
-    private static int ConvertIndex(int? rating)
+    private static int ConvertIndex(Rating? rating)
     {
-        if (rating is null || rating == -1)
+        if (rating is null || rating?.Value == -1)
         {
-            return _mixRating;
+            return Rating.Max;
         }
 
-        return _mixRating - rating.Value;
+        return Rating.Max - rating.Value.Value;
     }
 }
